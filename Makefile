@@ -29,22 +29,21 @@ tex:
 	@echo "Regenerating LaTeX exports..."
 	julia --project="." scripts/regenerate_tex_exports.jl
 
-report:
-	@echo "Building Mustache templates and JSON manifest..."
-	julia --project="." scripts/build_campaign_report.jl $(TRAJECTORY_CSV)
-
-compile-report:
-	@echo "Compiling TeX document to PDF..."
-	cd reports/cases99_run && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
-	@echo "PDF generated at: reports/cases99_run/main.pdf"
-
 test:
 	julia --project="." test/runtests.jl
 
 clean:
 	find . -name "*.log" -type f -delete
 	find . -name ".DS_Store" -type f -delete
-	rm -rf .julia/
+	rm -rf .julia/logs
+
+report:
+	@echo "Building Mustache templates and JSON manifest..."
+	julia --project="." scripts/build_campaign_report.jl $(TRAJECTORY_CSV)
+
+compile-report:
+	@echo "Compiling report PDF via latexmk..."
+	cd reports/cases99_run && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
 
 purge: clean
 	@echo "Removing deep build caches and generated PDFs..."

@@ -86,4 +86,17 @@ The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuous
 
 Operationally, peaks in $\|\boldsymbol{\eta}\|$ often coincide with rapid boundary-layer reconfiguration, while entropy excursions identify windows where similarity-based single-regime assumptions are least reliable.
 
+\subsection{Information-Theoretic Manifold Complexity Evaluation}
+
+To preserve algorithmic invariance across divergent energy scales, rank truncation is enforced with a machine-precision floor criterion ($s_i \ge \epsilon_{\mathrm{mach}} s_1$). This execution yields:
+
+\begin{itemize}
+    \item Constrained modes: $N_c = {{constrained_modes}}$
+    \item Unconstrained nullspace modes: $N_0 = {{nullspace_modes}}$
+    \item Condition number: $\kappa = {{condition_number}}$
+    \item Shannon effective dimension: $D_{\mathrm{eff}} = {{mean_D_eff}}$
+\end{itemize}
+
+The entropy-derived $D_{\mathrm{eff}}$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
+
 \label{sec:attractor_{{campaign_id}}}
