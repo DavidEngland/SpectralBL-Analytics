@@ -11,7 +11,7 @@ export build_observation_operator, compute_weighted_svd, ridge_fit, calculate_sv
 Builds matrix A (m x n) mapping p-FEM structural nodes down to tower observation heights.
 Enforces an inner-layer log-law weighting rule for any heights close to the surface boundary.
 """
-function build_observation_operator(p_fem_grid::Vector{Float64}, config::CampaignConfig; von_karman::Float64=0.4)
+function build_observation_operator(p_fem_grid::Vector{Float64}, config; von_karman::Float64=0.4)
     m = length(config.tower_heights)
     n = length(p_fem_grid)
     A = zeros(m, n)
@@ -51,7 +51,7 @@ function build_observation_operator(p_fem_grid::Vector{Float64}, config::Campaig
                 A[i, idx]   = (z_right - z_effective) / dx
                 A[i, idx+1] = (z_effective - z_left) / dx
             end
-        }
+        end
     end
     return A
 end
@@ -69,12 +69,12 @@ end
 """
     ridge_fit(A, U_r, b, lambda)
 
-Extremely fast $r \\times r$ low-rank trajectory inversion.
-Solves: \\hat{\\eta} = (R^T R + \\lambda I)^{-1} R^T b where R = A * U_r
+Extremely fast r x r low-rank trajectory inversion.
+Solves: η̂ = (RᵀR + λI)⁻¹ Rᵀb where R = A * U_r
 """
 function ridge_fit(A::Matrix{Float64}, U_r::Matrix{Float64}, b::Vector{Float64}, lambda::Float64)
     R = A * U_r
-    # R^T * R forms a tiny matrix scaling exclusively with target rank (e.g. 3x3)
+    # Rᵀ * R forms a tiny matrix scaling exclusively with target rank (e.g. 3x3)
     return (R' * R + lambda * I) \ (R' * b)
 end
 

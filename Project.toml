@@ -1,6 +1,4 @@
 [deps]
-ArgParse = "c74d1192-2d9f-596a-a16f-f2884ed68894"
-CSV = "336ed68f-0bac-5ca0-8bc1-4b1ebcee0a90"
-DataFrames = "a93c66ad-7474-5183-a5c6-e72e17a0285a"
-LinearAlgebra = "37e2e46d-f83d-5349-a832-1d54716961ea"
-Mustache = "ffc61752-8b37-5391-98c7-e092149b0d19"
+ArgParse = "c7e460c6-2fb9-53a9-8c5b-16f535851c63"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
