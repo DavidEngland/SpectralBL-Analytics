@@ -8,6 +8,9 @@ data/ncar_eol_dee0099881/*.nc
 data/ncar_eol_dee0099881/*.csv
 data/gabs3/**/*.nc
 data/gabs3/**/*.csv
+data/drafts/trajectories/*.csv
+data/drafts/diagnostics_curated.csv
+drafts/sections/generated/*.tex
 
 # System and OS clutter
 .DS_Store

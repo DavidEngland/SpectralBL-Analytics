@@ -1,7 +1,7 @@
 using Printf
 using DataFrames
 
-include("scripts/DiagnosticsBaseline.jl")
+include("DiagnosticsBaseline.jl")
 
 using .DiagnosticsBaseline
 
