@@ -1,0 +1,23 @@
+# Julia tracking and environment overrides
+Manifest.toml
+.julia/
+dev/
+
+# Local data cache and links (Never commit raw NetCDF or massive CSVs)
+data/ncar_eol_dee0099881/*.nc
+data/ncar_eol_dee0099881/*.csv
+data/gabs3/**/*.nc
+data/gabs3/**/*.csv
+
+# System and OS clutter
+.DS_Store
+Thumbs.db
+
+# TeX logs and engine outputs generated during report compilation
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.pdf
+!data/drafts/figures/*.pdf  # Keep explicit manuscript figures if tracked manually
