@@ -81,6 +81,28 @@ make report
 make compile-report
 ```
 
+Shortcut for the canonical Cabauw/GABLS3 workflow:
+
+```bash
+make cabauw-report
+```
+
+Dedicated campaign report targets:
+
+```bash
+make cases99-report
+make gabls3-report
+```
+
+Campaign-scoped variants:
+
+```bash
+make process CAMPAIGN=GABLS3
+make report CAMPAIGN=GABLS3
+make process CAMPAIGN=CASES-99
+make report CAMPAIGN=CASES-99
+```
+
 Artifacts produced:
 
 1. `data/drafts/trajectories/trajectory_master.csv`
@@ -89,7 +111,9 @@ Artifacts produced:
 4. `data/outputs/report_manifest.json`
 5. `reports/cases99_run/generated/attractor.tex`
 6. `reports/cases99_run/generated/regime.tex`
-7. `reports/cases99_run/main.pdf`
+7. `reports/cases99_run/CASES-99.pdf` for `CAMPAIGN=CASES-99`
+8. `reports/gabls3_run/GABLS3.pdf` for `CAMPAIGN=GABLS3`
+9. `reports/all_run/main.pdf` for mixed (`CAMPAIGN=ALL`) runs
 
 ## Make Targets
 
@@ -98,10 +122,13 @@ Run `make help` for the latest command list. Core targets:
 1. `make init` - instantiate and precompile Julia environment
 2. `make process` - run campaign diagnostics extraction
 3. `make tex` - regenerate manuscript macro exports
-4. `make report` - build report sections from trajectory CSV
+4. `make report` - build report sections from trajectory CSV (expects `.csv`, not `.nc`; supports `CAMPAIGN=GABLS3|CASES-99|ALL`, default `ALL`)
 5. `make compile-report` - compile PDF report
-6. `make clean` - remove logs and temporary runtime files
-7. `make purge` - deep clean report/data build artifacts
+6. `make cabauw-report` - run `process -> tex -> report -> compile-report` with `CAMPAIGN=GABLS3`
+7. `make cases99-report` - run full pipeline with `CAMPAIGN=CASES-99` and emit `CASES-99.pdf`
+8. `make gabls3-report` - run full pipeline with `CAMPAIGN=GABLS3` and emit `GABLS3.pdf`
+9. `make clean` - remove logs and temporary runtime files
+10. `make purge` - deep clean report/data build artifacts
 
 ## Notes on Scientific Interpretation
 

@@ -24,8 +24,49 @@ end
 
 const REGISTRY = [
     ReportDefinition("attractor", "templates/attractor_report.tex.mustache", "generated/attractor.tex"),
-    ReportDefinition("regime", "templates/regime_decomposition.tex.mustache", "generated/regime.tex")
+    ReportDefinition("regime", "templates/regime_decomposition.tex.mustache", "generated/regime.tex"),
+    ReportDefinition("conclusions", "templates/conclusions_and_diagnostics.tex.mustache", "generated/conclusions_and_diagnostics.tex")
 ]
+
+function scatter_downsample_rate(campaign::Union{Nothing,String})
+    # CASES-99 has far denser trajectories; use stronger downsampling for robust pgfplots compiles.
+    if campaign == "CASES-99"
+        return 20
+    end
+    return 10
+end
+
+function report_dir_for_campaign(campaign::Union{Nothing,String})
+    if campaign === nothing
+        return "all_run"
+    elseif campaign == "CASES-99"
+        return "cases99_run"
+    elseif campaign == "GABLS3"
+        return "gabls3_run"
+    end
+
+    # Fallback: sanitize arbitrary campaign labels into a stable folder name.
+    safe = lowercase(replace(campaign, r"[^A-Za-z0-9]+" => "_"))
+    safe = strip(safe, '_')
+    isempty(safe) && (safe = "campaign")
+    return "$(safe)_run"
+end
+
+function ensure_report_workspace(report_run_dir::String, workspace_dir::String)
+    mkpath(report_run_dir)
+    mkpath(joinpath(report_run_dir, "generated"))
+    mkpath(joinpath(report_run_dir, "tikz-cache"))
+
+    main_tex = joinpath(report_run_dir, "main.tex")
+    if !isfile(main_tex)
+        base_main = joinpath(workspace_dir, "reports", "cases99_run", "main.tex")
+        if !isfile(base_main)
+            error("Missing base TeX template: $(base_main)")
+        end
+        cp(base_main, main_tex; force=true)
+        @info "Bootstrapped report workspace from $(base_main) -> $(main_tex)"
+    end
+end
 
 """
     compute_refined_metrics(df::DataFrame)
@@ -78,34 +119,57 @@ end
 Main orchestration entry point. Coordinates data extraction, manifest generation,
 and Mustache template rendering.
 """
-function execute_orchestration(trajectory_csv::String, workspace_dir::String)
+function execute_orchestration(
+    trajectory_csv::String,
+    workspace_dir::String;
+    campaign::Union{Nothing,String}=nothing,
+)
     
     if !isfile(trajectory_csv)
         error("Trajectory CSV not found: $(trajectory_csv)")
     end
+    if endswith(lowercase(trajectory_csv), ".nc")
+        error(
+            "build_campaign_report.jl expects a trajectory CSV, not NetCDF: $(trajectory_csv). " *
+            "Run `make process` first to generate data/drafts/trajectories/trajectory_master.csv, " *
+            "then run `make report` or `make cabauw-report`."
+        )
+    end
+    if !endswith(lowercase(trajectory_csv), ".csv")
+        error("Expected a .csv trajectory input, got: $(trajectory_csv)")
+    end
     
     data_out_dir = joinpath(workspace_dir, "data", "outputs")
-    report_run_dir = joinpath(workspace_dir, "reports", "cases99_run")
-    
-    # 1. Extract raw trajectory matrices down to structural tables
+    report_run_dir = joinpath(workspace_dir, "reports", report_dir_for_campaign(campaign))
+
+    # 1. Compute refined Phase 1.5 diagnostics from active trajectory table.
+    df_master = CSV.read(trajectory_csv, DataFrame)
+    if campaign !== nothing
+        df_master = filter(:campaign => ==(campaign), df_master)
+        isempty(df_master) && error("No rows found for campaign=$(campaign) in $(trajectory_csv)")
+    end
+    refined = compute_refined_metrics(df_master)
+
+    # 2. Extract raw trajectory matrices down to structural tables and write manifest.
     @info "==> Extracting CSV summaries and computing manifest..."
-    export_result = extract_csv_summaries(trajectory_csv, data_out_dir; downsample_rate=10)
-    
-    # 2. Parse the fresh JSON manifest context metrics
+    export_result = extract_csv_summaries(
+        trajectory_csv,
+        data_out_dir;
+        downsample_rate=scatter_downsample_rate(campaign),
+        campaign=campaign,
+        refined_metrics=refined,
+    )
+
+    # 3. Parse the fresh JSON manifest context metrics
     manifest_file = joinpath(data_out_dir, "report_manifest.json")
     manifest = JSON3.read(read(manifest_file, String))
-
-    # 2b. Compute refined Phase 1.5 diagnostics directly from active trajectory table
-    df_master = CSV.read(trajectory_csv, DataFrame)
-    refined = compute_refined_metrics(df_master)
     
-    # 3. Create execution directories
-    mkpath(joinpath(report_run_dir, "generated"))
-    mkpath(joinpath(report_run_dir, "tikz-cache"))
+    # 4. Create execution directories
+    ensure_report_workspace(report_run_dir, workspace_dir)
     
     @info "==> Rendering Mustache templates..."
     
-    # 4. Generate portable .tex components
+    # 5. Generate portable .tex components
     for report in REGISTRY
         
         full_tex_target = joinpath(report_run_dir, report.output_tex_path)
@@ -120,21 +184,34 @@ function execute_orchestration(trajectory_csv::String, workspace_dir::String)
             "campaign_name"           => manifest["campaign"],
             "campaign_id"             => lowercase(manifest["campaign"]),
             "campaign"                => manifest["campaign"],
+            "is_gabls3"               => manifest["campaign"] == "GABLS3",
+            "is_cases99"              => manifest["campaign"] == "CASES-99",
             "baseline_version"        => manifest["baseline_version"],
             "baseline_source"         => manifest["baseline_source"],
-            "samples"                 => string(manifest["samples"]),
-            "mean_entropy"            => @sprintf("%.3f", manifest["mean_sv_entropy"]),
-            "mean_eta_1"              => @sprintf("%.3f", export_result.mean_eta1),
-            "mean_eta_2"              => @sprintf("%.3f", export_result.mean_eta2),
-            "mean_eta_3"              => @sprintf("%.3f", export_result.mean_eta3),
-            "temporal_coverage_hours" => @sprintf("%.1f", manifest["temporal_coverage_seconds"] / 3600.0),
+            "total_samples"           => string(manifest["total_samples"]),
+            "h_mean"                  => @sprintf("%.3f", manifest["h_mean"]),
+            "mean_eta_1"              => @sprintf("%.3f", manifest["mean_eta_1"]),
+            "mean_eta_2"              => @sprintf("%.3f", manifest["mean_eta_2"]),
+            "mean_eta_3"              => @sprintf("%.3f", manifest["mean_eta_3"]),
+            "n_0"                     => string(manifest["n_0"]),
+            "n_c"                     => string(manifest["n_c"]),
+            "temporal_coverage"       => @sprintf("%.1f", manifest["temporal_coverage"]),
+            "temporal_coverage_hours" => @sprintf("%.1f", manifest["temporal_coverage"]),
             "csv_trajectory_path"     => rel_traj,
             "csv_scatter_path"        => rel_scat,
-            "mean_D_eff"              => @sprintf("%.4f", refined.d_eff),
-            "constrained_modes"       => string(refined.constrained_modes),
-            "nullspace_modes"         => string(refined.nullspace_modes),
-            "condition_number"        => isfinite(refined.condition_number) ? @sprintf("%.2f", refined.condition_number) : "inf",
-            "interaction_residual"    => @sprintf("%.6f", refined.interaction_residual)
+            "csv_trajectory_path_tex" => "{" * rel_traj * "}",
+            "csv_scatter_path_tex"    => "{" * rel_scat * "}",
+            "d_eff"                   => @sprintf("%.4f", manifest["d_eff"]),
+            "constrained_modes"       => string(manifest["n_c"]),
+            "nullspace_modes"         => string(manifest["n_0"]),
+            "condition_num"           => isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf",
+            "interaction_proxy"       => String(manifest["interaction_proxy"]),
+            # Legacy aliases kept for template compatibility during migration.
+            "samples"                 => string(manifest["total_samples"]),
+            "mean_entropy"            => @sprintf("%.3f", manifest["h_mean"]),
+            "mean_D_eff"              => @sprintf("%.4f", manifest["d_eff"]),
+            "condition_number"        => isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf",
+            "interaction_residual"    => String(manifest["interaction_proxy"])
         )
         
         @info "Rendering template: $(report.name) -> $(full_tex_target)"
@@ -159,16 +236,18 @@ if abspath(PROGRAM_FILE) == @__FILE__
     
     if length(ARGS) < 1
         error("""
-        Usage: julia scripts/build_campaign_report.jl <trajectory_csv_path>
+            Usage: julia scripts/build_campaign_report.jl <trajectory_csv_path> [CAMPAIGN]
         
         Example:
-          julia scripts/build_campaign_report.jl data/drafts/diagnostories/trajectory_master.csv
+                julia scripts/build_campaign_report.jl data/drafts/trajectories/trajectory_master.csv GABLS3
         """)
     end
     
     csv_path = ARGS[1]
+    campaign_arg = length(ARGS) >= 2 ? String(strip(ARGS[2])) : "ALL"
+    campaign_filter = uppercase(campaign_arg) == "ALL" ? nothing : campaign_arg
     workspace_root = pwd()  # Use current working directory (should be project root)
     
-    execute_orchestration(csv_path, workspace_root)
+    execute_orchestration(csv_path, workspace_root; campaign=campaign_filter)
     
 end

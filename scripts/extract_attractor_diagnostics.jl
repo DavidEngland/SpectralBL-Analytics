@@ -14,6 +14,18 @@ using LinearAlgebra
 include("DiagnosticsBaseline.jl")
 using .DiagnosticsBaseline
 
+function parse_campaign_arg(arg::String)
+    normalized = uppercase(strip(arg))
+    if normalized == "ALL"
+        return [:CASES_99, :GABLS3]
+    elseif normalized in ("CASES-99", "CASES_99")
+        return [:CASES_99]
+    elseif normalized == "GABLS3"
+        return [:GABLS3]
+    end
+    error("Unsupported campaign selector: $(arg). Use ALL, CASES-99, or GABLS3.")
+end
+
 println("=================================================================")
 println("   RUNNING ATTRACTOR DIAGNOSTICS & P-FEM GEOMETRY GENERATION")
 println("=================================================================\n")
@@ -36,7 +48,11 @@ rows = DataFrame(
     baseline_source=String[],
 )
 
-for campaign in [:CASES_99, :GABLS3]
+campaign_selector = length(ARGS) >= 1 ? ARGS[1] : "ALL"
+campaigns_to_run = parse_campaign_arg(campaign_selector)
+println("Campaign selector: $(campaign_selector)")
+
+for campaign in campaigns_to_run
     # Fetch campaign parameters
     config = get_campaign_geometry(campaign)
     println("Processing Configuration Target: $(config.name)")

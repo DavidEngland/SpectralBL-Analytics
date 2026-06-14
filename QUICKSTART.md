@@ -24,6 +24,21 @@ make report
 make compile-report
 ```
 
+Shortcut for the canonical Cabauw/GABLS3 report path:
+
+```bash
+make cabauw-report
+```
+
+This shortcut forces `CAMPAIGN=GABLS3` so report artifacts are Cabauw-only.
+
+Dedicated report targets:
+
+```bash
+make cases99-report
+make gabls3-report
+```
+
 ## 4. Primary Outputs
 
 1. Master trajectory CSV:
@@ -37,7 +52,9 @@ make compile-report
    1. `reports/cases99_run/generated/attractor.tex`
    2. `reports/cases99_run/generated/regime.tex`
 5. Final report PDF:
-   `reports/cases99_run/main.pdf`
+   `reports/cases99_run/CASES-99.pdf` for CASES-99 runs
+   `reports/gabls3_run/GABLS3.pdf` for GABLS3 runs
+   `reports/all_run/main.pdf` for mixed `CAMPAIGN=ALL` runs
 
 ## 5. Run Just Report Layer (No Re-extraction)
 
@@ -50,6 +67,15 @@ make compile-report
 
 ```bash
 make report TRAJECTORY_CSV=data/drafts/trajectories/trajectory_master.csv
+```
+
+Note: `make report` expects a CSV produced by the extraction stage. Do not pass a `.nc` file directly.
+
+Use campaign scoping when needed:
+
+```bash
+make process CAMPAIGN=GABLS3
+make report CAMPAIGN=GABLS3
 ```
 
 ## 7. Verify Compile Health

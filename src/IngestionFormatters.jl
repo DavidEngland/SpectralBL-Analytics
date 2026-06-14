@@ -6,7 +6,7 @@ using NCDatasets
 using Dates
 using Statistics
 
-export CampaignConfig, get_campaign_geometry, load_campaign_samples
+export CampaignConfig, get_campaign_geometry, load_campaign_samples, inspect_netcdf_vertical_coverage
 
 """
     CampaignConfig
@@ -100,13 +100,21 @@ function read_gabls_netcdf(path::String, config::CampaignConfig, pfem_grid::Vect
 
         n_time = min(size(z_mat, 2), size(u_mat, 2), length(time_values))
         out = CampaignSample[]
+        two_level_count = 0
+        three_plus_count = 0
 
         for t in 1:n_time
             z_t = Vector{Float64}(z_mat[:, t])
             u_t = Vector{Float64}(u_mat[:, t])
 
             valid_pairs = isfinite.(z_t) .& isfinite.(u_t)
-            if count(valid_pairs) < 2
+            n_valid = count(valid_pairs)
+            if n_valid == 2
+                two_level_count += 1
+            elseif n_valid >= 3
+                three_plus_count += 1
+            end
+            if n_valid < 2
                 continue
             end
 
@@ -137,7 +145,63 @@ function read_gabls_netcdf(path::String, config::CampaignConfig, pfem_grid::Vect
             push!(out, CampaignSample(path, normalize_time_value(time_values[t]), tower_vector, grid_vector))
         end
 
+        if !isempty(out) && two_level_count > three_plus_count
+            @warn "Campaign ingestion dominated by 2-level profiles; eta_3 interpretation may be weak." path two_level_count three_plus_count
+        end
+
         return out
+    finally
+        close(ds)
+    end
+end
+
+"""
+    inspect_netcdf_vertical_coverage(path; z_candidates=..., u_candidates=...)
+
+Inspect vertical profile coverage in a NetCDF file and report whether it has
+enough finite (z, u) pairs per timestep for stable low-rank diagnostics.
+"""
+function inspect_netcdf_vertical_coverage(
+    path::String;
+    z_candidates::Vector{Symbol}=[:zh, :zf, :zt, :z, :height],
+    u_candidates::Vector{Symbol}=[:uw, :u, :U, :v],
+)
+    if !isfile(path)
+        error("Missing netCDF file: $(path)")
+    end
+
+    ds = NCDataset(path)
+    try
+        z_values = read_variable(ds, z_candidates)
+        u_values = read_variable(ds, u_candidates)
+
+        z_mat = to_level_time_matrix(z_values)
+        u_mat = to_level_time_matrix(u_values)
+        n_time = min(size(z_mat, 2), size(u_mat, 2))
+
+        valid_counts = Int[]
+        for t in 1:n_time
+            z_t = Vector{Float64}(z_mat[:, t])
+            u_t = Vector{Float64}(u_mat[:, t])
+            push!(valid_counts, count(isfinite.(z_t) .& isfinite.(u_t)))
+        end
+
+        two_level = count(==(2), valid_counts)
+        three_plus = count(>=(3), valid_counts)
+        one_or_zero = count(<=(1), valid_counts)
+
+        return (
+            path = path,
+            n_time = n_time,
+            min_valid_pairs = minimum(valid_counts),
+            median_valid_pairs = median(valid_counts),
+            max_valid_pairs = maximum(valid_counts),
+            two_level_timesteps = two_level,
+            three_plus_timesteps = three_plus,
+            one_or_zero_timesteps = one_or_zero,
+            viable_for_interpolation = three_plus > 0 || two_level > 0,
+            robust_for_eta3 = three_plus > 0,
+        )
     finally
         close(ds)
     end

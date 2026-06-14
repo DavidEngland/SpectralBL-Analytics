@@ -6,18 +6,18 @@
 
 \subsection{Overview}
 
-The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ {{campaign}} } using the {{baseline_version}} baseline.
+The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ GABLS3 } using the v0.1 baseline.
 
 \begin{description}
-    \item[Campaign:] {{campaign}}
-    \item[Baseline Version:] {{baseline_version}}
-    \item[Total Samples:] {{total_samples}}
-    \item[Mean Entropy:] $H_{\text{mean}} = {{h_mean}}$
+    \item[Campaign:] GABLS3
+    \item[Baseline Version:] v0.1
+    \item[Total Samples:] 144
+    \item[Mean Entropy:] $H_{\text{mean}} = 0.755$
 \end{description}
 
 \subsection{3D Phase Space Projection}
 
-Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
+Figure~\ref{fig:attractor_GABLS3} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
 
 \begin{figure}[htbp]
     \centering
@@ -30,7 +30,7 @@ Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional traject
             xlabel={$\eta_1$},
             ylabel={$\eta_2$},
             zlabel={$\eta_3$},
-            title={Low-Rank Attractor Trajectory (\texttt{ {{campaign}} })},
+            title={Low-Rank Attractor Trajectory (\texttt{ GABLS3 })},
             colormap/viridis,
             colorbar,
             point meta=explicit,
@@ -50,11 +50,11 @@ Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional traject
                 y=eta_2,
                 z=eta_3,
                 meta=sv_entropy
-            ] {{{csv_scatter_path_tex}}};
+            ] {../../data/outputs/regime_scatterplots_gabls3.csv};
         \end{axis}
     \end{tikzpicture}
     \caption{3D attractor state trajectory colored by singular value entropy.}
-    \label{fig:attractor_{{campaign}}}
+    \label{fig:attractor_GABLS3}
 \end{figure}
 
 \subsection{Physical Coordinate Interpretation}
@@ -78,9 +78,9 @@ This phase-space view acts as the compressed state engine of the atmospheric bou
 
 The mean low-rank coefficients across all samples are:
 \begin{align}
-    \langle \eta_1 \rangle &= {{mean_eta_1}} \\
-    \langle \eta_2 \rangle &= {{mean_eta_2}} \\
-    \langle \eta_3 \rangle &= {{mean_eta_3}}
+    \langle \eta_1 \rangle &= 0.151 \\
+    \langle \eta_2 \rangle &= 0.076 \\
+    \langle \eta_3 \rangle &= 0.044
 \end{align}
 
 The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
@@ -92,12 +92,12 @@ Operationally, peaks in $\|\boldsymbol{\eta}\|$ often coincide with rapid bounda
 To preserve algorithmic invariance across divergent energy scales, rank truncation is enforced with a machine-precision floor criterion ($s_i \ge \epsilon_{\text{mach}} s_1$). This execution yields:
 
 \begin{itemize}
-    \item \textbf{Constrained modes:} $N_c = {{constrained_modes}}$
-    \item \textbf{Unconstrained nullspace modes:} $N_0 = {{nullspace_modes}}$
-    \item \textbf{Condition number:} $\kappa = {{condition_num}}$
-    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = {{d_eff}}$
+    \item \textbf{Constrained modes:} $N_c = 3$
+    \item \textbf{Unconstrained nullspace modes:} $N_0 = 0$
+    \item \textbf{Condition number:} $\kappa = 4.37$
+    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = 2.5398$
 \end{itemize}
 
 The entropy-derived $D_{\text{eff}}$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
 
-\label{sec:attractor_{{campaign}}}
+\label{sec:attractor_GABLS3}

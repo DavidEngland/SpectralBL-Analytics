@@ -17,17 +17,17 @@ The decomposition of the boundary layer into regimes relies on the spectral prop
 \subsection{Campaign Context}
 
 \begin{itemize}
-    \item \textbf{Campaign:} {{campaign_name}}
-    \item \textbf{Baseline:} {{baseline_version}} ({{baseline_source}})
-    \item \textbf{Temporal Coverage:} {{temporal_coverage_hours}} hours
-    \item \textbf{Sample Count:} {{total_samples}} observations
+    \item \textbf{Campaign:} GABLS3
+    \item \textbf{Baseline:} v0.1 (spectralbl-attractor)
+    \item \textbf{Temporal Coverage:} 23.8 hours
+    \item \textbf{Sample Count:} 144 observations
 \end{itemize}
 
 \subsection{Entropy Evolution}
 
 The mean singular value entropy for this campaign is:
 \[
-    H_{\text{mean}} = {{h_mean}}
+    H_{\text{mean}} = 0.755
 \]
 
 This value reflects the typical balance between coherent, low-dimensional structure and multi-scale turbulent activity. Nocturnal periods show reduced entropy (stratified regime), while daytime transitions display elevated entropy (mixing regime).
@@ -48,7 +48,7 @@ The spectral curvature metric $\chi_N$ addresses this by tracking geometric stru
 
 When $\mathrm{Ri}_g$ exceeds the critical threshold of $0.25$, classical surface-layer similarity theory predicts that continuous turbulence should collapse entirely. In practice, $\mathrm{Ri}_g$ then saturates and becomes uninformative at precisely the moment when the boundary layer is most structurally active---dominated by intermittent bursting, gravity-wave excitation, and slow turbulent kinetic energy decay that gradient metrics cannot resolve.
 
-The scatter plot shown in Figure~\ref{fig:spectral_orthogonality_{{campaign_id}}} demonstrates this directly. While $\mathrm{Ri}_g$ stalls at high values, the vertical coordinate $\eta_3$ remains dynamically resolved throughout the same stability range, mapping the active wave field and intermittent bursting events that $\mathrm{Ri}_g$ misses entirely.
+The scatter plot shown in Figure~\ref{fig:spectral_orthogonality_gabls3} demonstrates this directly. While $\mathrm{Ri}_g$ stalls at high values, the vertical coordinate $\eta_3$ remains dynamically resolved throughout the same stability range, mapping the active wave field and intermittent bursting events that $\mathrm{Ri}_g$ misses entirely.
 
 Scientific interpretation of orthogonality:
 \begin{itemize}
@@ -66,7 +66,7 @@ Scientific interpretation of orthogonality:
             grid=major,
             xlabel={$\eta_1$},
             ylabel={$\eta_2$},
-            title={Spectral Orthogonality Projection ({{campaign_name}})},
+            title={Spectral Orthogonality Projection (GABLS3)},
             colormap/plasma,
             colorbar,
             point meta=explicit,
@@ -85,11 +85,11 @@ Scientific interpretation of orthogonality:
                 x=eta_1,
                 y=eta_2,
                 meta=eta_3
-            ] {{{csv_scatter_path_tex}}};
+            ] {../../data/outputs/regime_scatterplots_gabls3.csv};
         \end{axis}
     \end{tikzpicture}
     \caption{Projected attractor coordinates with orthogonality structure visualized via $\eta_3$ color encoding.}
-    \label{fig:spectral_orthogonality_{{campaign_id}}}
+    \label{fig:spectral_orthogonality_gabls3}
 \end{figure}
 
 \subsection{Non-Orthogonal Scale Coupling Accounts}
@@ -98,7 +98,7 @@ Because smooth partition-of-unity masks ($\psi_M,\psi_W,\psi_T$) retain localize
 
 For this execution, the off-diagonal interaction proxy is
 \[
-\mathcal{I}_{ij} = {{interaction_proxy}}.
+\mathcal{I}_{ij} = 0.000000.
 \]
 
 This term is tracked to quantify cross-regime leakage (wave-turbulence exchange) during active stratification shifts and to preserve auditability of coupling behavior in the reduced-order representation.
@@ -106,4 +106,4 @@ This term is tracked to quantify cross-regime leakage (wave-turbulence exchange)
 \paragraph{Assumption Note}
 Here $\mathcal{I}_{ij}$ is a variability proxy derived from entropy dynamics, not a closed-form energetic decomposition term; it is intended for comparative run diagnostics rather than absolute budget closure.
 
-\label{sec:regime_{{campaign_id}}}
+\label{sec:regime_gabls3}
