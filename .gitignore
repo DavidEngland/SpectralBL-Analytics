@@ -10,7 +10,17 @@ data/gabs3/**/*.nc
 data/gabs3/**/*.csv
 data/drafts/trajectories/*.csv
 data/drafts/diagnostics_curated.csv
+data/outputs/*.csv
+data/outputs/*.json
 drafts/sections/generated/*.tex
+
+# Report compilation artifacts and caches
+reports/cases99_run/generated/*.tex
+reports/cases99_run/tikz-cache/**
+reports/cases99_run/*.pdf
+reports/cases99_run/*.aux
+reports/cases99_run/*.fls
+reports/cases99_run/*.fdb_latexmk
 
 # System and OS clutter
 .DS_Store

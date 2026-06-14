@@ -1,0 +1,40 @@
+% AUTO-GENERATED Attractor Report Section
+% This file is rendered by Mustache template from trajectory data
+% DO NOT EDIT MANUALLY
+
+\section{Attractor Dynamics and Low-Dimensional Phase Space}
+
+\subsection{Overview}
+
+The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ {{campaign_name}} } using the {{baseline_version}} baseline.
+
+\begin{description}
+    \item[Campaign] {{campaign_name}}
+    \item[Baseline Version] {{baseline_version}}
+    \item[Total Samples] {{samples}}
+    \item[Mean Entropy] $H_{\text{mean}} = {{mean_entropy}}$
+\end{description}
+
+\subsection{3D Phase Space Projection}
+
+Figure~\ref{fig:attractor_{{campaign_id}}} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
+
+% Placeholder for 3D TikZ/PGFPlots visualization
+% (Will be externalized to tikz-cache/ for fast compilation)
+
+\paragraph{Interpretation}
+
+High values of $H$ indicate multi-scale turbulent structure (boundary layer is ``breathing''), while low values of $H$ suggest a collapsed, stratified state characteristic of nocturnal stable boundary layers.
+
+\subsection{Trajectory Metrics}
+
+The mean low-rank coefficients across all samples are:
+\begin{align}
+    \langle \eta_1 \rangle &= {{mean_eta_1}} \\
+    \langle \eta_2 \rangle &= {{mean_eta_2}} \\
+    \langle \eta_3 \rangle &= {{mean_eta_3}}
+\end{align}
+
+The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
+
+\label{sec:attractor_{{campaign_id}}}

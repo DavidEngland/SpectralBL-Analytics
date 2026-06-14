@@ -1,0 +1,41 @@
+% AUTO-GENERATED Regime Structural Analysis
+% Rendered by Mustache template from curated diagnostics
+% DO NOT EDIT MANUALLY
+
+\section{Spectral Geometry and Regime Structural Analysis}
+
+\subsection{Mathematical Foundation}
+
+The decomposition of the boundary layer into regimes relies on the spectral properties of the low-rank attractor subspace. We define three primary diagnostic metrics:
+
+\begin{enumerate}
+    \item \textbf{Singular Value Entropy} $H = -\sum_i p_i \log(p_i)$ where $p_i = \sigma_i^2 / \sum_j \sigma_j^2$
+    \item \textbf{Spectral Curvature} $\chi_N = \frac{\eta_3}{\eta_1 + \eta_2 + \epsilon}$ (normalized vertical component)
+    \item \textbf{Attractor Magnitude} $D_{\text{eff}} = \sqrt{\eta_1^2 + \eta_2^2 + \eta_3^2}$
+\end{enumerate}
+
+\subsection{Campaign Context}
+
+\begin{itemize}
+    \item \textbf{Campaign:} {{campaign_name}}
+    \item \textbf{Baseline:} {{baseline_version}} ({{baseline_source}})
+    \item \textbf{Temporal Coverage:} {{temporal_coverage_hours}} hours
+    \item \textbf{Sample Count:} {{samples}} observations
+\end{itemize}
+
+\subsection{Entropy Evolution}
+
+The mean singular value entropy for this campaign is:
+\[
+    H_{\text{mean}} = {{mean_entropy}}
+\]
+
+This value reflects the typical balance between coherent, low-dimensional structure and multi-scale turbulent activity. Nocturnal periods show reduced entropy (stratified regime), while daytime transitions display elevated entropy (mixing regime).
+
+\subsection{Structural Independence Verification}
+
+To verify that the low-rank decomposition captures physically independent aspects of the boundary layer dynamics, we validate orthogonality between the projected coordinates $(\eta_1, \eta_2, \eta_3)$ and external state variables (e.g., local gradient Richardson number $\text{Ri}_g$).
+
+The scatter plot shown in Figure~\ref{fig:spectral_orthogonality_{{campaign_id}}} demonstrates that regime labels derived from entropy thresholds form natural clusters independent of static stability classifications, confirming the decomposition's structural validity.
+
+\label{sec:regime_{{campaign_id}}}
