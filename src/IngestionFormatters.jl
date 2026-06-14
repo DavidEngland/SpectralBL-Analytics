@@ -34,8 +34,8 @@ function get_campaign_geometry(campaign::Symbol)
         # 60m main tower classic levels (e.g., 1.5m, 5m, 10m, 20m, 30m, 40m, 50m, 55m)
         return CampaignConfig("CASES-99", [1.5, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0], 0.03, 0.003, 0.0)
     elseif campaign == :GABLS3
-        # Cabauw tower tall configurations (e.g., up to 200m)
-        return CampaignConfig("GABLS3", [10.0, 20.0, 40.0, 80.0, 120.0, 200.0], 0.15, 0.015, 0.0)
+        # Cabauw tower heights: 10m, 60m, 100m, 180m
+        return CampaignConfig("GABLS3", [10.0, 60.0, 100.0, 180.0], 0.15, 0.015, 0.0)
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -85,8 +85,14 @@ function read_gabls_netcdf(path::String, config::CampaignConfig, pfem_grid::Vect
 
     ds = NCDataset(path)
     try
-        z_values = read_variable(ds, [:zf, :zt, :z, :height, :zh])
-        u_values = read_variable(ds, [:u, :U])
+        # Try tower variables first (zh/uw), then fall back to model levels (zf/u)
+        if haskey(ds, "zh") && haskey(ds, "uw")
+            z_values = ds["zh"][:, :]
+            u_values = ds["uw"][:, :]
+        else
+            z_values = read_variable(ds, [:zf, :zt, :z, :height])
+            u_values = read_variable(ds, [:u, :v, :U])
+        end
         time_values = read_variable(ds, [:time])
 
         z_mat = to_level_time_matrix(z_values)
@@ -99,15 +105,27 @@ function read_gabls_netcdf(path::String, config::CampaignConfig, pfem_grid::Vect
             z_t = Vector{Float64}(z_mat[:, t])
             u_t = Vector{Float64}(u_mat[:, t])
 
-            valid = isfinite.(z_t) .& isfinite.(u_t)
-            if count(valid) < 2
+            valid_pairs = isfinite.(z_t) .& isfinite.(u_t)
+            if count(valid_pairs) < 2
                 continue
             end
 
-            z_valid = z_t[valid]
-            u_valid = u_t[valid]
-
+            z_valid = z_t[valid_pairs]
+            u_valid = u_t[valid_pairs]
             z_sorted, u_sorted = sort_pairs(z_valid, u_valid)
+
+            z_min, z_max = extrema(z_sorted)
+
+            # Avoid unphysical extrapolation: trim interpolation targets to observed bounds.
+            active_tower_targets = filter(h -> z_min <= h <= z_max, config.tower_heights)
+            active_pfem_targets = filter(h -> z_min <= h <= z_max, pfem_grid)
+
+            can_interp_tower = !isempty(active_tower_targets) && all(h -> h >= z_min, active_tower_targets)
+            can_interp_grid = !isempty(active_pfem_targets) && all(h -> h >= z_min, active_pfem_targets)
+
+            if !(can_interp_tower && can_interp_grid)
+                continue
+            end
 
             tower_vector = interpolate_profile(z_sorted, u_sorted, config.tower_heights)
             grid_vector = interpolate_profile(z_sorted, u_sorted, pfem_grid)

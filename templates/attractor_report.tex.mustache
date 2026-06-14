@@ -19,12 +19,59 @@ The boundary layer is analyzed as a low-dimensional dynamical system through pro
 
 Figure~\ref{fig:attractor_{{campaign_id}}} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
 
-% Placeholder for 3D TikZ/PGFPlots visualization
-% (Will be externalized to tikz-cache/ for fast compilation)
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.9\textwidth,
+            height=0.52\textwidth,
+            view={45}{24},
+            grid=major,
+            xlabel={$\eta_1$},
+            ylabel={$\eta_2$},
+            zlabel={$\eta_3$},
+            title={Low-Rank Attractor Trajectory ({{campaign_name}})},
+            colormap/viridis,
+            colorbar,
+            point meta=explicit,
+            colorbar style={title={$H(t)$}},
+            mark size=1.6pt,
+            tick label style={font=\small},
+            label style={font=\small},
+            title style={font=\small}
+        ]
+            \addplot3[
+                only marks,
+                scatter,
+                scatter src=explicit
+            ] table[
+                col sep=comma,
+                x=eta_1,
+                y=eta_2,
+                z=eta_3,
+                meta=sv_entropy
+            ]{../../data/outputs/regime_scatterplots.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{3D attractor state trajectory colored by singular value entropy.}
+    \label{fig:attractor_{{campaign_id}}}
+\end{figure}
 
 \paragraph{Interpretation}
 
-High values of $H$ indicate multi-scale turbulent structure (boundary layer is ``breathing''), while low values of $H$ suggest a collapsed, stratified state characteristic of nocturnal stable boundary layers.
+This phase-space view is the compressed state engine of the atmospheric boundary layer (ABL): high-dimensional tower profiles are projected into three dominant coordinates $(\eta_1,\eta_2,\eta_3)$.
+
+\begin{itemize}
+    \item $\eta_1$ (principal profile mode): captures the bulk background state of the boundary layer (mean acceleration/deceleration and effective layer depth changes).
+    \item $\eta_2$ and $\eta_3$ (perturbation modes): capture structural departures such as shear-driven events, low-level jet modulation, and wave-like reorganizations.
+\end{itemize}
+
+How to read the trajectory geometry:
+\begin{itemize}
+    \item Tight closed loops indicate near-repeatable diurnal cycling (convective daytime mixing to stable nighttime recovery and back).
+    \item Broad, tangled trajectories indicate non-stationary forcing, intermittency, or mesoscale disruption.
+    \item Color evolution by $H(t)$ indicates structural order: higher entropy marks distributed multi-mode activity; lower entropy marks collapsed, strongly stratified states.
+\end{itemize}
 
 \subsection{Trajectory Metrics}
 
@@ -36,5 +83,7 @@ The mean low-rank coefficients across all samples are:
 \end{align}
 
 The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
+
+Operationally, peaks in $\|\boldsymbol{\eta}\|$ often coincide with rapid boundary-layer reconfiguration, while entropy excursions identify windows where similarity-based single-regime assumptions are least reliable.
 
 \label{sec:attractor_{{campaign_id}}}

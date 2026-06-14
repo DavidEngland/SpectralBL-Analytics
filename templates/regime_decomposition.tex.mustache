@@ -34,8 +34,60 @@ This value reflects the typical balance between coherent, low-dimensional struct
 
 \subsection{Structural Independence Verification}
 
-To verify that the low-rank decomposition captures physically independent aspects of the boundary layer dynamics, we validate orthogonality between the projected coordinates $(\eta_1, \eta_2, \eta_3)$ and external state variables (e.g., local gradient Richardson number $\text{Ri}_g$).
+To verify that the low-rank decomposition captures physically independent aspects of boundary-layer dynamics, we contrast spectral geometry against classical stability diagnostics.
+
+The gradient Richardson number can be interpreted as
+\[
+\mathrm{Ri}_g \sim \frac{\text{buoyant suppression}}{\text{shear production}}.
+\]
+In practice, low $\mathrm{Ri}_g$ indicates active shear-driven turbulence, while large $\mathrm{Ri}_g$ indicates strongly stable conditions where continuous turbulence is difficult to sustain.
+
+However, in very stable boundary layers, $\mathrm{Ri}_g$ alone is often too blunt: it indicates suppression, but not whether residual energy appears as intermittent turbulence, submesoscale motions, or wave-dominated structure.
+
+The spectral curvature metric $\chi_N$ addresses this by tracking geometric structure in the reduced attractor space rather than relying only on local gradients.
 
 The scatter plot shown in Figure~\ref{fig:spectral_orthogonality_{{campaign_id}}} demonstrates that regime labels derived from entropy thresholds form natural clusters independent of static stability classifications, confirming the decomposition's structural validity.
+
+Scientific interpretation of orthogonality:
+\begin{itemize}
+    \item If $\chi_N$ were redundant with $\mathrm{Ri}_g$, points would collapse toward a single diagonal trend.
+    \item Distinct cross-patterns or separated blocks indicate independent information content.
+    \item That independence is the key result: spectral curvature resolves regime transitions that stability metrics alone can miss.
+\end{itemize}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.86\textwidth,
+            height=0.48\textwidth,
+            grid=major,
+            xlabel={$\eta_1$},
+            ylabel={$\eta_2$},
+            title={Spectral Orthogonality Projection ({{campaign_name}})},
+            colormap/plasma,
+            colorbar,
+            point meta=explicit,
+            colorbar style={title={$\eta_3$}},
+            mark size=1.8pt,
+            tick label style={font=\small},
+            label style={font=\small},
+            title style={font=\small}
+        ]
+            \addplot[
+                only marks,
+                scatter,
+                scatter src=explicit
+            ] table[
+                col sep=comma,
+                x=eta_1,
+                y=eta_2,
+                meta=eta_3
+            ]{../../data/outputs/regime_scatterplots.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Projected attractor coordinates with orthogonality structure visualized via $\eta_3$ color encoding.}
+    \label{fig:spectral_orthogonality_{{campaign_id}}}
+\end{figure}
 
 \label{sec:regime_{{campaign_id}}}

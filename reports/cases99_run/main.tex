@@ -7,8 +7,13 @@
 \usepackage{graphicx}
 \usepackage{pgfplots}
 \usepackage{tikz}
+\usepackage{url}
 
-\pgfplotsset{compat=1.18}
+\pgfplotsset{
+    unbounded coords=discard,
+    filter discard warning=false,
+    compat=1.18
+}
 
 % Activate high-performance PGFPlots caching framework
 \usepgfplotslibrary{external}

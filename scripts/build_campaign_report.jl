@@ -57,10 +57,10 @@ function execute_orchestration(trajectory_csv::String, workspace_dir::String)
         
         full_tex_target = joinpath(report_run_dir, report.output_tex_path)
         
-        # Calculate localized relative paths for structural decoupling
-        # (so TeX files can find CSV data regardless of compilation CWD)
-        rel_traj = relpath(export_result.trajectory_csv, dirname(full_tex_target))
-        rel_scat = relpath(export_result.scatter_csv, dirname(full_tex_target))
+        # Compute data paths relative to main.tex directory (report_run_dir),
+        # since TeX resolves table paths from the compiler working directory.
+        rel_traj = relpath(export_result.trajectory_csv, report_run_dir)
+        rel_scat = relpath(export_result.scatter_csv, report_run_dir)
         
         # Assemble token dictionary from manifest + computed metrics
         tokens = Dict(
