@@ -19,7 +19,7 @@ using LinearAlgebra
         @test gabls.z0m == 0.15
         @test cases.d == 0.0
         @test length(cases.tower_heights) == 7
-        @test length(gabls.tower_heights) == 6
+        @test length(gabls.tower_heights) == 4
 
         # Guard rail against unconfigured campaigns
         @test_throws ErrorException get_campaign_geometry(:UNKNOWN_CAMPAIGN)

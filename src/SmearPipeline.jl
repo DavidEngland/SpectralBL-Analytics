@@ -21,6 +21,7 @@ include("ultra/adapters/cabauw_adapter.jl")
 include("ultra/adapters/smear_adapter.jl")
 include("ultra/adapters/neon_adapter.jl")
 include("ultra/adapters/icos_adapter.jl")
+include("ultra/adapters/sheba_adapter.jl")
 
 # ─────────────────────────────────────────────
 # VARRIÖ (STATION 1) CONSTANTS
@@ -86,12 +87,19 @@ export fetch_smear_tiled, store_parquet, load_parquet,
     extract_temperature_observations,
     extract_neon_profile,
     extract_neon_observations,
+    ShebaTower,
+    extract_sheba_profiles,
+    extract_sheba_observations,
+    load_sheba_processed_observations,
+    load_cper_forcing_observations,
+    inspect_local_data_inventory,
     upscale_sparse_icos_profile,
     upscale_sparse_icos_observation
 
 const ProfileTuple = NamedTuple{(:datetime, :heights, :values, :n_obs, :zeta, :ustar), Tuple{DateTime, Vector{Float64}, Vector{Float64}, Int, Float64, Float64}}
 
 const CabauwTower = CabauwAdapter.CabauwTower
+const ShebaTower = ShebaAdapter.ShebaTower
 
 extract_temperature_profiles(df::DataFrame, tower::CabauwTower=CabauwTower()) =
     CabauwAdapter.extract_temperature_profiles(df, tower)
@@ -127,6 +135,128 @@ extract_neon_observations(
     min_levels,
     reference_height,
 )
+
+extract_sheba_profiles(
+    df::DataFrame;
+    value_pair::Symbol=:temperature,
+    z_lo::Float64=2.5,
+    z_hi::Float64=10.0,
+) = ShebaAdapter.extract_sheba_profiles(df; value_pair, z_lo, z_hi)
+
+extract_sheba_observations(
+    df::DataFrame;
+    campaign::String="SHEBA",
+    z0m::Float64=0.0001,
+    value_pair::Symbol=:temperature,
+    z_lo::Float64=2.5,
+    z_hi::Float64=10.0,
+) = ShebaAdapter.extract_sheba_observations(df; campaign, z0m, value_pair, z_lo, z_hi)
+
+function load_sheba_processed_observations(
+    data_root::String="data";
+    file_name::String="sheba_input.csv",
+    campaign::String="SHEBA",
+    z0m::Float64=0.0001,
+    value_pair::Symbol=:temperature,
+)
+    csv_path = joinpath(data_root, "sheba", "processed", file_name)
+    isfile(csv_path) || error("SHEBA processed file not found: $(csv_path)")
+    df = CSV.read(csv_path, DataFrame)
+    return extract_sheba_observations(df; campaign, z0m, value_pair)
+end
+
+function load_cper_forcing_observations(
+    data_root::String="data";
+    file_name::String="cper_forcing.csv",
+    campaign::String="CPER",
+    z0m::Float64=0.03,
+)
+    csv_path = joinpath(data_root, "processed", file_name)
+    isfile(csv_path) || error("CPER forcing file not found: $(csv_path)")
+    df = CSV.read(csv_path, DataFrame)
+
+    observations = StandardizedBLObservation[]
+    for row in eachrow(df)
+        dt = tryparse(DateTime, string(row.datetime))
+        dt === nothing && continue
+
+        ref_h = row.reference_height isa Number ? Float64(row.reference_height) : 10.0
+        wind = row.wind_speed_ref isa Number ? Float64(row.wind_speed_ref) : NaN
+        ustar = row.friction_velocity isa Number ? Float64(row.friction_velocity) : NaN
+        L = row.obukhov_length isa Number ? Float64(row.obukhov_length) : NaN
+
+        push!(observations, StandardizedBLObservation(
+            dt,
+            campaign,
+            [ref_h],
+            [wind],
+            ustar,
+            L,
+            z0m,
+            false,
+            1,
+        ))
+    end
+
+    return observations
+end
+
+function inspect_local_data_inventory(data_root::String="data")
+    roots = [
+        "sheba",
+        "WeatherPak",
+        "ameriflux",
+        "processed",
+        "neon",
+        "icos",
+        "smear",
+    ]
+
+    rows = NamedTuple[]
+    for root in roots
+        path = joinpath(data_root, root)
+        exists = isdir(path)
+        if !exists
+            push!(rows, (dataset=root, exists=false, file_count=0, csv_count=0, nc_count=0, json_count=0, notes="missing"))
+            continue
+        end
+
+        all_files = String[]
+        for (dirpath, _, filenames) in walkdir(path)
+            for f in filenames
+                push!(all_files, joinpath(dirpath, f))
+            end
+        end
+
+        csv_count = count(f -> endswith(lowercase(f), ".csv"), all_files)
+        nc_count = count(f -> endswith(lowercase(f), ".nc"), all_files)
+        json_count = count(f -> endswith(lowercase(f), ".json"), all_files)
+
+        note = if root == "sheba"
+            "two-layer source; eta3 not robust"
+        elseif root == "processed"
+            "forcing artifacts available"
+        elseif root == "ameriflux"
+            "large local files; site-wise parsing"
+        elseif root == "WeatherPak"
+            "format audit needed"
+        else
+            "available"
+        end
+
+        push!(rows, (
+            dataset=root,
+            exists=true,
+            file_count=length(all_files),
+            csv_count=csv_count,
+            nc_count=nc_count,
+            json_count=json_count,
+            notes=note,
+        ))
+    end
+
+    return DataFrame(rows)
+end
 
 upscale_sparse_icos_profile(
     dt::DateTime,
