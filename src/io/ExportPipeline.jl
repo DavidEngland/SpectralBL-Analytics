@@ -67,13 +67,12 @@ function extract_csv_summaries(
     mean_eta3 = mean(df.eta_3)
     mean_entropy = mean(df.sv_entropy)
     n_samples = nrow(df)
-    campaigns = unique(df.campaign)
-    
     # Write manifest JSON
     manifest_path = joinpath(output_dir, "report_manifest.json")
+    manifest_campaign = campaign === nothing ? "ALL" : String(campaign)
     write_report_manifest(
         df,
-        String(campaigns[1]),
+        manifest_campaign,
         trajectory_csv,
         manifest_path;
         refined_metrics=refined_metrics,
@@ -112,6 +111,21 @@ function write_report_manifest(
     mean_eta_1 = mean(df.eta_1)
     mean_eta_2 = mean(df.eta_2)
     mean_eta_3 = mean(df.eta_3)
+    z0m_value = 0.1
+    if "z0m" in names(df)
+        zvals = Float64[]
+        for v in df.z0m
+            if !ismissing(v)
+                fv = Float64(v)
+                if isfinite(fv)
+                    push!(zvals, fv)
+                end
+            end
+        end
+        if !isempty(zvals)
+            z0m_value = mean(zvals)
+        end
+    end
 
     manifest = Dict(
         "campaign" => campaign,
@@ -132,6 +146,7 @@ function write_report_manifest(
         "condition_num" => condition_num,
         "d_eff" => d_eff,
         "interaction_proxy" => interaction_proxy,
+        "z0m" => z0m_value,
         # Legacy aliases kept for compatibility with existing consumers.
         "samples" => nrow(df),
         "mean_sv_entropy" => mean_entropy,

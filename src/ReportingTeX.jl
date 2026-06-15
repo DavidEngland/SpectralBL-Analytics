@@ -1,3 +1,4 @@
+# src/ReportingTeX.jl
 module ReportingTeX
 # Layout compilers to target downstream manuscript files
 export export_to_tex_table

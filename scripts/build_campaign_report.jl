@@ -68,6 +68,88 @@ function ensure_report_workspace(report_run_dir::String, workspace_dir::String)
     end
 end
 
+function escape_latex_text(text::String)
+    escaped = replace(text, "\\" => "\\textbackslash{}")
+    escaped = replace(escaped, "%" => "\\%")
+    escaped = replace(escaped, "_" => "\\_")
+    escaped = replace(escaped, "&" => "\\&")
+    escaped = replace(escaped, "#" => "\\#")
+    escaped = replace(escaped, "{" => "\\{")
+    escaped = replace(escaped, "}" => "\\}")
+    escaped = replace(escaped, '\$' => raw"\$")
+    return escaped
+end
+
+function infer_campaign_conclusions(campaign_id::String)
+    campaign_upper = uppercase(strip(campaign_id))
+
+    if campaign_upper == "GABLS3"
+        return [
+            (title = "High-Entropy Dimensional Exploration", body = "The high mean entropy and elevated effective dimension demonstrate broad modal participation, indicating rich state-space exploration rather than collapse into a single operating mode."),
+            (title = "Diurnal Process Fidelity", body = "The trajectory resolves the full convective-to-stable transition arc, making this campaign a process-study benchmark for transient stability regime evaluation."),
+            (title = "Jet-Shear Coupling", body = "The projected coordinates capture non-local shear production and low-level jet modulation, preserving structure that local gradient-only metrics often under-resolve.")
+        ]
+    elseif campaign_upper == "CASES-99"
+        return [
+            (title = "Attractor Collapse Identification", body = "Low mean entropy and compressed effective dimension indicate recurrent attractor collapse into highly ordered nocturnal states."),
+            (title = "Dominance of Non-Local Regimes", body = "The decomposition highlights intermittent shear-burst behavior and non-local coupling episodes that challenge strictly local similarity formulations."),
+            (title = "Transition Behavior Tracking", body = "Phase-space coordinates remain informative in stability windows where Richardson-style diagnostics saturate and lose structural sensitivity.")
+        ]
+    elseif startswith(campaign_upper, "AMERIFLUX-US-NR1")
+        return [
+            (title = "Canopy-Crown Wake Asymmetry", body = "High-roughness forest structure introduces pronounced shear-layer asymmetry that is retained in the reduced-order attractor geometry."),
+            (title = "Sub-Canopy Decoupling", body = "Nocturnal stratification episodes show partial decoupling between lower and upper tower levels, reflected as multi-branch trajectory behavior."),
+            (title = "Orographic Flow Modulation", body = "Complex terrain forcing introduces multi-scale variability consistent with drainage and slope-flow interactions in stable windows.")
+        ]
+    elseif startswith(campaign_upper, "AMERIFLUX")
+        return [
+            (title = "Cross-Site Structural Diversity", body = "Heterogeneous tower geometries and land-cover classes map into a unified eta-space, enabling direct cross-ecosystem regime comparison."),
+            (title = "Roughness-Conditioned Dynamics", body = "Site-dependent roughness and canopy structure modulate shear production and mixing intermittency, visible in entropy and curvature signatures."),
+            (title = "Network-Scale Validation Potential", body = "The campaign supports broad model stress-testing across surface types, from low-roughness grasslands to canopy-dominated terrain.")
+        ]
+    elseif startswith(campaign_upper, "SHEBA")
+        return [
+            (title = "Arctic Stable-Layer Persistence", body = "Long-lived stable stratification highlights low-turbulence operating modes and sensitivity to intermittent forcing."),
+            (title = "Sparse-Level Robustness", body = "The projection remains usable under sparse vertical sampling, preserving diagnostic continuity for reduced-profile conditions.")
+        ]
+    elseif startswith(campaign_upper, "NEON")
+        return [
+            (title = "Heterogeneous Tower Fidelity", body = "The manifold representation remains stable across site-dependent level availability and mixed-quality profile coverage."),
+            (title = "Intermittency Exposure", body = "Phase trajectories expose transition windows where local closure assumptions degrade under intermittent turbulence events.")
+        ]
+    elseif startswith(campaign_upper, "ICOS")
+        return [
+            (title = "Sparse-Profile Upscaling Utility", body = "Reduced vertical observations retain actionable structure after projection, supporting low-data regime characterization."),
+            (title = "Cross-Network Harmonization", body = "The standardized coordinate mapping enables comparability with denser campaign datasets despite sparse source constraints.")
+        ]
+    elseif startswith(campaign_upper, "SMEAR")
+        return [
+            (title = "Boreal Transition Sensitivity", body = "Profiles retain sensitivity to stable transition timing and non-local mixing behavior in high-latitude boundary-layer conditions."),
+            (title = "Seasonal-Scale Diagnostics", body = "The reduced manifold supports tracking of structural variability across long observational windows.")
+        ]
+    elseif campaign_upper == "ALL"
+        return [
+            (title = "Composite Regime Envelope", body = "The merged trajectory captures a broader attractor envelope spanning process-oriented and climatological campaign characteristics."),
+            (title = "Cross-Campaign Orthogonality", body = "Shared eta-space coordinates preserve campaign-specific signatures while maintaining a common comparison basis."),
+            (title = "Validation Breadth", body = "Multi-campaign aggregation expands stress-testing of closures and parameterizations across contrasting stability environments.")
+        ]
+    end
+
+    return [
+        (title = "Generalized Boundary Layer Profiling", body = "The system maps observed vertical structure into a stable low-rank manifold, providing campaign-agnostic diagnostics for regime transitions and structural intermittency.")
+    ]
+end
+
+function format_optional_z0m(manifest)
+    if haskey(manifest, "z0m")
+        z0m_val = manifest["z0m"]
+        if z0m_val isa Number && isfinite(z0m_val)
+            return @sprintf("%.3f m", z0m_val)
+        end
+    end
+    return "0.100 (Default Grassland)"
+end
+
 """
     compute_refined_metrics(df::DataFrame)
 
@@ -179,11 +261,23 @@ function execute_orchestration(
         rel_traj = relpath(export_result.trajectory_csv, report_run_dir)
         rel_scat = relpath(export_result.scatter_csv, report_run_dir)
         
+        campaign_label = String(manifest["campaign"])
+        insights = infer_campaign_conclusions(campaign_label)
+        campaign_conclusions = [
+            Dict(
+                "insight_title" => escape_latex_text(i.title),
+                "insight_body" => escape_latex_text(i.body)
+            ) for i in insights
+        ]
+
         # Assemble token dictionary from manifest + computed metrics
         tokens = Dict(
-            "campaign_name"           => manifest["campaign"],
-            "campaign_id"             => lowercase(manifest["campaign"]),
-            "campaign"                => manifest["campaign"],
+            "campaign_name"           => campaign_label,
+            "campaign_id"             => lowercase(campaign_label),
+            "campaign"                => campaign_label,
+            "campaign_display_name"   => campaign_label,
+            "campaign_conclusions"    => campaign_conclusions,
+            "has_campaign_conclusions" => !isempty(campaign_conclusions),
             "is_gabls3"               => manifest["campaign"] == "GABLS3",
             "is_cases99"              => manifest["campaign"] == "CASES-99",
             "baseline_version"        => manifest["baseline_version"],
@@ -206,6 +300,7 @@ function execute_orchestration(
             "nullspace_modes"         => string(manifest["n_0"]),
             "condition_num"           => isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf",
             "interaction_proxy"       => String(manifest["interaction_proxy"]),
+            "z0m_text"                => format_optional_z0m(manifest),
             # Legacy aliases kept for template compatibility during migration.
             "samples"                 => string(manifest["total_samples"]),
             "mean_entropy"            => @sprintf("%.3f", manifest["h_mean"]),

@@ -37,6 +37,7 @@ pfem_grid = [0.0, 2.0, 5.0, 10.0, 20.0, 35.0, 50.0, 75.0, 100.0, 150.0, 200.0, 2
 rows = DataFrame(
     campaign=String[],
     time_value=Float64[],
+    z0m=Float64[],
     eta_1=Float64[],
     eta_2=Float64[],
     eta_3=Float64[],
@@ -75,6 +76,7 @@ for campaign in campaigns_to_run
         push!(rows, (
             config.name,
             sample.time_value,
+            config.z0m,
             eta_hat[1],
             eta_hat[2],
             eta_hat[3],

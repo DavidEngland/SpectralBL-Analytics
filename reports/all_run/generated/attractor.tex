@@ -6,10 +6,10 @@
 
 \subsection{Overview}
 
-The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ CASES-99 } using the v0.1 baseline.
+The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ ALL } using the v0.1 baseline.
 
 \begin{description}
-    \item[Campaign:] CASES-99
+    \item[Campaign:] ALL
     \item[Baseline Version:] v0.1
     \item[Total Samples:] 6682
     \item[Mean Entropy:] $H_{\text{mean}} = 0.223$
@@ -17,7 +17,7 @@ The boundary layer is analyzed as a low-dimensional dynamical system through pro
 
 \subsection{3D Phase Space Projection}
 
-Figure~\ref{fig:attractor_CASES-99} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
+Figure~\ref{fig:attractor_ALL} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
 
 \begin{figure}[htbp]
     \centering
@@ -30,7 +30,7 @@ Figure~\ref{fig:attractor_CASES-99} visualizes the three-dimensional trajectory 
             xlabel={$\eta_1$},
             ylabel={$\eta_2$},
             zlabel={$\eta_3$},
-            title={Low-Rank Attractor Trajectory (\texttt{ CASES-99 })},
+            title={Low-Rank Attractor Trajectory (\texttt{ ALL })},
             colormap/viridis,
             colorbar,
             point meta=explicit,
@@ -54,7 +54,7 @@ Figure~\ref{fig:attractor_CASES-99} visualizes the three-dimensional trajectory 
         \end{axis}
     \end{tikzpicture}
     \caption{3D attractor state trajectory colored by singular value entropy.}
-    \label{fig:attractor_CASES-99}
+    \label{fig:attractor_ALL}
 \end{figure}
 
 \subsection{Physical Coordinate Interpretation}
@@ -100,4 +100,4 @@ To preserve algorithmic invariance across divergent energy scales, rank truncati
 
 The entropy-derived $D_{\text{eff}}$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
 
-\label{sec:attractor_CASES-99}
+\label{sec:attractor_ALL}

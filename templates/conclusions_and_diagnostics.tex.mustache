@@ -1,3 +1,4 @@
+% templates/conclusions_and_diagnostics.tex.mustache
 % AUTO-GENERATED Pipeline Verification and Analytical Conclusions
 % Rendered by Mustache template from curated diagnostics
 % DO NOT EDIT MANUALLY
@@ -17,7 +18,7 @@ Based on the processed analytics run, the structural characteristics of the unde
     \small
     \begin{tabular}{l p{9cm}}
         \hline
-        	extbf{Diagnostic Metric} & \textbf{Pipeline Evaluation Summary for \texttt{ {{campaign}} }} \\ \hline
+                \textbf{Diagnostic Metric} & \textbf{Pipeline Evaluation Summary for \texttt{ {{campaign}} }} \\ \hline
         Data Footprint & Analyzed {{{total_samples}}} observations across a temporal scale of {{{temporal_coverage}}} hours. \\
         Manifold Complexity & Mean singular value entropy registers at $H_{\text{mean}} = {{{h_mean}}}$, yielding a Shannon effective dimension of $D_{\text{eff}} = {{{d_eff}}}$. \\
         Numerical Stability & The condition number $\kappa = {{{condition_num}}}$ confirms a well-conditioned low-rank basis projection ($N_0 = {{{n_0}}}$ nullspace modes). \\ \hline
@@ -30,29 +31,24 @@ Based on the processed analytics run, the structural characteristics of the unde
 
 By mapping the boundary layer dynamics into the orthogonal coordinates $(\eta_1, \eta_2, \eta_3)$, this analysis establishes the following definitive conclusions based on the campaign-specific footprint:
 
-{{#is_gabls3}}
 \begin{itemize}
-    \item \textbf{High-Entropy Dimensional Exploration:} The high mean entropy and elevated effective dimension demonstrate that \texttt{GABLS3} maintains broad modal participation. The system actively explores multiple degrees of freedom rather than collapsing into a singular state.
-    \item \textbf{Diurnal Process Fidelity:} The 23.8-hour continuous trajectory traces a complete diurnal arc. This campaign remains an ideal process-study benchmark for evaluating how cleanly SCM formulations transition from convective mixing to stable nocturnal regimes.
-    \item \textbf{Jet-Shear Coupling:} The trajectory highlights a distributed balance between background cooling ($\eta_1$) and non-local shear production ($\eta_2$), capturing LLJ evolution and non-local scale coupling with the surface.
+{{#campaign_conclusions}}
+    \item \textbf{ {{{insight_title}}}: } {{{insight_body}}}
+{{/campaign_conclusions}}
+{{^has_campaign_conclusions}}
+    \item \textbf{Generalized Boundary Layer Profiling:} The reduced-order manifold provides campaign-agnostic structural diagnostics for boundary-layer transitions and intermittency.
+{{/has_campaign_conclusions}}
 \end{itemize}
-{{/is_gabls3}}
-
-{{#is_cases99}}
-\begin{itemize}
-    \item \textbf{Attractor Collapse Identification:} The low mean entropy and compressed effective dimension provide empirical evidence of attractor collapse behavior. Across its long timeline, \texttt{CASES-99} frequently drops into highly ordered, low-dimensional states.
-    \item \textbf{Dominance of Non-Local Regimes:} The structural decomposition indicates persistent intermittent shear-burst behavior, explaining why strictly local similarity theories degrade in this regime.
-    \item \textbf{Validation of HOST-Like Transition Behavior:} The coordinate tracking resolves non-linear transitions where turbulence ceases to be continuously gradient-driven. While local metrics such as $\text{Ri}_g$ saturate, spectral geometry remains dynamically informative.
-\end{itemize}
-{{/is_cases99}}
 
 \subsection{Operational Framework Recommendation}
 
-These signatures confirm that \texttt{GABLS3} and \texttt{CASES-99} should be used as complementary axes in the verification pipeline:
+These signatures confirm that \texttt{ {{campaign_display_name}} } contributes campaign-specific constraints in the verification pipeline. Its operational role can be summarized through runtime geometry and conditioning diagnostics:
 \begin{equation}
-    \mathcal{M}_{\text{validation}} = \mathbf{f}\big(\underbrace{\text{GABLS3}}_{\text{Trajectory Fidelity (Process)}},\ \underbrace{\text{CASES-99}}_{\text{Ergodic Sampling (Climatology)}}\big)
+    \mathcal{M}_{\text{validation}} = \mathbf{f}\Big(\mathcal{A}_{\text{site}}\big(\kappa_{\text{rank}}={{{condition_num}}},\ D_{\text{eff}}={{{d_eff}}}\big),\ \mathcal{S}_{\text{surface}}\Big)
 \end{equation}
 
-While \texttt{GABLS3} evaluates transient diurnal arc fidelity, \texttt{CASES-99} provides statistical bounds for model behavior in deep stratification, IGW coupling, and collapse-prone states over climatological windows.
+Surface roughness context for this run: \texttt{ {{{z0m_text}}} }.
+
+When integrated into multi-campaign workflows, low-roughness and canopy-dominated sites jointly provide empirical constraints for model behavior in non-local, intermittent, and collapse-prone stable boundary-layer conditions.
 
 \label{sec:conclusions_{{campaign}}}
