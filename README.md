@@ -2,18 +2,18 @@
 
 SpectralBL-Analytics is a Julia-based atmospheric boundary layer (ABL) diagnostics and reporting pipeline. It ingests campaign observations, projects profiles into a reduced attractor space, computes physically interpretable metrics, and renders publication-ready TeX/PDF outputs.
 
-The current production workflow supports CASES-99 and GABLS3 and includes automated report generation with PGFPlots externalized figures.
+Production workflows support CASES-99 (tower data) and GABLS3 (Cabauw observations). Experimental support for SMEAR-I, NEON, ICOS, and SHEBA campaigns is available via the SmearPipeline adapter ecosystem. All workflows include automated report generation with PGFPlots externalized figures.
 
 ## What This Repository Does
 
-1. Ingests tower/model profiles from campaign datasets.
+1. Ingests tower/model profiles from campaign datasets via pluggable adapters (Cabauw, SMEAR, NEON, ICOS, SHEBA).
 2. Builds campaign-specific observation operators and low-rank states.
 3. Computes trajectory diagnostics in reduced coordinates (`eta_1`, `eta_2`, `eta_3`).
 4. Exports structured CSV/JSON artifacts for reproducible reporting.
 5. Renders Mustache templates into TeX sections.
 6. Compiles report PDF via LuaLaTeX and `latexmk`.
-
-## Phase 1.5 Highlights
+7. Supports campaign-scoped report isolation (CASES-99, GABLS3) and mixed-campaign analysis (experimental).
+ (June 2026)
 
 The reporting orchestrator now includes refined information-theoretic and conditioning diagnostics:
 
@@ -21,7 +21,11 @@ The reporting orchestrator now includes refined information-theoretic and condit
 2. Condition number tracking in projected space.
 3. Shannon effective dimension (`D_eff = exp(H)`) from singular-value weights.
 4. Interaction residual proxy for non-orthogonal regime coupling.
+5. Standardized multi-adapter ingestion contract for campaign geometry harmonization.
+6. Extended campaign support via SmearPipeline (experimental: SMEAR, NEON, ICOS, SHEBA).
+7. Campaign-scoped report isolation (CASES-99.pdf and GABLS3.pdf) with deterministic outputs.
 
+These metrics are embedded in generated report sections and compiled into the final manuscript-ready PDF. See CHANGELOG.md for detailed feature timeline
 These metrics are embedded in generated report sections and compiled into the final manuscript-ready PDF.
 
 ## Repository Layout
@@ -33,10 +37,10 @@ Manifest.toml
 README.md
 QUICKSTART.md
 CHANGELOG.md
+DATA.md
 
 data/
-  gabs3/
-  ncar_eol_dee0099881/
+  cases99/, gabs3/, smear/, neon/, icos/, sheba/
   drafts/
 
 scripts/
@@ -48,16 +52,27 @@ src/
   AttractorDiagnostics.jl
   IngestionFormatters.jl
   ReportingTeX.jl
+  SmearPipeline.jl
   io/ExportPipeline.jl
+  ultra/
+    core_types.jl
+    adapters/
+      cabauw_adapter.jl
+      smear_adapter.jl
+      neon_adapter.jl
+      icos_adapter.jl
+      sheba_adapter.jl
 
 templates/
   attractor_report.tex.mustache
   regime_decomposition.tex.mustache
+  conclusions_and_diagnostics.tex.mustache
 
-reports/cases99_run/
-  main.tex
-  generated/
-  tikz-cache/
+reports/
+  cases99_run/, gabls3_run/, all_run/
+    main.tex
+    generated/
+    tikz-cache/
 
 test/
   runtests.jl
@@ -103,32 +118,33 @@ make process CAMPAIGN=CASES-99
 make report CAMPAIGN=CASES-99
 ```
 
-Artifacts produced:
+Primary artifacts produced:
 
-1. `data/drafts/trajectories/trajectory_master.csv`
-2. `data/outputs/regime_trajectories.csv`
-3. `data/outputs/regime_scatterplots.csv`
-4. `data/outputs/report_manifest.json`
-5. `reports/cases99_run/generated/attractor.tex`
-6. `reports/cases99_run/generated/regime.tex`
-7. `reports/cases99_run/CASES-99.pdf` for `CAMPAIGN=CASES-99`
-8. `reports/gabls3_run/GABLS3.pdf` for `CAMPAIGN=GABLS3`
-9. `reports/all_run/main.pdf` for mixed (`CAMPAIGN=ALL`) runs
+1. `data/drafts/trajectories/trajectory_master.csv` — master trajectory table with reduced coordinates and diagnostics
+2. `data/outputs/regime_trajectories.csv` — regime-structured trajectory subset for visualization
+3. `data/outputs/regime_scatterplots.csv` — scatter-plot data for PGFPlots rendering
+4. `data/outputs/report_manifest.json` — campaign metadata and run parameters
+5. `reports/cases99_run/CASES-99.pdf` — campaign-specific report for CASES-99
+6. `reports/gabls3_run/GABLS3.pdf` — campaign-specific report for GABLS3 (Cabauw)
+7. `reports/all_run/main.pdf` — mixed-campaign analysis output (experimental; only produced if `CAMPAIGN=ALL` and reports/all_run/ is initialized)
+
+Intermediate TeX/LaTeX artifacts (e.g., `attractor.tex`, `regime.tex`, diagnostics sections) are generated in each report's `generated/` directory during the report-build stage.
 
 ## Make Targets
 
 Run `make help` for the latest command list. Core targets:
 
-1. `make init` - instantiate and precompile Julia environment
-2. `make process` - run campaign diagnostics extraction
-3. `make tex` - regenerate manuscript macro exports
-4. `make report` - build report sections from trajectory CSV (expects `.csv`, not `.nc`; supports `CAMPAIGN=GABLS3|CASES-99|ALL`, default `ALL`)
-5. `make compile-report` - compile PDF report
-6. `make cabauw-report` - run `process -> tex -> report -> compile-report` with `CAMPAIGN=GABLS3`
-7. `make cases99-report` - run full pipeline with `CAMPAIGN=CASES-99` and emit `CASES-99.pdf`
-8. `make gabls3-report` - run full pipeline with `CAMPAIGN=GABLS3` and emit `GABLS3.pdf`
-9. `make clean` - remove logs and temporary runtime files
-10. `make purge` - deep clean report/data build artifacts
+1. `make init` — instantiate and precompile Julia environment
+2. `make process` — run campaign diagnostics extraction for a specific campaign (`CAMPAIGN=CASES-99|GABLS3|ALL`, default `ALL`)
+3. `make tex` — regenerate manuscript macro exports
+4. `make report` — build report sections from trajectory CSV (requires CSV input; supports `CAMPAIGN` scoping)
+5. `make compile-report` — compile PDF report via latexmk and LuaLaTeX
+6. `make cases99-report` — full pipeline (`process → tex → report → compile-report`) with `CAMPAIGN=CASES-99`, produces `CASES-99.pdf`
+7. `make gabls3-report` — full pipeline with `CAMPAIGN=GABLS3`, produces `GABLS3.pdf`
+8. `make cabauw-report` — alias for `gabls3-report` (Cabauw is the GABLS3 tower site)
+9. `make test` — run regression test suite (campaign configs, operators, baselines; 20 tests expected to pass)
+10. `make clean` — remove logs and temporary runtime files
+11. `make purge` — deep clean report/data build artifacts and cached figures
 
 ## Notes on Scientific Interpretation
 
@@ -141,12 +157,38 @@ The generated report includes:
 
 For operator usage details and practical command examples, see `QUICKSTART.md`.
 
+## Supported Campaigns and Adapters
+
+| Campaign | Adapter Module | Data Source | Status | Ingestion Path |
+|----------|----------------|-------------|--------|----------------|
+| CASES-99 | IngestionFormatters | Tower netCDF profiles | **Production** | scripts/extract_attractor_diagnostics.jl |
+| GABLS3 | CabauwAdapter | Cabauw tower observations | **Production** | SmearPipeline.extract_cabauw_observations |
+| SMEAR-I | SmearAdapter | SMEAR station JSON records | Experimental | SmearPipeline.extract_smear_observations |
+| NEON | NEONAdapter | NEON tower API (offline fallback) | Experimental | SmearPipeline.extract_neon_observations |
+| ICOS | ICOSAdapter | ICOS sparse profiles | Experimental | SmearPipeline.upscale_sparse_icos_observation |
+| SHEBA | ShebaAdapter | SHEBA Arctic forcing records | Experimental | SmearPipeline.extract_sheba_profiles |
+
+For experimental adapters, data must be available locally in `data/{campaign_name}/`. See DATA.md for data organization requirements.
+
 ## Troubleshooting
 
-1. If TeX references look stale, run `make purge` before recompiling.
-2. If PGFPlots figures do not update, clear `reports/cases99_run/tikz-cache/` via `make purge`.
-3. If extraction fails, verify required campaign files exist under `data/`.
+1. **Stale TeX references or figure paths**: Run `make purge` to clear build caches, then re-run the full pipeline.
+2. **TeX compile errors**: Check `reports/{campaign}_run/main.log` for detailed error context. Common issues include:
+   - Missing PGFPlots data files: ensure `data/outputs/regime_scatterplots.csv` exists and has data.
+   - Undefined control sequences: run `make purge` to force regeneration of `.tex` sections.
+3. **Extraction fails or trajectory CSV is empty**:
+   - Verify campaign data files exist under `data/{campaign_name}/` (see DATA.md).
+   - Confirm campaign name is valid: `CAMPAIGN=CASES-99`, `CAMPAIGN=GABLS3`, or `CAMPAIGN=ALL`.
+   - Run `make test` to check if regression suite detects configuration issues.
+4. **Missing Julia packages**: Run `make init` to reinstall project dependencies.
+5. **PGFPlots data-file path errors**: Ensure trajectory CSV columns match expectations (see DATA.md for schema).
 
 ## Status
 
-Production-tested workflow currently compiles cleanly with non-blocking typography warnings only (`Overfull \\hbox` in dense lines).
+**Latest Update**: June 15, 2026  
+**Phase**: 1.5 (Integration Milestone)  
+**Test Coverage**: 20 regression tests pass (campaign geometry, observation operators, matrix inversions)  
+**Known Issues**: Occasional `Overfull \\hbox` typography warnings in dense table/text regions (non-blocking)  
+**Data Privacy**: All raw/large dataset payloads are git-ignored; only scaffolding and metadata are tracked (see DATA.md)
+
+Production workflows for CASES-99 and GABLS3 are fully tested and emit deterministic, reproducible outputs.

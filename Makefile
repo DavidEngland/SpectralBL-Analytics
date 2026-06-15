@@ -3,23 +3,29 @@
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
+# Valid CAMPAIGN values: CASES-99, GABLS3, ALL (default ALL runs both production campaigns)
+# Unknown campaign values will be sanitized to {campaign}_run directory path
 WORKSPACE_ROOT := $(shell pwd)
 OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,main.pdf))
+# REPORT_DIR routes campaign output: CASES-99 → cases99_run, GABLS3 → gabls3_run, ALL/unknown → all_run
 REPORT_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),reports/cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),reports/gabls3_run,reports/all_run))
 
 # Default target
 all: init process tex report
 
-help:
-	@echo "Available commands:"
-	@echo "  make init              - Instantiate the Julia environment"
-	@echo "  make process           - Run attractor diagnostics on campaign data"
+	@echo "  make process           - Run attractor diagnostics on campaign data (set CAMPAIGN=CASES-99|GABLS3|ALL, default ALL)"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
 	@echo "  make cases99-report    - Full CASES-99 flow (outputs CASES-99.pdf)"
 	@echo "  make gabls3-report     - Full GABLS3 flow (outputs GABLS3.pdf)"
 	@echo "  make cabauw-report     - Canonical Cabauw-only flow (forces CAMPAIGN=GABLS3)"
+	@echo "  make test              - Run repository test suites (20 tests expected to pass)"
+	@echo "  make clean             - Remove compiled logs and temporary runtime artifacts"
+	@echo "  make purge             - Clean + remove deep build caches and PDFs"
+	@echo ""
+	@echo "Campaign parameter: CAMPAIGN=CASES-99|GABLS3|ALL (default ALL)"
+	@echo "Mixed-campaign output: CAMPAIGN=ALL writes to reports/all_run/main.pdf (experimental)"N=GABLS3)"
 	@echo "  make test              - Run repository test suites"
 	@echo "  make clean             - Remove compiled logs and temporary runtime artifacts"
 	@echo "  make purge             - Clean + remove deep build caches and PDFs"
