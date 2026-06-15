@@ -4,7 +4,7 @@ using DataFrames
 using Dates
 using ..CoreTypes
 
-export CabauwTower, extract_temperature_profiles
+export CabauwTower, extract_temperature_profiles, extract_temperature_observations
 
 struct CabauwTower <: AbstractObservationalTower
     z_nodes::Vector{Float64}
@@ -52,6 +52,33 @@ function extract_temperature_profiles(df::DataFrame, tower::CabauwTower=CabauwTo
     end
 
     return profiles
+end
+
+function extract_temperature_observations(
+    df::DataFrame,
+    tower::CabauwTower=CabauwTower();
+    campaign::String="GABLS3",
+    z0m::Float64=0.15,
+)
+    profiles = extract_temperature_profiles(df, tower)
+    observations = StandardizedBLObservation[]
+
+    for prof in profiles
+        n_valid = min(length(prof.heights), length(prof.values))
+        push!(observations, StandardizedBLObservation(
+            prof.metadata.timestamp,
+            campaign,
+            prof.heights,
+            prof.values,
+            prof.metadata.friction_velocity,
+            prof.metadata.obukhov_length,
+            z0m,
+            n_valid >= 3,
+            n_valid,
+        ))
+    end
+
+    return observations
 end
 
 @inline function row_hasproperty(row, name::Symbol)

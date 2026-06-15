@@ -66,23 +66,28 @@ using JSON3
 using Logging
 using ProgressMeter
 
-using .CoreTypes: AbstractObservationalTower, ProfileMetadata, MeteorologicalProfile
+using .CoreTypes: AbstractObservationalTower, ProfileMetadata, MeteorologicalProfile, StandardizedBLObservation
 using .UltraForcing: generate_scm_forcing
 using .UltraStability: classify_stability
 
 export fetch_smear_tiled, store_parquet, load_parquet,
        build_vertical_profiles, chebyshev_fingerprint,
     batch_fingerprint, open_duckdb_store,
+    build_standardized_vertical_observations, standardize_profile,
     ProfileTuple,
     forcing_from_smear_row,
     AbstractObservationalTower,
     ProfileMetadata,
     MeteorologicalProfile,
+    StandardizedBLObservation,
     generate_scm_forcing,
     CabauwTower,
     extract_temperature_profiles,
+    extract_temperature_observations,
     extract_neon_profile,
-    upscale_sparse_icos_profile
+    extract_neon_observations,
+    upscale_sparse_icos_profile,
+    upscale_sparse_icos_observation
 
 const ProfileTuple = NamedTuple{(:datetime, :heights, :values, :n_obs, :zeta, :ustar), Tuple{DateTime, Vector{Float64}, Vector{Float64}, Int, Float64, Float64}}
 
@@ -91,12 +96,37 @@ const CabauwTower = CabauwAdapter.CabauwTower
 extract_temperature_profiles(df::DataFrame, tower::CabauwTower=CabauwTower()) =
     CabauwAdapter.extract_temperature_profiles(df, tower)
 
+extract_temperature_observations(
+    df::DataFrame,
+    tower::CabauwTower=CabauwTower();
+    campaign::String="GABLS3",
+    z0m::Float64=0.15,
+) = CabauwAdapter.extract_temperature_observations(df, tower; campaign, z0m)
+
 extract_neon_profile(
     df::DataFrame,
     prefix::String,
     heights::Vector{Float64};
     reference_height::Float64=10.0,
 ) = NEONAdapter.extract_neon_profile(df, prefix, heights; reference_height)
+
+extract_neon_observations(
+    df::DataFrame,
+    prefix::String,
+    heights::Vector{Float64};
+    campaign::String="NEON",
+    z0m::Float64=NaN,
+    min_levels::Int=2,
+    reference_height::Float64=10.0,
+) = NEONAdapter.extract_neon_observations(
+    df,
+    prefix,
+    heights;
+    campaign,
+    z0m,
+    min_levels,
+    reference_height,
+)
 
 upscale_sparse_icos_profile(
     dt::DateTime,
@@ -116,6 +146,32 @@ upscale_sparse_icos_profile(
     v_high,
     ustar,
     L;
+    target_levels,
+    stability_correction,
+)
+
+upscale_sparse_icos_observation(
+    dt::DateTime,
+    z_low::Float64,
+    z_high::Float64,
+    v_low::Float64,
+    v_high::Float64,
+    ustar::Float64,
+    L::Float64;
+    campaign::String="ICOS-Upscaled",
+    z0m::Float64=NaN,
+    target_levels::Vector{Float64}=[2.0, 5.0, 10.0, 20.0, 40.0],
+    stability_correction::Symbol=:none,
+) = ICOSAdapter.upscale_sparse_icos_observation(
+    dt,
+    z_low,
+    z_high,
+    v_low,
+    v_high,
+    ustar,
+    L;
+    campaign,
+    z0m,
     target_levels,
     stability_correction,
 )
@@ -407,6 +463,68 @@ function build_vertical_profiles(
     return profiles
 end
 
+"""
+    standardize_profile(profile; campaign="SMEAR", z0m=NaN, robust_for_eta3=nothing)
+
+Convert a legacy profile tuple into the campaign-agnostic standardized observation
+payload used by unified ingestion adapters.
+"""
+function standardize_profile(
+    profile::ProfileTuple;
+    campaign::String="SMEAR",
+    z0m::Float64=NaN,
+    reference_height::Float64=23.0,
+    robust_for_eta3::Union{Nothing,Bool}=nothing,
+)
+    return SmearAdapter.standardized_from_legacy(
+        profile.datetime,
+        profile.heights,
+        profile.values,
+        profile.zeta,
+        profile.ustar;
+        campaign,
+        reference_height,
+        z0m,
+        robust_for_eta3,
+    )
+end
+
+"""
+    build_standardized_vertical_observations(df, tracer; kwargs...)
+
+Build legacy profile tuples and immediately normalize them into the standardized
+intermediate observation payload.
+"""
+function build_standardized_vertical_observations(
+    df::DataFrame,
+    tracer::Symbol;
+    campaign::String="SMEAR",
+    z0m::Float64=NaN,
+    reference_height::Float64=23.0,
+    robust_for_eta3::Union{Nothing,Bool}=nothing,
+    heights::Vector{Float64}=HYY_HEIGHTS[tracer],
+    col_names::Vector{String}=_default_colnames(tracer),
+    window_minutes::Int=30,
+)
+    profiles = build_vertical_profiles(
+        df,
+        tracer;
+        heights,
+        col_names,
+        window_minutes,
+    )
+
+    return [
+        standardize_profile(
+            p;
+            campaign,
+            z0m,
+            reference_height,
+            robust_for_eta3,
+        ) for p in profiles
+    ]
+end
+
 function _default_colnames(tracer::Symbol)
     tracer == :co2 && return ["HYY_EDDY233.CO2_4","HYY_EDDY233.CO2_8",
                                "HYY_EDDY233.CO2_17","HYY_EDDY233.CO2_34","HYY_EDDY233.CO2_67"]
@@ -526,6 +644,47 @@ function batch_fingerprint(
             ))
         catch e
             @debug "Skipped profile at $(p.datetime): $e"
+        end
+    end
+    return DataFrame(rows)
+end
+
+function batch_fingerprint(
+    observations::Vector{StandardizedBLObservation},
+    tracer::Symbol;
+    n_coeffs::Int=4,
+    height_mapping::Symbol=:log,
+    reference_height::Float64=23.0,
+)
+    rows = NamedTuple[]
+    @showprogress "Fingerprinting $(tracer) standardized observations..." for obs in observations
+        try
+            prof = SmearAdapter.profile_from_standardized(obs; reference_height)
+            c = chebyshev_fingerprint(prof; n_coeffs, height_mapping)
+            zeta = isfinite(obs.L_obukhov) && abs(obs.L_obukhov) > 1.0e-12 ? reference_height / obs.L_obukhov : NaN
+            shape_ratio = abs(c[2]) > 1e-10 ? abs(c[3]) / abs(c[2]) : NaN
+            canopy_wake_decay_index = abs(c[1]) > 1e-10 ? c[4] / c[1] : NaN
+            counter_gradient_flag = (zeta < -0.1) && (c[2] > 0.0)
+            c2_c3_phase = atan(c[3], c[2])
+            push!(rows, (
+                datetime    = obs.datetime,
+                campaign    = obs.campaign,
+                tracer      = String(tracer),
+                c1          = c[1],
+                c2          = c[2],
+                c3          = c[3],
+                c4          = length(c) >= 4 ? c[4] : NaN,
+                zeta        = zeta,
+                ustar       = obs.ustar,
+                n_obs       = obs.n_valid_levels,
+                robust_for_eta3 = obs.robust_for_eta3,
+                shape_ratio = shape_ratio,
+                canopy_wake_decay_index = canopy_wake_decay_index,
+                counter_gradient_flag = counter_gradient_flag,
+                c2_c3_phase = c2_c3_phase,
+            ))
+        catch e
+            @debug "Skipped standardized observation at $(obs.datetime): $e"
         end
     end
     return DataFrame(rows)

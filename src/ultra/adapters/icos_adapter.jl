@@ -1,9 +1,9 @@
 module ICOSAdapter
 
 using Dates
-using ..CoreTypes: MeteorologicalProfile, ProfileMetadata
+using ..CoreTypes: MeteorologicalProfile, ProfileMetadata, StandardizedBLObservation
 
-export upscale_sparse_icos_profile
+export upscale_sparse_icos_profile, upscale_sparse_icos_observation
 
 @inline function _psi_m(zeta::Float64)
     if zeta <= 0.0
@@ -80,6 +80,51 @@ function upscale_sparse_icos_profile(
 
     meta = ProfileMetadata(dt, ustar, L, z_high, 0.0)
     return MeteorologicalProfile(meta, target_levels, virtual_vals)
+end
+
+"""
+    upscale_sparse_icos_observation(...)
+
+Generate an upscaled ICOS profile and return a standardized campaign-normalized
+observation payload for unified ingestion.
+"""
+function upscale_sparse_icos_observation(
+    dt::DateTime,
+    z_low::Float64,
+    z_high::Float64,
+    v_low::Float64,
+    v_high::Float64,
+    ustar::Float64,
+    L::Float64;
+    campaign::String="ICOS-Upscaled",
+    z0m::Float64=NaN,
+    target_levels::Vector{Float64}=[2.0, 5.0, 10.0, 20.0, 40.0],
+    stability_correction::Symbol=:none,
+)
+    prof = upscale_sparse_icos_profile(
+        dt,
+        z_low,
+        z_high,
+        v_low,
+        v_high,
+        ustar,
+        L;
+        target_levels,
+        stability_correction,
+    )
+
+    n_valid = min(length(prof.heights), length(prof.values))
+    return StandardizedBLObservation(
+        prof.metadata.timestamp,
+        campaign,
+        prof.heights,
+        prof.values,
+        prof.metadata.friction_velocity,
+        prof.metadata.obukhov_length,
+        z0m,
+        n_valid >= 3,
+        n_valid,
+    )
 end
 
 end # module ICOSAdapter
