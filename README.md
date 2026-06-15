@@ -167,6 +167,7 @@ For operator usage details and practical command examples, see `QUICKSTART.md`.
 | NEON | NEONAdapter | NEON tower API (offline fallback) | Experimental | SmearPipeline.extract_neon_observations |
 | ICOS | ICOSAdapter | ICOS sparse profiles | Experimental | SmearPipeline.upscale_sparse_icos_observation |
 | SHEBA | ShebaAdapter | SHEBA Arctic forcing records | Experimental | SmearPipeline.extract_sheba_profiles |
+| AMERIFLUX | AmeriFluxAdapter | AmeriFlux BASE-BADM (60+ NEON + research sites) | Experimental | SmearPipeline.extract_ameriflux_observations |
 
 For experimental adapters, data must be available locally in `data/{campaign_name}/`. See DATA.md for data organization requirements.
 

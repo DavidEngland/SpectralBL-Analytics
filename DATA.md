@@ -70,6 +70,17 @@ data/
   │   └── raw/                        # Raw forcing (ignored)
   │       └── .gitkeep
   │
+  ├── ameriflux/                      # AmeriFlux BASE-BADM network (experimental)
+  │   ├── stations.json               # Per-site metadata (tracked)
+  │   ├── base_badm_extracted/        # 60+ extracted CSV files (ignored; locally available)
+  │   │   ├── US-ARM/
+  │   │   ├── US-xCP/
+  │   │   ├── US-NR1/
+  │   │   ├── PR-xGU/
+  │   │   └── ... (50+ additional sites)
+  │   ├── base_badm_mapping.md        # Site registry with DOI refs (tracked)
+  │   └── base_badm_mapping.csv       # Site inventory table (tracked)
+  │
   ├── drafts/                         # Work-in-progress data
   │   ├── trajectories/
   │   │   └── trajectory_master.csv   # Generated during `make process` (tracked)
@@ -210,6 +221,87 @@ Each campaign must provide a `stations.json` file at `data/{campaign_name}/stati
   ]
 }
 ```
+
+## AmeriFlux BASE-BADM Ingestion (Experimental)
+
+AmeriFlux is a continental-scale network of 60+ eddy covariance and flux tower sites across North America operated by diverse institutions. The AmeriFlux BASE (Burba and Anderson Standard Exchange) data product provides harmonized half-hourly and hourly measurements in the Flux Processing (FP) Standard, which is compatible with ICOS (Integrated Carbon Observation System).
+
+### Supported Sites
+
+Your local extraction currently includes:
+- **10 representative sites** pre-configured in [data/ameriflux/stations.json](data/ameriflux/stations.json)
+- **60+ extracted CSV files** in [data/ameriflux/base_badm_extracted/](data/ameriflux/base_badm_extracted/) covering NEON, research, and legacy towers
+- Full site registry in [data/ameriflux/base_badm_mapping.md](data/ameriflux/base_badm_mapping.md) with DOI references
+
+### AmeriFlux Measurement Schema (FP Standard)
+
+Half-hourly BASE files contain columns like:
+- `TA_1_1_1`, `TA_2_1_1`, ... — Air temperature at heights 1, 2, 3, ... (°C)
+- `RH_1_1_1`, `RH_2_1_1`, ... — Relative humidity (%)
+- `WS_1_1_1`, `WS_2_1_1`, ... — Wind speed (m/s)
+- `WD_1_1_1`, `WD_2_1_1`, ... — Wind direction (°)
+- `USTAR` — Friction velocity (m/s)
+- `ZL` — Monin-Obukhov stability parameter z/L (dimensionless)
+- `PA_1_1_1` — Atmospheric pressure (kPa)
+- `TIMESTAMP_START`, `TIMESTAMP_END` — ISO 8601 timestamps (YYYYMMDDHHMM format)
+
+**Missing data indicator**: `-9999` (converted to NaN)
+
+### Running an AmeriFlux Extraction
+
+1. **List available sites**:
+   ```bash
+   ls data/ameriflux/base_badm_extracted/
+   ```
+
+2. **Process one site** (e.g., US-ARM):
+   ```bash
+   make process CAMPAIGN=AMERIFLUX
+   ```
+   
+   This will iterate through all sites in [data/ameriflux/base_badm_extracted/](data/ameriflux/base_badm_extracted/) and generate a unified `trajectory_master.csv`.
+
+3. **Check extraction results**:
+   ```bash
+   wc -l data/drafts/trajectories/trajectory_master.csv
+   grep "AMERIFLUX" data/drafts/trajectories/trajectory_master.csv | head -5
+   ```
+
+4. **Build and compile report**:
+   ```bash
+   make report CAMPAIGN=AMERIFLUX
+   make compile-report
+   ```
+   
+   Output: `reports/ameriflux_run/AMERIFLUX.pdf` (if multi-site analysis enabled)
+
+### Height-by-Site Variability
+
+Unlike CASES-99 and GABLS3, AmeriFlux sites have heterogeneous tower configurations:
+- **Grasslands** (e.g., US-ARM, US-xCP): 3–5 levels (2–50 m)
+- **Forests** (e.g., US-xHA): 3–4 levels (10–40 m)
+- **Arctic tundra** (e.g., US-xTL): 2–4 levels (1–12 m)
+
+The AmeriFluxAdapter dynamically detects available heights and skips profiles with < 3 valid levels (sets `robust_for_eta3 = false`).
+
+### Roughness Length & Displacement Height
+
+The adapter defaults to `z0m = 0.1 m` (grassland) for all sites. For improved accuracy, site-specific values can be added to [data/ameriflux/stations.json](data/ameriflux/stations.json):
+
+```json
+{
+  "id": "US-xHA",
+  "name": "Harvard Forest",
+  "z0m": 1.5,
+  "d_displacement": 15.0
+}
+```
+
+### Quality Control Notes
+
+- AmeriFlux sites have varying QC standards. Some include QC flags in the BASE product; consult site-specific BADM metadata for details.
+- Sparse profiles (e.g., 2-level observations) are flagged with `robust_for_eta3 = false` and excluded from eta3 projections.
+- Stability parameters (ZL, USTAR) are taken directly from the CSV if available; otherwise, defaults are used.
 
 ## Local Data Ingestion Workflow
 

@@ -22,6 +22,7 @@ include("ultra/adapters/smear_adapter.jl")
 include("ultra/adapters/neon_adapter.jl")
 include("ultra/adapters/icos_adapter.jl")
 include("ultra/adapters/sheba_adapter.jl")
+include("ultra/adapters/ameriflux_adapter.jl")
 
 # ─────────────────────────────────────────────
 # VARRIÖ (STATION 1) CONSTANTS
