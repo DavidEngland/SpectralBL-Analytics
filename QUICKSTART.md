@@ -1,12 +1,12 @@
 # QuickStart
 
-This guide runs the full SpectralBL-Analytics pipeline from raw campaign processing to compiled PDF report.
+This guide runs SpectralBL-Analytics from campaign processing through report compilation, including the High-Latitude Boundary Layer (HLBL) Arctic path.
 
 ## 1. Prerequisites
 
 1. Julia 1.12+
 2. TeX Live tools: `lualatex`, `latexmk`
-3. Campaign files present under `data/{campaign_name}/` (see Data Organization below for details)
+3. Campaign files present under `data/{campaign_name}/` (see Data Organization below)
 
 ## 2. Initialize Environment
 
@@ -16,6 +16,8 @@ make init
 
 ## 3. Run Full Operational Sweep
 
+Standard mid-latitude pipeline:
+
 ```bash
 make purge
 make process CAMPAIGN=GABLS3
@@ -24,173 +26,136 @@ make report CAMPAIGN=GABLS3
 make compile-report
 ```
 
-Shortcut for the canonical Cabauw/GABLS3 report path:
+Shortcut targets:
 
 ```bash
-make cabauw-report
+make cabauw-report     # GABLS3/Cabauw full flow
+make cases99-report    # CASES-99 full flow
+make gabls3-report     # GABLS3 full flow
 ```
 
-This shortcut forces `CAMPAIGN=GABLS3` so report artifacts are Cabauw-only.
-
-Dedicated report targets for other campaigns:
+### High-Latitude Boundary Layer (HLBL) / Arctic Amplification
 
 ```bash
-make cases99-report    # Full pipeline with CAMPAIGN=CASES-99 → CASES-99.pdf
-make gabls3-report     # Full pipeline with CAMPAIGN=GABLS3 → GABLS3.pdf
+# 1) Synthetic verification suite + generated TeX snippets
+make arctic-hlbl-synthetic
+
+# 2) Native SHEBA-backed Arctic report flow
+make arctic-report
+
+# 3) Markdown monitoring card + acceptance guard evaluation
+make compile-cards CAMPAIGN=arctic_hlbl
+
+# 4) One-command end-to-end Arctic workflow
+make arctic-finalize
 ```
 
-Valid campaign values: `CAMPAIGN=CASES-99|GABLS3|ALL` (default if omitted: `ALL`, which runs both production campaigns).
+Campaign notes:
+
+- Extraction/report compile targets use `CAMPAIGN=CASES-99|GABLS3|ARCTIC-AMPLIFICATION|ALL`
+- Card compiler accepts aliases such as `arctic_hlbl` and `ARCTIC-AMPLIFICATION`
 
 ## 4. Primary Outputs
 
-1. Master trajectory CSV:
-   `data/drafts/trajectories/trajectory_master.csv`
-2. Report tables:
-   1. `data/outputs/regime_trajectories.csv`
-   2. `data/outputs/regime_scatterplots.csv`
-3. Manifest:
-   `data/outputs/report_manifest.json`
-4. Rendered TeX sections:
-   1. `reports/cases99_run/generated/attractor.tex`
-   2. `reports/cases99_run/generated/regime.tex`
-5. Final report PDF:
-   `reports/cases99_run/CASES-99.pdf` for CASES-99 runs
-   `reports/gabls3_run/GABLS3.pdf` for GABLS3 runs
-   `reports/all_run/main.pdf` for mixed `CAMPAIGN=ALL` runs
+1. Master trajectory records: `data/drafts/trajectories/trajectory_master.csv`
+2. Arctic trajectories: `data/outputs/regime_trajectories_arctic_amplification.csv`
+3. CASES trajectories: `data/outputs/regime_trajectories_cases_99.csv`
+4. Arctic scatter table: `data/outputs/regime_scatterplots_arctic_amplification.csv`
+5. CASES scatter table: `data/outputs/regime_scatterplots_cases_99.csv`
+6. Manifest: `data/outputs/report_manifest.json`
+7. Generated Arctic snippets:
+   - `drafts/sections/generated/arctic_params.tex`
+   - `drafts/sections/generated/table_arctic_synoptic.tex`
+8. Arctic monitoring card: `reports/arctic_amplification_run/campaign_summary_card.md`
+9. Final PDFs:
+   - `reports/cases99_run/CASES-99.pdf`
+   - `reports/gabls3_run/GABLS3.pdf`
+   - `reports/arctic_amplification_run/ARCTIC-AMPLIFICATION.pdf`
 
-## 5. Run Just Report Layer (No Re-extraction)
- CAMPAIGN=GABLS3
-make compile-report
+## 5. Run Report Layer Only (No Re-extraction)
+
+```bash
+make report CAMPAIGN=GABLS3
+make compile-report CAMPAIGN=GABLS3
 ```
 
-OutputData Organization & Campaign Structure
+For Arctic card-only refresh after outputs are present:
 
-Each campaign requires its own directory and metadata:
+```bash
+make compile-cards CAMPAIGN=arctic_hlbl
+```
+
+## 6. Data Organization
 
 ```text
 data/
   cases99/
-    raw/*.nc or raw/*.csv            # Campaign-specific tower observations
-    stations.json                    # Tower metadata (heights, coordinates, roughness)
-  gabls3/
-    stations.json                    # Cabauw tower site metadata
-    raw/                             # Observation files (depends on adapter)
-  smear/ (optional, experimental)
-    stations.json                    # SMEAR station inventory
-    var*.json                        # Station-specific records
-  neon/ (optional, experimental)
+    raw/*.nc or raw/*.csv
     stations.json
-    raw/
-  icos/ (optional, experimental)
-    stations.json
-    processed/
-  sheba/ (optional, experimental)
-    stations.json
-    processed/
-  outputs/                           # Generated during `make report`
-    regime_trajectories.csv
-    regime_scatterplots.csv
+  gabs3/
+    gabls3_scm_cabauw_obs_v33.nc
+  sheba/
+    processed/sheba_input.csv
+  outputs/
+    regime_trajectories_*.csv
+    regime_scatterplots_*.csv
     report_manifest.json
   drafts/
     trajectories/
-      trajectory_master.csv          # Generated during `make process`
+      trajectory_master.csv
 ```
 
-**Key Notes**:
-- All raw dataset files (*.nc, *.csv in raw/) are **git-ignored** for privacy/size reasons.
-- Only `stations.json`, metadata, and generated artifacts are tracked.
-- To add a new campaign, create `data/{campaign_name}/` and populate `stations.json` with tower metadata.
+Key notes:
+
+- Raw datasets are generally git-ignored for size/privacy.
+- Metadata and generated manuscript artifacts are tracked where applicable.
 
 ## 7. Trajectory CSV Schema
 
-The file `data/drafts/trajectories/trajectory_master.csv` produced by `make process` must include the following columns:
+Common required fields for reporting/diagnostics:
 
-**Required columns** (used by report templates and plotting):
-- `timestamp` — ISO 8601 datetime or numeric time index
-- `campaign` — campaign identifier (e.g., "CASES-99", "GABLS3")
-- `eta_1`, `eta_2`, `eta_3` — reduced-space coordinates (attractor projection)
-- `n_valid_levels` — number of valid vertical observations in the profile
+- `campaign`
+- `eta_1`, `eta_2`, `eta_3`
+- `sv_entropy`
+- `time_value` (recommended; guard logic falls back to row-window if missing)
 
-**Optional columns** (diagnostics and audit, may be generated by future phases):
-- `robust_for_eta3` — boolean/flag indicating eta3 robustness given profile sparsity
-- `campaign_origin` — data source adapter name (e.g., "CabauwAdapter", "SmearAdapter")
-- Additional metrics: stability classes, forcing state, etc. (schema evolves with extraction pipeline)
-
-If extraction produces additional columns, they are preserved but not required by report templates. For details on what each column means, see `scripts/build_campaign_report.jl` comment headers.
-```bash
-make process CAMPAIGN=GABLS3
-make report CAMPAIGN=GABLS3
-```
+Additional fields are preserved and may be campaign-specific.
 
 ## 8. Verify Compile Health
 
 ```bash
-cd reports/gabls3_run
+cd reports/arctic_amplification_run
 rg -n -F -e "LaTeX Warning" -e "Package pgfplots Error" -e "Undefined control sequence" main.log
 ```
 
-Expected: no blocking errors; minor `Overfull \\hbox` warnings may still appear.
+Then run regression tests:
 
-**A9. Troubleshooting
+```bash
+make test
+```
+
+## 9. Troubleshooting
 
 ### Campaign/Extraction Issues
 
-1. **Extraction fails with missing file error**:
-   - Verify that `data/{campaign_name}/stations.json` exists.
-   - Check that campaign data files are in `data/{campaign_name}/raw/`.
-   - Run `make test` to verify that your campaign configuration is recognized.
-
-2. **Campaign name not recognized (CAMPAIGN parameter)**:
-   - Valid campaigns: `CAMPAIGN=CASES-99`, `CAMPAIGN=GABLS3`, `CAMPAIGN=ALL`
-   - Unknown campaigns default to `{campaign_name}_run` directory (e.g., `CAMPAIGN=CUSTOM` → `reports/custom_run/main.pdf`)
-   - To ensure your campaign is recognized, add it to `src/IngestionFormatters.jl` campaign registry.
+1. Missing file errors:
+   - Verify campaign data exists under `data/` expected paths.
+   - Run `make test` to validate baseline config health.
+2. Campaign token confusion:
+   - Use `ARCTIC-AMPLIFICATION` for extraction/report pipeline targets.
+   - Use `arctic_hlbl` (or `ARCTIC-AMPLIFICATION`) for `make compile-cards`.
 
 ### Report/TeX Issues
 
-1. **TeX compile fails with "Undefined control sequence" in generated section**:
-   - Run `make purge` to force regeneration of `.tex` files.
-   - Check `reports/{campaign}_run/main.log` for the exact line number.
+1. Undefined control sequence:
+   - Run `make purge`, then rerun `make arctic-finalize`.
+2. Empty PGFPlots figures:
+   - Verify corresponding `data/outputs/regime_scatterplots_*.csv` file has rows.
 
-2. **PGFPlots figures are empty or missing**:
-   - Verify `data/outputs/regime_scatterplots.csv` has rows and is not empty.
-   - Confirm `eta_1`, `eta_2`, `eta_3` columns exist in trajectory CSV.
+### Arctic Guard Issues
 
-3. **Missing figures after successful compile**:
-   - PGFPlots uses externalization; clear the cache: `rm -rf reports/{campaign}_run/tikz-cache/*`
-   - Re-run `make compile-report`.
-
-### Data/Environment Issues
-
-1. **Julia instantiation fails**:
-   ```bash
-   make init
-   ```
-
-2. **CSV column not found error in report stage**:
-   - Inspect `data/drafts/trajectories/trajectory_master.csv` header:
-     ```bash
-     head -1 data/drafts/trajectories/trajectory_master.csv
-     ```
-   - Should contain at minimum: `eta_1,eta_2,eta_3,campaign,timestamp,n_valid_levels`
-
-3. **Stale outputs or references**:
-   ```bash
-   make purge
-   make cases99-report   # or make gabls3-report
-   ```
-2. Verify `data/outputs/report_manifest.json` exists and contains campaign metadata.
-
-3. Run the regression test suite:
-   ```bash
-   make test
-   ```
-   Expected: 20 tests pass (campaign configs, observation operators, matrix inversions).
-
-## 8. Troubleshooting
-
-1. Stale figures or references:
-   Run `make purge` then re-run full sweep.
-2. Missing data file errors in PGFPlots:
-   Confirm `data/outputs/regime_scatterplots.csv` exists and has rows.
-3. Empty/invalid metrics:
-   Check `trajectory_master.csv` contains `eta_*` columns and finite values.
+1. Guard reports `FAIL`:
+   - Inspect `reports/arctic_amplification_run/campaign_summary_card.md`.
+   - Re-run synthetic generation (`make arctic-hlbl-synthetic`) and then `make compile-cards CAMPAIGN=arctic_hlbl`.
+2. Guard reports `SKIPPED`:
+   - Confirm `drafts/sections/generated/table_arctic_synoptic.tex` exists or ensure native trajectory table has sufficient columns for fallback estimation.

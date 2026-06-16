@@ -1,39 +1,32 @@
-.PHONY: init test process tex report compile-report cabauw-report cases99-report gabls3-report clean purge help all
+.PHONY: init test process tex report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
-# Valid CAMPAIGN values: CASES-99, GABLS3, ALL (default ALL runs both production campaigns)
-# Unknown campaign values will be sanitized to {campaign}_run directory path
 WORKSPACE_ROOT := $(shell pwd)
-OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,main.pdf))
-# REPORT_DIR routes campaign output: CASES-99 → cases99_run, GABLS3 → gabls3_run, ALL/unknown → all_run
-REPORT_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),reports/cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),reports/gabls3_run,reports/all_run))
+OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,main.pdf)))
+REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,all_run)))
 
 # Default target
-all: init process tex report compile-report
+all: init process tex report
 
 help:
-	@echo "========================================================================"
-	@echo "                SpectralBL-Analytics Pipeline Engine                    "
-	@echo "========================================================================"
-	@echo "  make init              - Instantiate Julia project environment and precompile"
-	@echo "  make process           - Run attractor diagnostics (set CAMPAIGN=CASES-99|GABLS3|ALL)"
-	@echo "  make tex               - Regenerate LaTeX macros and data tables"
-	@echo "  make report            - Build Mustache templates and JSON report manifest"
-	@echo "  make compile-report    - Compile TeX document to repo root as $(OUTPUT_PDF)"
-	@echo "  make cases99-report    - Full CASES-99 flow (outputs root CASES-99.pdf)"
-	@echo "  make gabls3-report     - Full GABLS3 flow (outputs root GABLS3.pdf)"
+	@echo "Available commands:"
+	@echo "  make init              - Instantiate the Julia environment"
+	@echo "  make process           - Run attractor diagnostics on campaign data"
+	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
+	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
+	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
+	@echo "  make cases99-report    - Full CASES-99 flow (outputs CASES-99.pdf)"
+	@echo "  make gabls3-report     - Full GABLS3 flow (outputs GABLS3.pdf)"
+	@echo "  make arctic-report     - Full ARCTIC-AMPLIFICATION flow"
+	@echo "  make arctic-hlbl-synthetic - Run synthetic Arctic HLBL suite + TeX snippets"
+	@echo "  make arctic-finalize   - Synthetic + native Arctic report + monitoring cards"
+	@echo "  make compile-cards     - Build campaign summary markdown card (set CAMPAIGN flag)"
 	@echo "  make cabauw-report     - Canonical Cabauw-only flow (forces CAMPAIGN=GABLS3)"
-	@echo "  make test              - Run repository test suites (20 invariants expected)"
-	@echo "  make clean             - Remove localized runtime temporary logs"
-	@echo "  make purge             - Evict deep build caches, TikZ externalizations, and PDFs"
-	@echo "------------------------------------------------------------------------"
-	@echo " Current Runtime State:"
-	@echo "   Active Campaign ID : $(CAMPAIGN)"
-	@echo "   Target Report Path : $(REPORT_DIR)/main.tex"
-	@echo "   Output PDF Landing : $(WORKSPACE_ROOT)/$(OUTPUT_PDF)"
-	@echo "========================================================================"
+	@echo "  make test              - Run repository test suites"
+	@echo "  make clean             - Remove compiled logs and temporary runtime artifacts"
+	@echo "  make purge             - Clean + remove deep build caches and PDFs"
 
 init:
 	julia --project="." -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
@@ -59,30 +52,42 @@ report:
 	julia --project="." scripts/build_campaign_report.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
 
 compile-report:
-	@echo "Compiling report PDF via latexmk in $(REPORT_DIR)..."
-	cd $(REPORT_DIR) && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
-	cp -f $(REPORT_DIR)/main.pdf $(WORKSPACE_ROOT)/$(OUTPUT_PDF)
-	@echo "Success: Compiled artifact relocated to $(WORKSPACE_ROOT)/$(OUTPUT_PDF)"
+	@echo "Compiling report PDF via latexmk as $(OUTPUT_PDF)..."
+	cd reports/$(REPORT_RUN_DIR) && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
+	cd reports/$(REPORT_RUN_DIR) && cp -f main.pdf $(OUTPUT_PDF)
 
-cases99-report:
-	$(MAKE) process tex report compile-report CAMPAIGN=CASES-99
+compile-cards:
+	@echo "Compiling campaign monitoring card (campaign=$(CAMPAIGN))..."
+	julia --project="." scripts/compile_campaign_reports.jl $(CAMPAIGN)
+
+cases99-report: CAMPAIGN=CASES-99
+cases99-report: process tex report compile-report
 	@echo "CASES-99 report pipeline complete."
 
 gabls3-report: cabauw-report
 
-cabauw-report:
-	$(MAKE) process tex report compile-report CAMPAIGN=GABLS3
+cabauw-report: CAMPAIGN=GABLS3
+cabauw-report: process tex report compile-report
 	@echo "Cabauw/GABLS3 report pipeline complete."
 
+arctic-report: CAMPAIGN=ARCTIC-AMPLIFICATION
+arctic-report: process tex report compile-report
+	@echo "Arctic amplification report pipeline complete."
+
+arctic-hlbl-synthetic:
+	@echo "Running synthetic Arctic HLBL suite..."
+	julia --project="." scripts/RunArcticAmplificationSuite.jl
+	@echo "Synthetic Arctic HLBL suite complete."
+
+arctic-finalize: arctic-hlbl-synthetic arctic-report
+	@echo "Executing master compiler sequence for high-latitude domains..."
+	$(MAKE) compile-cards CAMPAIGN=arctic_hlbl
+	@echo "Finalization complete. Tables, parameter macros, and markdown cards are synchronized."
+
 purge: clean
-	@echo "Invoking LaTeX engine cleanup..."
-	@if [ -d reports/cases99_run ]; then cd reports/cases99_run && latexmk -C; fi
-	@if [ -d reports/gabls3_run ]; then cd reports/gabls3_run && latexmk -C; fi
-	@if [ -d reports/all_run ]; then cd reports/all_run && latexmk -C; fi
-	@echo "Evicting deep externalized graphic caches and root binaries..."
+	@echo "Removing deep build caches and generated PDFs..."
 	rm -rf reports/cases99_run/tikz-cache/*
-	rm -rf reports/gabls3_run/tikz-cache/*
-	rm -rf reports/all_run/tikz-cache/*
-	rm -f $(WORKSPACE_ROOT)/*.pdf
+	rm -f reports/cases99_run/main.pdf reports/cases99_run/CASES-99.pdf reports/cases99_run/CASES_99.pdf reports/cases99_run/GABLS3.pdf
+	rm -f reports/cases99_run/CASES_99.aux reports/cases99_run/CASES_99.fdb_latexmk reports/cases99_run/CASES_99.fls reports/cases99_run/CASES_99.log reports/cases99_run/CASES_99.out reports/cases99_run/CASES_99.toc
 	rm -rf data/outputs/*
-	@echo "Purge complete. Repository is completely structural."
+	cd reports/cases99_run && latexmk -C

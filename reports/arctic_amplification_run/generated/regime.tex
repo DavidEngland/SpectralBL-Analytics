@@ -17,17 +17,17 @@ The decomposition of the boundary layer into regimes relies on the spectral prop
 \subsection{Campaign Context}
 
 \begin{itemize}
-    \item \textbf{Campaign:} GABLS3
+    \item \textbf{Campaign:} ARCTIC-AMPLIFICATION
     \item \textbf{Baseline:} v0.1 (spectralbl-attractor)
-    \item \textbf{Temporal Coverage:} 23.8 hours
-    \item \textbf{Sample Count:} 144 observations
+    \item \textbf{Temporal Coverage:} 0.1 hours
+    \item \textbf{Sample Count:} 2273 observations
 \end{itemize}
 
 \subsection{Entropy Evolution}
 
 The mean singular value entropy for this campaign is:
 \[
-    H_{\text{mean}} = 0.755
+    H_{\text{mean}} = 0.387
 \]
 
 This value reflects the typical balance between coherent, low-dimensional structure and multi-scale turbulent activity. Nocturnal periods show reduced entropy (stratified regime), while daytime transitions display elevated entropy (mixing regime).
@@ -48,7 +48,7 @@ The spectral curvature metric $\chi_N$ addresses this by tracking geometric stru
 
 When $\mathrm{Ri}_g$ exceeds the critical threshold $(0.2-0.250)$, classical surface-layer similarity theory predicts that continuous turbulence should collapse entirely. In practice, $\mathrm{Ri}_g$ then saturates and becomes uninformative at precisely the moment when the boundary layer is most structurally active---dominated by intermittent bursting, gravity-wave excitation, and slow turbulent kinetic energy decay that gradient metrics cannot resolve.
 
-The scatter plot shown in Figure~\ref{fig:spectral_orthogonality_gabls3} demonstrates this directly. While $\mathrm{Ri}_g$ stalls at high values, the vertical coordinate $\eta_3$ remains dynamically resolved throughout the same stability range, mapping the active wave field and intermittent bursting events that $\mathrm{Ri}_g$ misses entirely.
+The scatter plot shown in Figure~\ref{fig:spectral_orthogonality_arctic-amplification} demonstrates this directly. While $\mathrm{Ri}_g$ stalls at high values, the vertical coordinate $\eta_3$ remains dynamically resolved throughout the same stability range, mapping the active wave field and intermittent bursting events that $\mathrm{Ri}_g$ misses entirely.
 
 Scientific interpretation of orthogonality:
 \begin{itemize}
@@ -66,7 +66,7 @@ Scientific interpretation of orthogonality:
             grid=major,
             xlabel={$\eta_1$},
             ylabel={$\eta_2$},
-            title={Spectral Orthogonality Projection (GABLS3)},
+            title={Spectral Orthogonality Projection (ARCTIC-AMPLIFICATION)},
             colormap/plasma,
             colorbar,
             point meta=explicit,
@@ -85,11 +85,11 @@ Scientific interpretation of orthogonality:
                 x=eta_1,
                 y=eta_2,
                 meta=eta_3
-            ] {../../data/outputs/regime_scatterplots_gabls3.csv};
+            ] {../../data/outputs/regime_scatterplots_arctic_amplification.csv};
         \end{axis}
     \end{tikzpicture}
     \caption{Projected attractor coordinates with orthogonality structure visualized via $\eta_3$ color encoding.}
-    \label{fig:spectral_orthogonality_gabls3}
+    \label{fig:spectral_orthogonality_arctic-amplification}
 \end{figure}
 
 \subsection{Non-Orthogonal Scale Coupling Accounts}
@@ -106,4 +106,4 @@ This term is tracked to quantify cross-regime leakage (wave-turbulence exchange)
 \paragraph{Assumption Note}
 Here $\mathcal{I}_{ij}$ is a variability proxy derived from entropy dynamics, not a closed-form energetic decomposition term; it is intended for comparative run diagnostics rather than absolute budget closure.
 
-\label{sec:regime_gabls3}
+\label{sec:regime_arctic-amplification}

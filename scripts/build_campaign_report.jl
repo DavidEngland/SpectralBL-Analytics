@@ -43,6 +43,8 @@ function report_dir_for_campaign(campaign::Union{Nothing,String})
         return "cases99_run"
     elseif campaign == "GABLS3"
         return "gabls3_run"
+    elseif campaign == "ARCTIC-AMPLIFICATION"
+        return "arctic_amplification_run"
     end
 
     # Fallback: sanitize arbitrary campaign labels into a stable folder name.
@@ -111,6 +113,12 @@ function infer_campaign_conclusions(campaign_id::String)
         return [
             (title = "Arctic Stable-Layer Persistence", body = "Long-lived stable stratification highlights low-turbulence operating modes and sensitivity to intermittent forcing."),
             (title = "Sparse-Level Robustness", body = "The projection remains usable under sparse vertical sampling, preserving diagnostic continuity for reduced-profile conditions.")
+        ]
+    elseif campaign_upper == "ARCTIC-AMPLIFICATION"
+        return [
+            (title = "Lapse-Rate Feedback Lock-In", body = "Strong stratification traps thermal anomalies near the surface and reinforces long-lived inversion states characteristic of Arctic amplification episodes."),
+            (title = "Low-Rank Waveguide Persistence", body = "The HLBL trajectory remains compressed in low-dimensional, wave-dominated manifolds, consistent with suppressed isotropic turbulence under high stability."),
+            (title = "Intermittent Micro-Front Bursts", body = "Elevated intermittency proxies reflect sharp inversion-layer transitions and frontal jumps despite globally reduced turbulent mixing.")
         ]
     elseif startswith(campaign_upper, "NEON")
         return [

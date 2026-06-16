@@ -3,6 +3,8 @@ module IngestionFormatters
 
 using LinearAlgebra
 using NCDatasets
+using CSV
+using DataFrames
 using Dates
 using Statistics
 
@@ -36,6 +38,9 @@ function get_campaign_geometry(campaign::Symbol)
     elseif campaign == :GABLS3
         # Cabauw tower heights: 10m, 60m, 100m, 180m
         return CampaignConfig("GABLS3", [10.0, 60.0, 100.0, 180.0], 0.15, 0.015, 0.0)
+    elseif campaign == :ARCTIC_AMPLIFICATION
+        # Arctic stable-boundary layer surrogate heights (SHEBA-informed near-surface coverage)
+        return CampaignConfig("ARCTIC-AMPLIFICATION", [2.5, 10.0, 20.0, 40.0, 80.0], 0.01, 0.001, 0.0)
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -60,6 +65,9 @@ function load_campaign_samples(campaign::Symbol, pfem_grid::Vector{Float64}; dat
         for path in nc_paths
             append!(samples, read_cases_netcdf(path, config, pfem_grid))
         end
+    elseif campaign == :ARCTIC_AMPLIFICATION
+        data_path = joinpath(data_root, "sheba", "processed", "sheba_input.csv")
+        samples = read_arctic_sheba_csv(data_path, config, pfem_grid)
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -233,6 +241,46 @@ function read_cases_netcdf(path::String, config::CampaignConfig, pfem_grid::Vect
     finally
         close(ds)
     end
+end
+
+function read_arctic_sheba_csv(path::String, config::CampaignConfig, pfem_grid::Vector{Float64})
+    if !isfile(path)
+        error("Missing Arctic/SHEBA CSV file: $(path)")
+    end
+
+    df = CSV.read(path, DataFrame)
+    existing = Set(String.(names(df)))
+    required = ["time", "ws_lo", "ws_hi", "z_lo", "z_hi"]
+    missing_cols = [c for c in required if !(c in existing)]
+    if !isempty(missing_cols)
+        error("SHEBA CSV missing required columns: $(join(missing_cols, ", "))")
+    end
+
+    out = CampaignSample[]
+    for row in eachrow(df)
+        z_lo = Float64(row["z_lo"])
+        z_hi = Float64(row["z_hi"])
+        ws_lo = Float64(row["ws_lo"])
+        ws_hi = Float64(row["ws_hi"])
+
+        if !(isfinite(z_lo) && isfinite(z_hi) && isfinite(ws_lo) && isfinite(ws_hi))
+            continue
+        end
+
+        z_sorted, u_sorted = sort_pairs([z_lo, z_hi], [ws_lo, ws_hi])
+
+        tower_vector = interpolate_profile(z_sorted, u_sorted, config.tower_heights)
+        grid_vector = interpolate_profile(z_sorted, u_sorted, pfem_grid)
+
+        if !all(isfinite, tower_vector) || !all(isfinite, grid_vector)
+            continue
+        end
+
+        tval = normalize_time_value(row["time"])
+        push!(out, CampaignSample(path, tval, tower_vector, grid_vector))
+    end
+
+    return out
 end
 
 function read_cases_tower_series(ds::NCDataset)

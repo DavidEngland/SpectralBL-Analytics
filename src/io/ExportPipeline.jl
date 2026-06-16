@@ -1,3 +1,4 @@
+# src/io/ExportPipeline.jl
 module ExportPipeline
 
 using CSV
@@ -47,6 +48,11 @@ function extract_csv_summaries(
         isempty(df) && error("No rows found for campaign=$(campaign) in $(trajectory_csv)")
     end
 
+    # Preserve temporal ordering so trajectory-connected plots trace historical evolution.
+    if "time_value" in names(df)
+        sort!(df, :time_value)
+    end
+
     slug = campaign_slug(campaign)
 
     # Extract regime trajectories (full resolution for TeX TikZ plots)
@@ -56,7 +62,21 @@ function extract_csv_summaries(
     
     # Create downsampled scatter table (for faster TikZ rendering)
     idx = 1:downsample_rate:nrow(df)
-    scatter_df = df[idx, [:eta_1, :eta_2, :eta_3, :sv_entropy, :campaign, :time_value]]
+    scatter_df = copy(df[idx, [:eta_1, :eta_2, :eta_3, :sv_entropy, :campaign, :time_value]])
+
+    # Attractor spin proxy: signed 2D orbital spin in the (eta_1, eta_2) plane.
+    # Positive values indicate counter-clockwise progression; negative indicates clockwise.
+    n_scatter = nrow(scatter_df)
+    spin = zeros(Float64, n_scatter)
+    if n_scatter >= 2
+        for i in 2:n_scatter
+            d_eta1 = scatter_df.eta_1[i] - scatter_df.eta_1[i-1]
+            d_eta2 = scatter_df.eta_2[i] - scatter_df.eta_2[i-1]
+            spin[i] = scatter_df.eta_1[i] * d_eta2 - scatter_df.eta_2[i] * d_eta1
+        end
+        spin[1] = spin[2]
+    end
+    scatter_df.attractor_spin = spin
     scatter_out = joinpath(output_dir, "regime_scatterplots_$(slug).csv")
     CSV.write(scatter_out, scatter_df)
     @info "Scatter table written (downsampled 1:$(downsample_rate)): $(scatter_out)"

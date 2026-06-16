@@ -7,18 +7,18 @@
 
 \subsection{Overview}
 
-The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ GABLS3 } using the v0.1 baseline.
+The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ ARCTIC-AMPLIFICATION } using the v0.1 baseline.
 
 \begin{description}
-    \item[Campaign:] GABLS3
+    \item[Campaign:] ARCTIC-AMPLIFICATION
     \item[Baseline Version:] v0.1
-    \item[Total Samples:] 144
-    \item[Mean Entropy:] $H_{\text{mean}} = 0.755$
+    \item[Total Samples:] 2273
+    \item[Mean Entropy:] $H_{\text{mean}} = 0.387$
 \end{description}
 
 \subsection{3D Phase Space Projection}
 
-Figure~\ref{fig:attractor_GABLS3} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$. To highlight the true multi-regime orbital evolution, timesteps are connected sequentially by a continuous historical path line. The trajectory is colored using a high-contrast colormap driven by the \textbf{Attractor Spin} diagnostic ($\Omega(t)$), explicitly isolating the directionality of regime transitions.
+Figure~\ref{fig:attractor_ARCTIC-AMPLIFICATION} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$. To highlight the true multi-regime orbital evolution, timesteps are connected sequentially by a continuous historical path line. The trajectory is colored using a high-contrast colormap driven by the \textbf{Attractor Spin} diagnostic ($\Omega(t)$), explicitly isolating the directionality of regime transitions.
 
 \begin{figure}[htbp]
     \centering
@@ -31,7 +31,7 @@ Figure~\ref{fig:attractor_GABLS3} visualizes the three-dimensional trajectory $(
             xlabel={$\eta_1$},
             ylabel={$\eta_2$},
             zlabel={$\eta_3$},
-            title={Low-Rank Attractor Trajectory (\texttt{ GABLS3 })},
+            title={Low-Rank Attractor Trajectory (\texttt{ ARCTIC-AMPLIFICATION })},
             colormap/jet,
             colorbar,
             point meta=explicit,
@@ -54,12 +54,12 @@ Figure~\ref{fig:attractor_GABLS3} visualizes the three-dimensional trajectory $(
                 y=eta_2,
                 z=eta_3,
                 meta=attractor_spin
-            ] {../../data/outputs/regime_scatterplots_gabls3.csv};
+            ] {../../data/outputs/regime_scatterplots_arctic_amplification.csv};
 
         \end{axis}
     \end{tikzpicture}
     \caption{3D attractor state orbit trajectory. Color variation tracks Attractor Spin ($\Omega$), separating shear breakout acceleration (cool blue) from radiative collapse configurations (warm red).}
-    \label{fig:attractor_GABLS3}
+    \label{fig:attractor_ARCTIC-AMPLIFICATION}
 \end{figure}
 
 \subsection{Physical Coordinate Interpretation}
@@ -83,9 +83,9 @@ This phase-space view acts as the compressed state engine of the atmospheric bou
 
 The mean low-rank coefficients across all samples are:
 \begin{align}
-    \langle \eta_1 \rangle &= 0.151 \\
-    \langle \eta_2 \rangle &= 0.076 \\
-    \langle \eta_3 \rangle &= 0.044
+    \langle \eta_1 \rangle &= -17.087 \\
+    \langle \eta_2 \rangle &= 3.320 \\
+    \langle \eta_3 \rangle &= 4.550
 \end{align}
 
 The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
@@ -99,10 +99,10 @@ To preserve algorithmic invariance across divergent energy scales, rank truncati
 \begin{itemize}
     \item \textbf{Constrained modes:} $N_c = 3$
     \item \textbf{Unconstrained nullspace modes:} $N_0 = 0$
-    \item \textbf{Condition number:} $\kappa = 4.37$
-    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = 2.5398$
+    \item \textbf{Condition number:} $\kappa = 5891398431322.71$
+    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = 1.1093$
 \end{itemize}
 
-The entropy-derived $D_{\text{eff}} = 2.5398$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
+The entropy-derived $D_{\text{eff}} = 1.1093$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
 
-\label{sec:attractor_GABLS3}
+\label{sec:attractor_ARCTIC-AMPLIFICATION}

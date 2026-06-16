@@ -1,3 +1,4 @@
+% templates/attractor.tex.mustache
 % AUTO-GENERATED Attractor Report Section
 % This file is rendered by Mustache template from trajectory data
 % DO NOT EDIT MANUALLY
@@ -17,7 +18,7 @@ The boundary layer is analyzed as a low-dimensional dynamical system through pro
 
 \subsection{3D Phase Space Projection}
 
-Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$ colored by the Singular Value Entropy diagnostic $H(t)$. Each point represents a timestep in the boundary layer evolution, with the color gradient indicating the effective dimensionality and structural complexity at that moment.
+Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$. To highlight the true multi-regime orbital evolution, timesteps are connected sequentially by a continuous historical path line. The trajectory is colored using a high-contrast colormap driven by the \textbf{Attractor Spin} diagnostic ($\Omega(t)$), explicitly isolating the directionality of regime transitions.
 
 \begin{figure}[htbp]
     \centering
@@ -31,29 +32,33 @@ Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional traject
             ylabel={$\eta_2$},
             zlabel={$\eta_3$},
             title={Low-Rank Attractor Trajectory (\texttt{ {{campaign}} })},
-            colormap/viridis,
+            colormap/jet,
             colorbar,
             point meta=explicit,
-            colorbar style={title={$H(t)$}, title style={yshift=5pt}},
-            mark size=1.6pt,
+            colorbar style={title={$\Omega(t)$}, title style={yshift=5pt}},
             tick label style={font=\small},
             label style={font=\small},
             title style={font=\small}
         ]
+            % 1. DRAW THE ORBIT LINES: Connects data sequentially to reveal the phase trajectory loops
             \addplot3[
-                only marks,
+                mesh,
+                line width=0.8pt,
+                mark=none,
                 scatter,
-                scatter src=explicit
+                scatter src=explicit,
+                shader=interp
             ] table[
                 col sep=comma,
                 x=eta_1,
                 y=eta_2,
                 z=eta_3,
-                meta=sv_entropy
+                meta=attractor_spin
             ] {{{csv_scatter_path_tex}}};
+
         \end{axis}
     \end{tikzpicture}
-    \caption{3D attractor state trajectory colored by singular value entropy.}
+    \caption{3D attractor state orbit trajectory. Color variation tracks Attractor Spin ($\Omega$), separating shear breakout acceleration (cool blue) from radiative collapse configurations (warm red).}
     \label{fig:attractor_{{campaign}}}
 \end{figure}
 
@@ -71,7 +76,7 @@ This phase-space view acts as the compressed state engine of the atmospheric bou
 \begin{itemize}
     \item \textbf{Tight closed loops} indicate near-repeatable diurnal cycling (convective daytime mixing to stable nighttime recovery and back).
     \item \textbf{Broad, tangled trajectories} indicate non-stationary forcing, intermittency, or mesoscale disruption.
-    \item \textbf{Color evolution by $H(t)$} indicates structural order: higher entropy marks distributed multi-mode activity; lower entropy marks collapsed, strongly stratified states.
+    \item \textbf{Color evolution by $\Omega(t)$} isolates transition directionality: positive spin values (warm tones) indicate stable collapse paths; negative values (cool tones) mark turbulent regeneration breakouts.
 \end{itemize}
 
 \subsection{Trajectory Metrics}
@@ -85,7 +90,7 @@ The mean low-rank coefficients across all samples are:
 
 The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
 
-Operationally, peaks in $\|\boldsymbol{\eta}\|$ often coincide with rapid boundary-layer reconfiguration, while entropy excursions identify windows where similarity-based single-regime assumptions are least reliable.
+Operationally, peaks in $\|\boldsymbol{\eta}\|$ often coincide with rapid boundary-layer reconfiguration, while spin excursions identify windows where similarity-based single-regime assumptions are least reliable.
 
 \subsection{Information-Theoretic Manifold Complexity Evaluation}
 
@@ -98,6 +103,6 @@ To preserve algorithmic invariance across divergent energy scales, rank truncati
     \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = {{d_eff}}$
 \end{itemize}
 
-The entropy-derived $D_{\text{eff}}$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
+The entropy-derived $D_{\text{eff}} = {{d_eff}}$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
 
 \label{sec:attractor_{{campaign}}}
