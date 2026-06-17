@@ -1,6 +1,6 @@
 # Campaign Performance Audit: CASES-99
 
-Date: 2026-06-17T16:20:05.795 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-17T16:57:40.192 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -11,14 +11,14 @@ Date: 2026-06-17T16:20:05.795 | Auditor: Spectral-Analytics Engine
 | Mean Singular Value Entropy | 0.2110 | contextual | compressed |
 | Effective Dimension | 2.0537 | &gt;1.5 | above floor |
 | Condition Number | 6.85 | &lt;100 | within |
-| Stage 2 Threshold Exceedance Rate | 98.0% | &lt;25.0% | elevated |
-| Stable Equilibria &#x2F; Hopf Candidates | 1 &#x2F; 0 | &gt;=1 &#x2F; 0+ | no crossing |
+| Stage 2 Threshold Exceedance Rate | n&#x2F;a | &lt;25.0% | n&#x2F;a |
+| Stable Equilibria &#x2F; Hopf Candidates | n&#x2F;a | &gt;=1 &#x2F; 0+ | n&#x2F;a |
 
 ### Status Summary
 
 [OK] Low-rank basis remained numerically usable with condition number 6.85 and 0 exported nullspace modes.
 [INFO] Campaign mean entropy registered at H_mean = 0.2110 with effective dimension D_eff = 2.0537.
-[WARN] Stage 5 continuation terminated at gamma=0.190179, marking the current stability-envelope boundary.
+[INFO] Stage 5 stability scan did not report a terminal divergence boundary.
 
 ---
 
@@ -28,26 +28,26 @@ Date: 2026-06-17T16:20:05.795 | Auditor: Spectral-Analytics Engine
 
 - The exported low-rank basis remained fully constrained with 3 constrained modes and 0 nullspace modes.
 - The projection condition number stayed at 6.85, which is below the audit stress threshold of 100.
-- Stage 5 resolved 1 stable equilibrium and 0 Hopf candidates in the current scan.
+- Stage 5 stability artifacts were not available for this run.
 
 ### Negative Findings
 
-- Stage 2 disagreement exceeded threshold in 49 of 50 windows (98.0%).
-- The maximum Stage 2 disagreement norm reached 29.6341, indicating localized route-selection ambiguity.
-- The descending continuation branch remained stable until gamma=0.190179 and then terminated in Divergence_Blowup before a smooth crossing was logged.
+- Stage 2 disagreement exceeded threshold in 0 of 0 windows (n/a).
+- The maximum Stage 2 disagreement norm reached 0.0000, indicating localized route-selection ambiguity.
+- No Stage 5 divergence boundary was recorded in the current artifact set.
 
 ### Neutral Findings
 
 - Campaign-mean reduced coordinates were (0.583, 0.289, -0.080).
-- The Stage 4 lambda sweep evaluated 9 thresholds and retained the audit elbow near lambda=0.01000 with nnz=92.
-- The dominant Stage 2 routing label was intermittent_conditional_ami, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
+- Stage 4 lambda sweep artifact was not available for summary.
+- The dominant Stage 2 routing label was n/a, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
 
 ---
 
 ## 3. Risks & Monitoring Items
 
-- Threshold exceedance rate remains elevated at 98.0%, so window-level disagreement can accumulate without moving campaign means substantially.
-- The current continuation branch loses numerical validity at gamma=0.190179, so the stability envelope should be treated as locally bounded rather than globally mapped.
+- Threshold exceedance rate remains elevated at n/a, so window-level disagreement can accumulate without moving campaign means substantially.
+- Stage 5 boundary localization is incomplete when continuation artifacts are absent.
 - Mean entropy 0.2110 indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed.
 
 ---
@@ -160,7 +160,7 @@ $$R_{\mathrm{exceed}} = \frac{1}{W} \sum_{w=1}^{W} \mathbf{1}\{\mathrm{disagreem
 
 To isolate performance signal from short-window noise, a two-tailed Z-test can be expressed as:
 
-$$Z = \frac{(\hat{p}_1 - \hat{p}_2) - 0}{\sqrt{\hat{p}(1-\hat{p})(\frac{1}{n_1} + \frac{1}{n_2})}}$$
+$$Z = \frac{(\hat{p}_1 - \hat{p}_2) - 0}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$$
 
 Findings should be rejected unless they cross the threshold of $\alpha = 0.05$.
 
