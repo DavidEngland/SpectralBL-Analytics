@@ -29,6 +29,7 @@ function parse_args(args::Vector{String})
     lambda_threshold = 1e-3
     lambda_provided = false
     max_iter = 25
+    alpha = 1e-4
     library_mode = "contract90"
 
     i = 1
@@ -46,6 +47,8 @@ function parse_args(args::Vector{String})
             lambda_provided = true
         elseif a == "--max-iter"
             i += 1; max_iter = parse(Int, args[i])
+        elseif a == "--alpha"
+            i += 1; alpha = parse(Float64, args[i])
         elseif a == "--library-mode"
             i += 1; library_mode = args[i]
         else
@@ -62,6 +65,7 @@ function parse_args(args::Vector{String})
         lambda_threshold=lambda_threshold,
         lambda_provided=lambda_provided,
         max_iter=max_iter,
+        alpha=alpha,
         library_mode=library_mode,
     )
 end
@@ -117,7 +121,7 @@ function extract_selected_lambda(manifest_obj)
     return nothing, nothing
 end
 
-function run_stage4(; stage3_bin::String, output_json::String, output_json_provided::Bool, mode::String, lambda_threshold::Float64, lambda_provided::Bool, max_iter::Int, library_mode::String)
+function run_stage4(; stage3_bin::String, output_json::String, output_json_provided::Bool, mode::String, lambda_threshold::Float64, lambda_provided::Bool, max_iter::Int, alpha::Float64, library_mode::String)
     payload = load_stage3_binary(stage3_bin)
     Z = Matrix{Float64}(payload["Z_global"])
     dZ = Matrix{Float64}(payload["dZ_global"])
@@ -129,7 +133,7 @@ function run_stage4(; stage3_bin::String, output_json::String, output_json_provi
 
     if lowercase(strip(mode)) == "calibrate"
         lambdas = geometric_lambdas()
-        sweep = run_threshold_sweep(Theta, dZ, lambdas; max_iter=max_iter)
+        sweep = run_threshold_sweep(Theta, dZ, lambdas; max_iter=max_iter, alpha=alpha)
 
         summary = DataFrame(
             lambda=Float64[s.lambda for s in sweep],
@@ -150,6 +154,7 @@ function run_stage4(; stage3_bin::String, output_json::String, output_json_provi
             "stage3_bin" => stage3_bin,
             "output_json" => output_json,
             "library_mode" => library_mode,
+            "alpha" => alpha,
             "selected_lambda" => chosen.lambda,
             "selected_residual_norm" => chosen.residual_norm,
             "selected_nnz" => chosen.nnz,
@@ -187,7 +192,7 @@ function run_stage4(; stage3_bin::String, output_json::String, output_json_provi
         end
     end
 
-    sol = stls_solve(Theta, dZ; lambda_threshold=lambda_threshold, max_iter=max_iter)
+    sol = stls_solve(Theta, dZ; lambda_threshold=lambda_threshold, max_iter=max_iter, alpha=alpha)
     export_discovered_equations(output_json, sol.Xi, feature_names)
 
     manifest = Dict(
@@ -195,6 +200,7 @@ function run_stage4(; stage3_bin::String, output_json::String, output_json_provi
         "stage3_bin" => stage3_bin,
         "output_json" => output_json,
         "library_mode" => library_mode,
+        "alpha" => alpha,
         "lambda_threshold" => lambda_threshold,
         "residual_norm" => sol.residual_norm,
         "nnz" => sol.nnz,
@@ -204,7 +210,7 @@ function run_stage4(; stage3_bin::String, output_json::String, output_json_provi
     write(joinpath(out_dir, "stage4_production_manifest.json"), JSON3.write(manifest))
 
     println("Stage 4 discovered equations written: $(output_json)")
-    println(@sprintf("lambda=%.6g residual=%.5f nnz=%d converged=%s", lambda_threshold, sol.residual_norm, sol.nnz, string(sol.converged)))
+    println(@sprintf("alpha=%.6g lambda=%.6g residual=%.5f nnz=%d converged=%s", alpha, lambda_threshold, sol.residual_norm, sol.nnz, string(sol.converged)))
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
@@ -217,6 +223,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
         lambda_threshold=args.lambda_threshold,
         lambda_provided=args.lambda_provided,
         max_iter=args.max_iter,
+        alpha=args.alpha,
         library_mode=args.library_mode,
     )
 end
