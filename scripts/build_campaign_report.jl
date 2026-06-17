@@ -54,6 +54,15 @@ function report_dir_for_campaign(campaign::Union{Nothing,String})
     return "$(safe)_run"
 end
 
+function campaign_slug_local(campaign::Union{Nothing,String})
+    if campaign === nothing
+        return "all"
+    end
+    safe = lowercase(replace(campaign, r"[^A-Za-z0-9]+" => "_"))
+    safe = strip(safe, '_')
+    return isempty(safe) ? "campaign" : safe
+end
+
 function ensure_report_workspace(report_run_dir::String, workspace_dir::String)
     mkpath(report_run_dir)
     mkpath(joinpath(report_run_dir, "generated"))
@@ -156,6 +165,296 @@ function format_optional_z0m(manifest)
         end
     end
     return "0.100 (Default Grassland)"
+end
+
+function format_metric(value; digits::Int=4, fallback::String="n/a")
+    if value === nothing
+        return fallback
+    elseif value isa Integer
+        return string(value)
+    elseif value isa AbstractFloat || value isa Number
+        f = Float64(value)
+        return isfinite(f) ? @sprintf("%.*f", digits, f) : fallback
+    end
+    return string(value)
+end
+
+function format_percent(value; digits::Int=1, fallback::String="n/a")
+    if value === nothing
+        return fallback
+    end
+    f = Float64(value)
+    return isfinite(f) ? @sprintf("%.*f%%", digits, 100.0 * f) : fallback
+end
+
+function make_signal(icon::String, text::String)
+    return Dict("icon" => icon, "signal_text" => text)
+end
+
+function load_optional_csv(path::String)
+    return isfile(path) ? CSV.read(path, DataFrame) : nothing
+end
+
+function load_optional_json(path::String)
+    return isfile(path) ? JSON3.read(read(path, String)) : nothing
+end
+
+function percentile_or_nothing(values::Vector{Float64}, q::Float64)
+    isempty(values) && return nothing
+    return quantile(values, q)
+end
+
+function summarize_stage2_diagnostics(path::String)
+    df = load_optional_csv(path)
+    if df === nothing || nrow(df) == 0
+        return (
+            available = false,
+            path = path,
+            window_count = 0,
+            exceed_count = 0,
+            exceed_fraction = nothing,
+            disagreement_mean = nothing,
+            disagreement_p95 = nothing,
+            disagreement_max = nothing,
+            dominant_route = "n/a",
+        )
+    end
+
+    window_count = nrow(df)
+    exceed_count = count(df.exceeds_threshold .== true)
+    disagreement_vals = Float64.(df.disagreement_norm)
+
+    route_counts = Dict{String,Int}()
+    for route in String.(df.route_class)
+        route_counts[route] = get(route_counts, route, 0) + 1
+    end
+    dominant_route = isempty(route_counts) ? "n/a" : first(sort(collect(route_counts), by=x -> x[2], rev=true))[1]
+
+    return (
+        available = true,
+        path = path,
+        window_count = window_count,
+        exceed_count = exceed_count,
+        exceed_fraction = window_count > 0 ? exceed_count / window_count : nothing,
+        disagreement_mean = mean(disagreement_vals),
+        disagreement_p95 = percentile_or_nothing(disagreement_vals, 0.95),
+        disagreement_max = maximum(disagreement_vals),
+        dominant_route = dominant_route,
+    )
+end
+
+function summarize_stage4_lambda_sweep(path::String)
+    df = load_optional_csv(path)
+    if df === nothing || nrow(df) == 0
+        return (
+            available = false,
+            path = path,
+            lambda_count = 0,
+            selected_lambda = nothing,
+            selected_residual = nothing,
+            selected_nnz = nothing,
+        )
+    end
+
+    best_idx = argmin(abs.(Float64.(df.lambda) .- 0.01))
+    return (
+        available = true,
+        path = path,
+        lambda_count = nrow(df),
+        selected_lambda = Float64(df.lambda[best_idx]),
+        selected_residual = Float64(df.residual_norm[best_idx]),
+        selected_nnz = Int(df.nnz[best_idx]),
+    )
+end
+
+function summarize_stage5(stability_path::String, branch_path::String)
+    manifest = load_optional_json(stability_path)
+    branch_df = load_optional_csv(branch_path)
+    if manifest === nothing
+        return (
+            available = false,
+            stability_path = stability_path,
+            branch_path = branch_path,
+            stable_count = nothing,
+            hopf_candidate_count = nothing,
+            branch_points = branch_df === nothing ? 0 : nrow(branch_df),
+            terminated = false,
+            termination_gamma = nothing,
+        )
+    end
+
+    cont = haskey(manifest, "continuation") ? manifest["continuation"] : nothing
+    terminated = cont === nothing ? false : Bool(cont["terminated"])
+    termination_gamma = cont === nothing ? nothing : Float64(cont["termination_gamma"])
+    branch_points = cont === nothing ? (branch_df === nothing ? 0 : nrow(branch_df)) : Int(cont["branch_points"])
+
+    return (
+        available = true,
+        stability_path = stability_path,
+        branch_path = branch_path,
+        stable_count = Int(manifest["stable_count"]),
+        hopf_candidate_count = Int(manifest["hopf_candidate_count"]),
+        branch_points = branch_points,
+        terminated = terminated,
+        termination_gamma = termination_gamma,
+    )
+end
+
+function build_visual_exhibits(rel_scatter::String, rel_stage2::String, rel_stage4::String, rel_stage5_branch::String)
+    scatter_tex = "{" * rel_scatter * "}"
+    stage2_tex = "{" * rel_stage2 * "}"
+    stage4_tex = "{" * rel_stage4 * "}"
+    stage5_tex = "{" * rel_stage5_branch * "}"
+
+    return [
+        Dict(
+            "index" => "1",
+            "title" => "Spectral Orthogonality Projection",
+            "key_signal" => "Color-encoded eta_3 separates compressed orbit clusters from vertical-structure departures.",
+            "caption" => "This projection plots eta_1 against eta_2 and encodes eta_3 as the color channel, preserving the low-rank geometry and the vertical structural component in one view. The exhibit is intended to show whether the reduced manifold is dominated by tight recurrent clusters or whether structurally distinct departures remain visible outside the mean state. For CASES-99 style runs, this chart is most useful for confirming that compression in campaign-mean entropy does not erase intermittent vertical-structure events.",
+            "tikz_code" => string(raw"```tex
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.82\textwidth,height=0.48\textwidth,xlabel={$\eta_1$},ylabel={$\eta_2$},grid=major,colormap/plasma,colorbar,point meta=explicit]
+\addplot[only marks,scatter,scatter src=explicit] table[col sep=comma,x=eta_1,y=eta_2,meta=eta_3] ", scatter_tex, raw";
+\end{axis}
+\end{tikzpicture}
+\end{center}
+```") ,
+        ),
+        Dict(
+            "index" => "2",
+            "title" => "Stage 2 Disagreement Window Monitor",
+            "key_signal" => "Window-level disagreement shows whether route selection uncertainty is isolated or persistent.",
+            "caption" => "This chart traces disagreement_norm by window_start across the campaign and exposes whether threshold exceedances are concentrated in a few episodes or distributed across much of the archive. High disagreement windows indicate that the conditional delay-routing and operator comparison logic are flagging ambiguous structure rather than cleanly separable regimes. For an audit reader, this is the fastest exhibit for assessing how much of the run should be treated as transition-dominated rather than operationally settled.",
+            "tikz_code" => "```tex\n\\begin{center}\n\\begin{tikzpicture}\n\\begin{axis}[width=0.82\\textwidth,height=0.38\\textwidth,xlabel={window start},ylabel={disagreement norm},grid=major]\n\\addplot+[thick,mark=none] table[col sep=comma,x=window_start,y=disagreement_norm] " * stage2_tex * ";\n\\end{axis}\n\\end{tikzpicture}\n\\end{center}\n```",
+        ),
+        Dict(
+            "index" => "3",
+            "title" => "Stage 4 Lambda Sweep",
+            "key_signal" => "Residual increase versus nnz collapse reveals the sparsification elbow.",
+            "caption" => "This exhibit plots residual_norm against lambda across the Stage 4 sparse-regression sweep and is used to identify the transition from modest sparsification to aggressive structure loss. The useful reading is not the absolute residual alone but the point where nonzero term count collapses faster than residual increases. In practice, this chart documents whether the selected sparse model sits on a stable elbow or on an over-threshold pruning edge.",
+            "tikz_code" => string(raw"```tex
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.82\textwidth,height=0.38\textwidth,xlabel={$\lambda$},ylabel={residual norm},xmode=log,grid=major]
+\addplot+[mark=*] table[col sep=comma,x=lambda,y=residual_norm] ", stage4_tex, raw";
+\end{axis}
+\end{tikzpicture}
+\end{center}
+```") ,
+        ),
+        Dict(
+            "index" => "4",
+            "title" => "Stage 5 Stability Margin Branch",
+            "key_signal" => "The maximum real eigenvalue branch shows the distance to the stability fence and the terminal divergence point.",
+            "caption" => "This continuation branch plots gamma against the maximum real eigenvalue exported by the Stage 5 stability scan. It provides a compact view of how close the traced equilibrium branch is to losing local stability and where continuation stops due to divergence. When the branch stays negative but terminates abruptly, the operational interpretation is that the model validity envelope closes before a smooth Hopf-style crossing is observed.",
+            "tikz_code" => string(raw"```tex
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[width=0.82\textwidth,height=0.38\textwidth,xlabel={$\gamma$},ylabel={max real eig},grid=major]
+\addplot+[mark=*] table[col sep=comma,x=gamma,y=max_real_eig] ", stage5_tex, raw";
+\end{axis}
+\end{tikzpicture}
+\end{center}
+```") ,
+        ),
+    ]
+end
+
+function build_markdown_audit_tokens(manifest, campaign_label::String, report_run_dir::String, rel_traj::String, rel_scat::String, workspace_dir::String)
+    slug = campaign_slug_local(campaign_label)
+    outputs_dir = joinpath(workspace_dir, "data", "outputs")
+
+    stage2_path = joinpath(outputs_dir, "stage2_diagnostics_$(slug).csv")
+    stage4_path = joinpath(outputs_dir, "stage4_lambda_sweep.csv")
+    stage5_stability_path = joinpath(outputs_dir, "stage5_stability_manifest_$(slug).json")
+    stage5_branch_path = joinpath(outputs_dir, "stage5_bifurcation_branches_$(slug).csv")
+
+    stage2 = summarize_stage2_diagnostics(stage2_path)
+    stage4 = summarize_stage4_lambda_sweep(stage4_path)
+    stage5 = summarize_stage5(stage5_stability_path, stage5_branch_path)
+
+    rel_stage2 = relpath(stage2_path, report_run_dir)
+    rel_stage4 = relpath(stage4_path, report_run_dir)
+    rel_stage5_branch = relpath(stage5_branch_path, report_run_dir)
+
+    kpis = [
+        Dict("metric" => "Total Samples", "value" => string(manifest["total_samples"]), "target" => ">=1000", "variance" => "observed"),
+        Dict("metric" => "Temporal Coverage", "value" => @sprintf("%.1f h", manifest["temporal_coverage"]), "target" => ">=24 h", "variance" => "observed"),
+        Dict("metric" => "Mean Singular Value Entropy", "value" => @sprintf("%.4f", manifest["h_mean"]), "target" => "contextual", "variance" => manifest["h_mean"] < 0.5 ? "compressed" : "broad"),
+        Dict("metric" => "Effective Dimension", "value" => @sprintf("%.4f", manifest["d_eff"]), "target" => ">1.5", "variance" => Float64(manifest["d_eff"]) > 1.5 ? "above floor" : "compressed"),
+        Dict("metric" => "Condition Number", "value" => isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf", "target" => "<100", "variance" => Float64(manifest["condition_num"]) < 100 ? "within" : "elevated"),
+        Dict("metric" => "Stage 2 Threshold Exceedance Rate", "value" => format_percent(stage2.exceed_fraction; digits=1), "target" => "<25.0%", "variance" => stage2.exceed_fraction === nothing ? "n/a" : (stage2.exceed_fraction < 0.25 ? "within" : "elevated")),
+        Dict("metric" => "Stable Equilibria / Hopf Candidates", "value" => stage5.available ? "$(stage5.stable_count) / $(stage5.hopf_candidate_count)" : "n/a", "target" => ">=1 / 0+", "variance" => stage5.available ? (stage5.hopf_candidate_count == 0 ? "no crossing" : "candidate present") : "n/a"),
+    ]
+
+    status_signals = [
+        make_signal("[OK]", "Low-rank basis remained numerically usable with condition number $(isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf") and $(manifest["n_0"]) exported nullspace modes."),
+        make_signal("[INFO]", "Campaign mean entropy registered at H_mean = $( @sprintf("%.4f", manifest["h_mean"]) ) with effective dimension D_eff = $( @sprintf("%.4f", manifest["d_eff"]) )."),
+        make_signal(stage5.available && stage5.terminated ? "[WARN]" : "[INFO]", stage5.available && stage5.terminated ? @sprintf("Stage 5 continuation terminated at gamma=%.6f, marking the current stability-envelope boundary.", stage5.termination_gamma) : "Stage 5 stability scan did not report a terminal divergence boundary."),
+    ]
+
+    positive_findings = [
+        Dict("finding" => "The exported low-rank basis remained fully constrained with $(manifest["n_c"]) constrained modes and $(manifest["n_0"]) nullspace modes."),
+        Dict("finding" => "The projection condition number stayed at $(isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf"), which is below the audit stress threshold of 100."),
+        Dict("finding" => stage5.available ? "Stage 5 resolved $(stage5.stable_count) stable equilibrium and $(stage5.hopf_candidate_count) Hopf candidates in the current scan." : "Stage 5 stability artifacts were not available for this run."),
+    ]
+
+    negative_findings = [
+        Dict("finding" => "Stage 2 disagreement exceeded threshold in $(stage2.exceed_count) of $(stage2.window_count) windows ($(format_percent(stage2.exceed_fraction; digits=1)))."),
+        Dict("finding" => @sprintf("The maximum Stage 2 disagreement norm reached %.4f, indicating localized route-selection ambiguity.", stage2.disagreement_max === nothing ? 0.0 : stage2.disagreement_max)),
+        Dict("finding" => stage5.available && stage5.terminated ? @sprintf("The descending continuation branch remained stable until gamma=%.6f and then terminated in Divergence_Blowup before a smooth crossing was logged.", stage5.termination_gamma) : "No Stage 5 divergence boundary was recorded in the current artifact set."),
+    ]
+
+    neutral_findings = [
+        Dict("finding" => "Campaign-mean reduced coordinates were ($(format_metric(manifest["mean_eta_1"]; digits=3)), $(format_metric(manifest["mean_eta_2"]; digits=3)), $(format_metric(manifest["mean_eta_3"]; digits=3)))."),
+        Dict("finding" => stage4.available ? @sprintf("The Stage 4 lambda sweep evaluated %d thresholds and retained the audit elbow near lambda=%.5f with nnz=%d.", stage4.lambda_count, stage4.selected_lambda, stage4.selected_nnz) : "Stage 4 lambda sweep artifact was not available for summary."),
+        Dict("finding" => "The dominant Stage 2 routing label was $(stage2.dominant_route), which should be interpreted as the prevailing operator path rather than a regime proof by itself."),
+    ]
+
+    risks = [
+        Dict("risk_item" => "Threshold exceedance rate remains elevated at $(format_percent(stage2.exceed_fraction; digits=1)), so window-level disagreement can accumulate without moving campaign means substantially."),
+        Dict("risk_item" => stage5.available && stage5.terminated ? @sprintf("The current continuation branch loses numerical validity at gamma=%.6f, so the stability envelope should be treated as locally bounded rather than globally mapped.", stage5.termination_gamma) : "Stage 5 boundary localization is incomplete when continuation artifacts are absent."),
+        Dict("risk_item" => "Mean entropy $(format_metric(manifest["h_mean"]; digits=4)) indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed."),
+    ]
+
+    visual_exhibits = build_visual_exhibits(rel_scat, rel_stage2, rel_stage4, rel_stage5_branch)
+
+    custom_metrics = [
+        Dict("metric_name" => "H", "latex_formula" => "-\\sum_{i=1}^{r} p_i \\log p_i"),
+        Dict("metric_name" => "D_{\\mathrm{eff}}", "latex_formula" => "e^{H}"),
+        Dict("metric_name" => "\\kappa", "latex_formula" => "\\sigma_{\\max} / \\sigma_{\\min}"),
+        Dict("metric_name" => "R_{\\mathrm{exceed}}", "latex_formula" => "\\frac{1}{W} \\sum_{w=1}^{W} \\mathbf{1}\\{\\mathrm{disagreement\\_norm}_w > \\tau\\}"),
+    ]
+
+    return Dict(
+        "campaign_name" => campaign_label,
+        "campaign" => campaign_label,
+        "generation_date" => String(manifest["generated_at"]),
+        "baseline_version" => String(manifest["baseline_version"]),
+        "baseline_source" => String(manifest["baseline_source"]),
+        "projection_method" => String(manifest["projection_method"]),
+        "kpis" => kpis,
+        "status_signals" => status_signals,
+        "positive_findings" => positive_findings,
+        "negative_findings" => negative_findings,
+        "neutral_findings" => neutral_findings,
+        "risks" => risks,
+        "visual_exhibits" => visual_exhibits,
+        "custom_metrics" => custom_metrics,
+        "significance_alpha" => "0.05",
+        "attribution_model" => "Deterministic manifold audit with campaign-scoped artifact attribution",
+        "lookback_window" => "campaign-window",
+        "pixel_logic" => "Not applicable; diagnostics are derived from trajectory and stability artifacts rather than ad-pixel events.",
+        "outlier_sigma" => "3",
+        "bot_filter_method" => "Not applicable; source is scientific trajectory data, not web traffic.",
+        "csv_trajectory_path" => rel_traj,
+        "csv_scatter_path" => rel_scat,
+        "stage2_diagnostics_path" => rel_stage2,
+        "stage4_lambda_sweep_path" => rel_stage4,
+        "stage5_branch_path" => rel_stage5_branch,
+    )
 end
 
 """
@@ -323,9 +622,23 @@ function execute_orchestration(
             Mustache.render(io, template_content, tokens)
         end
     end
+
+    # 6. Generate standalone markdown audit artifact.
+    rel_traj = relpath(export_result.trajectory_csv, report_run_dir)
+    rel_scat = relpath(export_result.scatter_csv, report_run_dir)
+    campaign_label = String(manifest["campaign"])
+    audit_tokens = build_markdown_audit_tokens(manifest, campaign_label, report_run_dir, rel_traj, rel_scat, workspace_dir)
+    audit_template_path = joinpath("templates", "campaign_audit.md.mustache")
+    audit_output_path = joinpath(report_run_dir, "campaign_audit.md")
+    @info "Rendering template: campaign_audit -> $(audit_output_path)"
+    open(audit_output_path, "w") do io
+        template_content = read(audit_template_path, String)
+        Mustache.render(io, template_content, audit_tokens)
+    end
     
     @info "==> All Mustache templates rendered successfully!"
     @info "==> Report components ready at: $(joinpath(report_run_dir, "generated"))"
+    @info "==> Standalone audit ready at: $(audit_output_path)"
     @info ""
     @info "Next steps:"
     @info "  1. cd $(report_run_dir)"

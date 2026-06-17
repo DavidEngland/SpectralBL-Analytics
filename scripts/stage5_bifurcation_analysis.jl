@@ -25,6 +25,8 @@ function parse_args(args::Vector{String})
     gamma_min = 0.5
     gamma_max = 1.5
     gamma_steps = 25
+    refine_steps = 8
+    refine_gamma_tol = 1e-4
     sweep_direction = "ascending"
     scale_target = "linear"
     linear_indices = "1,2,3,4,5,6,7,8,9"
@@ -59,6 +61,10 @@ function parse_args(args::Vector{String})
             i += 1; gamma_max = parse(Float64, args[i])
         elseif a == "--gamma-steps"
             i += 1; gamma_steps = parse(Int, args[i])
+        elseif a == "--refine-steps"
+            i += 1; refine_steps = parse(Int, args[i])
+        elseif a == "--refine-gamma-tol"
+            i += 1; refine_gamma_tol = parse(Float64, args[i])
         elseif a == "--sweep-direction"
             i += 1; sweep_direction = args[i]
         elseif a == "--scale-target"
@@ -87,6 +93,8 @@ function parse_args(args::Vector{String})
         gamma_min=gamma_min,
         gamma_max=gamma_max,
         gamma_steps=gamma_steps,
+        refine_steps=refine_steps,
+        refine_gamma_tol=refine_gamma_tol,
         sweep_direction=sweep_direction,
         scale_target=scale_target,
         linear_indices=linear_indices,
@@ -237,12 +245,11 @@ function write_continuation_csv(path::String, branch_rows, hopf_events, n::Int)
         ))
     end
 
-    sort!(rows, by=r -> r.gamma)
     mkpath(dirname(path))
     CSV.write(path, DataFrame(rows))
 end
 
-function run_stage5(; stage4_json::String, output_json::String, output_csv::String, continuation_csv::String, seed_count::Int, seed_scale::Float64, max_iter::Int, tol::Float64, dedup_tol::Float64, hopf_eps::Float64, gamma_min::Float64, gamma_max::Float64, gamma_steps::Int, sweep_direction::String, scale_target::String, linear_indices::String, forcing_values::String)
+function run_stage5(; stage4_json::String, output_json::String, output_csv::String, continuation_csv::String, seed_count::Int, seed_scale::Float64, max_iter::Int, tol::Float64, dedup_tol::Float64, hopf_eps::Float64, gamma_min::Float64, gamma_max::Float64, gamma_steps::Int, refine_steps::Int, refine_gamma_tol::Float64, sweep_direction::String, scale_target::String, linear_indices::String, forcing_values::String)
     sys = load_system_from_json(stage4_json)
     result = find_equilibria(
         sys;
@@ -287,6 +294,8 @@ function run_stage5(; stage4_json::String, output_json::String, output_csv::Stri
         cont_cfg;
         max_iter=max_iter,
         tol=tol,
+        refine_steps=refine_steps,
+        refine_gamma_tol=refine_gamma_tol,
     )
 
     eq_payload = Vector{Dict{String,Any}}()
@@ -328,6 +337,8 @@ function run_stage5(; stage4_json::String, output_json::String, output_csv::Stri
             "gamma_min" => gamma_min,
             "gamma_max" => gamma_max,
             "gamma_steps" => gamma_steps,
+            "refine_steps" => refine_steps,
+            "refine_gamma_tol" => refine_gamma_tol,
             "sweep_direction" => sweep_direction,
             "scale_target" => scale_target,
             "linear_indices" => idx,
@@ -391,6 +402,8 @@ if abspath(PROGRAM_FILE) == @__FILE__
         gamma_min=args.gamma_min,
         gamma_max=args.gamma_max,
         gamma_steps=args.gamma_steps,
+        refine_steps=args.refine_steps,
+        refine_gamma_tol=args.refine_gamma_tol,
         sweep_direction=args.sweep_direction,
         scale_target=args.scale_target,
         linear_indices=args.linear_indices,

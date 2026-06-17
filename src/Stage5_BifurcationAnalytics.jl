@@ -32,6 +32,144 @@ struct ContinuationConfig
     hopf_eps::Float64
 end
 
+function solve_branch_point(
+    sys::DiscoveredSystem,
+    z_seed::Vector{Float64},
+    gamma::Float64,
+    cfg::ContinuationConfig;
+    max_iter::Int=50,
+    tol::Float64=1e-8,
+)
+    sol = newton_equilibrium(
+        sys,
+        z_seed;
+        max_iter=max_iter,
+        tol=tol,
+        gamma=gamma,
+        continuation_config=cfg,
+    )
+
+    if !sol.converged
+        return (
+            converged=false,
+            divergence=(sol.reason == "divergence_blowup" || state_is_divergent(sol.z)),
+            gamma=gamma,
+            z=sol.z,
+            residual_norm=sol.residual_norm,
+            iterations=sol.iterations,
+            reason=sol.reason,
+            eigenvalues=ComplexF64[],
+            max_real_eig=NaN,
+            is_stable=false,
+            bifurcation_tag=(sol.reason == "divergence_blowup" || state_is_divergent(sol.z)) ? "Divergence_Blowup" : "newton_failed",
+        )
+    end
+
+    if state_is_divergent(sol.z)
+        return (
+            converged=false,
+            divergence=true,
+            gamma=gamma,
+            z=sol.z,
+            residual_norm=sol.residual_norm,
+            iterations=sol.iterations,
+            reason="divergence_blowup",
+            eigenvalues=ComplexF64[],
+            max_real_eig=NaN,
+            is_stable=false,
+            bifurcation_tag="Divergence_Blowup",
+        )
+    end
+
+    J = compute_jacobian(sys, sol.z, gamma, cfg)
+    metrics = eigenspectrum_metrics(J; hopf_eps=cfg.hopf_eps)
+    vals = ComplexF64.(metrics.eigenvalues)
+    if eigvals_are_divergent(vals)
+        return (
+            converged=false,
+            divergence=true,
+            gamma=gamma,
+            z=sol.z,
+            residual_norm=sol.residual_norm,
+            iterations=sol.iterations,
+            reason="divergence_blowup",
+            eigenvalues=vals,
+            max_real_eig=NaN,
+            is_stable=false,
+            bifurcation_tag="Divergence_Blowup",
+        )
+    end
+
+    return (
+        converged=true,
+        divergence=false,
+        gamma=gamma,
+        z=sol.z,
+        residual_norm=sol.residual_norm,
+        iterations=sol.iterations,
+        reason="converged",
+        eigenvalues=vals,
+        max_real_eig=metrics.spectral_abscissa,
+        is_stable=metrics.is_stable,
+        bifurcation_tag="none",
+    )
+end
+
+function refine_divergence_boundary(
+    sys::DiscoveredSystem,
+    stable_row,
+    divergence_row,
+    cfg::ContinuationConfig;
+    max_iter::Int=50,
+    tol::Float64=1e-8,
+    refine_steps::Int=8,
+    gamma_tol::Float64=1e-4,
+)
+    refined_stable = stable_row
+    refined_divergence = divergence_row
+    inserted_rows = NamedTuple[]
+
+    for _ in 1:refine_steps
+        if abs(refined_divergence.gamma - refined_stable.gamma) <= gamma_tol
+            break
+        end
+
+        gamma_mid = 0.5 * (refined_stable.gamma + refined_divergence.gamma)
+        mid_seed = refined_stable.z
+        mid = solve_branch_point(sys, mid_seed, gamma_mid, cfg; max_iter=max_iter, tol=tol)
+
+        if mid.converged && !mid.divergence
+            row = (
+                gamma=mid.gamma,
+                z=mid.z,
+                max_real_eig=mid.max_real_eig,
+                is_stable=mid.is_stable,
+                bifurcation_tag="refine_stable",
+                converged=true,
+                residual_norm=mid.residual_norm,
+                eigenvalues=mid.eigenvalues,
+                predictor_seed=mid_seed,
+            )
+            push!(inserted_rows, row)
+            refined_stable = row
+        else
+            refined_divergence = (
+                gamma=mid.gamma,
+                z=mid.z,
+                max_real_eig=NaN,
+                is_stable=false,
+                bifurcation_tag="Divergence_Blowup",
+                converged=false,
+                residual_norm=mid.residual_norm,
+                eigenvalues=mid.eigenvalues,
+                predictor_seed=mid_seed,
+            )
+        end
+    end
+
+    return inserted_rows, refined_divergence
+end
+
 function state_is_divergent(z::Vector{Float64}; max_norm::Float64=50.0)
     any(isnan, z) && return true
     any(isinf, z) && return true
@@ -429,6 +567,8 @@ function trace_continuation_branch(
     cfg::ContinuationConfig;
     max_iter::Int=50,
     tol::Float64=1e-8,
+    refine_steps::Int=8,
+    refine_gamma_tol::Float64=1e-4,
 )
     validate_continuation_config(sys, cfg)
     gammas = continuation_gammas(cfg)
@@ -447,29 +587,37 @@ function trace_continuation_branch(
             predictor_state(branch, gammas[k - 1], gamma)
         end
 
-        sol = newton_equilibrium(
-            sys,
-            z_seed;
-            max_iter=max_iter,
-            tol=tol,
-            gamma=gamma,
-            continuation_config=cfg,
-        )
+        point = solve_branch_point(sys, z_seed, gamma, cfg; max_iter=max_iter, tol=tol)
 
-        if !sol.converged
-            blowup = sol.reason == "divergence_blowup" || state_is_divergent(sol.z)
+        if !point.converged
+            blowup = point.divergence
             push!(branch, (
                 gamma=gamma,
-                z=blowup ? sol.z : fill(NaN, n_states(sys)),
+                z=blowup ? point.z : fill(NaN, n_states(sys)),
                 max_real_eig=NaN,
                 is_stable=false,
                 bifurcation_tag=blowup ? "Divergence_Blowup" : "newton_failed",
                 converged=false,
-                residual_norm=sol.residual_norm,
-                eigenvalues=ComplexF64[],
+                residual_norm=point.residual_norm,
+                eigenvalues=point.eigenvalues,
                 predictor_seed=z_seed,
             ))
             if blowup
+                if !isempty(branch) && length(branch) >= 2
+                    inserted_rows, refined_divergence = refine_divergence_boundary(
+                        sys,
+                        branch[end - 1],
+                        branch[end],
+                        cfg;
+                        max_iter=max_iter,
+                        tol=tol,
+                        refine_steps=refine_steps,
+                        gamma_tol=refine_gamma_tol,
+                    )
+                    splice!(branch, length(branch):length(branch), inserted_rows)
+                    branch[end] = refined_divergence
+                    gamma = refined_divergence.gamma
+                end
                 return (
                     branch=branch,
                     hopf_events=hopf_events,
@@ -481,61 +629,15 @@ function trace_continuation_branch(
             continue
         end
 
-        if state_is_divergent(sol.z)
-            push!(branch, (
-                gamma=gamma,
-                z=sol.z,
-                max_real_eig=NaN,
-                is_stable=false,
-                bifurcation_tag="Divergence_Blowup",
-                converged=false,
-                residual_norm=sol.residual_norm,
-                eigenvalues=ComplexF64[],
-                predictor_seed=z_seed,
-            ))
-            return (
-                branch=branch,
-                hopf_events=hopf_events,
-                terminated=true,
-                termination_gamma=gamma,
-                termination_reason="Divergence_Blowup",
-            )
-        end
-
-        J = compute_jacobian(sys, sol.z, gamma, cfg)
-        metrics = eigenspectrum_metrics(J; hopf_eps=cfg.hopf_eps)
-        vals = ComplexF64.(metrics.eigenvalues)
-
-        if eigvals_are_divergent(vals)
-            push!(branch, (
-                gamma=gamma,
-                z=sol.z,
-                max_real_eig=NaN,
-                is_stable=false,
-                bifurcation_tag="Divergence_Blowup",
-                converged=false,
-                residual_norm=sol.residual_norm,
-                eigenvalues=vals,
-                predictor_seed=z_seed,
-            ))
-            return (
-                branch=branch,
-                hopf_events=hopf_events,
-                terminated=true,
-                termination_gamma=gamma,
-                termination_reason="Divergence_Blowup",
-            )
-        end
-
         bif_tag = "none"
-        curr_growth = dominant_complex_real(vals)
+        curr_growth = dominant_complex_real(point.eigenvalues)
 
         if prev_complex_growth !== nothing && curr_growth !== nothing && prev_gamma !== nothing && prev_z !== nothing
             if prev_complex_growth < 0.0 && curr_growth >= 0.0 && isfinite(prev_complex_growth) && isfinite(curr_growth)
                 denom = curr_growth - prev_complex_growth
                 θ = abs(denom) < 1e-12 ? 0.0 : clamp(-prev_complex_growth / denom, 0.0, 1.0)
                 gamma_cross = prev_gamma + θ * (gamma - prev_gamma)
-                z_cross = prev_z .+ θ .* (sol.z .- prev_z)
+                z_cross = prev_z .+ θ .* (point.z .- prev_z)
 
                 push!(hopf_events, (
                     gamma=gamma_cross,
@@ -548,19 +650,19 @@ function trace_continuation_branch(
 
         push!(branch, (
             gamma=gamma,
-            z=sol.z,
-            max_real_eig=metrics.spectral_abscissa,
-            is_stable=metrics.is_stable,
+            z=point.z,
+            max_real_eig=point.max_real_eig,
+            is_stable=point.is_stable,
             bifurcation_tag=bif_tag,
             converged=true,
-            residual_norm=sol.residual_norm,
-            eigenvalues=vals,
+            residual_norm=point.residual_norm,
+            eigenvalues=point.eigenvalues,
             predictor_seed=z_seed,
         ))
 
         prev_complex_growth = curr_growth
         prev_gamma = gamma
-        prev_z = sol.z
+        prev_z = point.z
     end
 
     return (

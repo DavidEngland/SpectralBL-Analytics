@@ -1,0 +1,113 @@
+# Campaign Performance Audit: {{{campaign_name}}}
+
+Date: {{{generation_date}}} | Auditor: Spectral-Analytics Engine
+
+## 1. Executive Dashboard
+
+| Metric | Value | Target | Variance |
+| :--- | :--- | :--- | :--- |
+{{#kpis}}
+| {{metric}} | {{value}} | {{target}} | {{variance}} |
+{{/kpis}}
+
+### Status Summary
+
+{{#status_signals}}
+{{{icon}}} {{{signal_text}}}
+{{/status_signals}}
+
+---
+
+## 2. Direct Observations & Facts
+
+### Positive Findings
+
+{{#positive_findings}}
+- {{{finding}}}
+{{/positive_findings}}
+
+### Negative Findings
+
+{{#negative_findings}}
+- {{{finding}}}
+{{/negative_findings}}
+
+### Neutral Findings
+
+{{#neutral_findings}}
+- {{{finding}}}
+{{/neutral_findings}}
+
+---
+
+## 3. Risks & Monitoring Items
+
+{{#risks}}
+- {{{risk_item}}}
+{{/risks}}
+
+---
+
+\newpage
+
+## 4. Visual Exhibits
+
+{{#visual_exhibits}}
+### {{{title}}}
+
+{{{tikz_code}}}
+
+**Figure {{index}}:** {{{caption}}}
+
+**Key Signal:** *{{{key_signal}}}*
+
+\newpage
+
+{{/visual_exhibits}}
+
+---
+
+\newpage
+
+# Appendix: Methodology & Technical Explanations
+
+### A. Core Performance Metrics
+
+The primary campaign-style performance indicators are mathematically defined as:
+
+$$CTR = \frac{\text{Clicks}}{\text{Impressions}}$$
+
+$$CPA = \frac{\text{Spend}}{\text{Conversions}}$$
+
+$$ROAS = \frac{\text{Total Revenue Generated}}{\text{Total Campaign Spend}}$$
+
+The primary spectral diagnostics used in this audit are:
+
+{{#custom_metrics}}
+$${{{metric_name}}} = {{{latex_formula}}}$$
+
+{{/custom_metrics}}
+
+### B. Statistical Evaluation & Significance
+
+To isolate performance signal from short-window noise, a two-tailed Z-test can be expressed as:
+
+$$Z = \frac{(\hat{p}_1 - \hat{p}_2) - 0}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$$
+
+Findings should be rejected unless they cross the threshold of $\alpha = {{{significance_alpha}}}$.
+
+### C. Attribution Methodology
+
+- **Model:** {{{attribution_model}}}
+- **Lookback Window:** {{{lookback_window}}}
+- **Pixel Logic:** {{{pixel_logic}}}
+
+### D. Data Quality Controls
+
+- **Anomaly Detection:** Outliers exceeding ${{{outlier_sigma}}}\sigma$ from the moving median were scrubbed.
+- **Bot Traffic Filter:** {{{bot_filter_method}}}
+- **Trajectory Source:** {{{csv_trajectory_path}}}
+- **Scatter Source:** {{{csv_scatter_path}}}
+- **Stage 2 Diagnostics Source:** {{{stage2_diagnostics_path}}}
+- **Stage 4 Lambda Sweep Source:** {{{stage4_lambda_sweep_path}}}
+- **Stage 5 Branch Source:** {{{stage5_branch_path}}}

@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -23,7 +23,11 @@ help:
 	@echo "  make stage5-sweep      - Run descending Stage 5 continuation sweep on discovered equations"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
+	@echo "  make audit             - Build standalone markdown campaign audit (campaign-scoped output)"
 	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
+	@echo "  make cases99-audit     - Fast CASES-99 audit-only flow (outputs campaign_audit.md)"
+	@echo "  make gabls3-audit      - Fast GABLS3 audit-only flow (outputs campaign_audit.md)"
+	@echo "  make arctic-audit      - Fast ARCTIC-AMPLIFICATION audit-only flow"
 	@echo "  make cases99-report    - Full CASES-99 flow (outputs CASES-99.pdf)"
 	@echo "  make gabls3-report     - Full GABLS3 flow (outputs GABLS3.pdf)"
 	@echo "  make arctic-report     - Full ARCTIC-AMPLIFICATION flow"
@@ -109,6 +113,10 @@ report:
 	@echo "Building Mustache templates and JSON manifest (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/build_campaign_report.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
 
+audit:
+	@echo "Generating lean markdown audit file (campaign=$(CAMPAIGN))..."
+	julia --project="." scripts/build_campaign_report.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
+
 compile-report:
 	@echo "Compiling report PDF via latexmk as $(OUTPUT_PDF)..."
 	cd reports/$(REPORT_RUN_DIR) && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
@@ -118,19 +126,31 @@ compile-cards:
 	@echo "Compiling campaign monitoring card (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/compile_campaign_reports.jl $(CAMPAIGN)
 
+cases99-audit: CAMPAIGN=CASES-99
+cases99-audit: process audit
+	@echo "Lean audit generation complete: check reports/cases99_run/campaign_audit.md"
+
+gabls3-audit: CAMPAIGN=GABLS3
+gabls3-audit: process audit
+	@echo "Lean audit generation complete: check reports/gabls3_run/campaign_audit.md"
+
+arctic-audit: CAMPAIGN=ARCTIC-AMPLIFICATION
+arctic-audit: process audit
+	@echo "Lean audit generation complete: check reports/arctic_amplification_run/campaign_audit.md"
+
 cases99-report: CAMPAIGN=CASES-99
-cases99-report: process tex report compile-report
-	@echo "CASES-99 report pipeline complete."
+cases99-report: process tex report audit compile-report
+	@echo "CASES-99 report and lean audit pipeline complete."
 
 gabls3-report: cabauw-report
 
 cabauw-report: CAMPAIGN=GABLS3
-cabauw-report: process tex report compile-report
-	@echo "Cabauw/GABLS3 report pipeline complete."
+cabauw-report: process tex report audit compile-report
+	@echo "Cabauw/GABLS3 report and lean audit pipeline complete."
 
 arctic-report: CAMPAIGN=ARCTIC-AMPLIFICATION
-arctic-report: process tex report compile-report
-	@echo "Arctic amplification report pipeline complete."
+arctic-report: process tex report audit compile-report
+	@echo "Arctic amplification report and lean audit pipeline complete."
 
 arctic-hlbl-synthetic:
 	@echo "Running synthetic Arctic HLBL suite..."
