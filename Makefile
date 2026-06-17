@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -19,6 +19,8 @@ help:
 	@echo "  make stage3-assemble   - Assemble Stage 3 global closure matrices from Stage 2 packets"
 	@echo "  make stage4-calibrate  - Run Stage 4 Pareto lambda sweep + select sparse model"
 	@echo "  make stage4-discover   - Run Stage 4 production STLS with fixed lambda"
+	@echo "  make stage5-stability  - Run Stage 5 equilibrium + Jacobian spectrum analysis"
+	@echo "  make stage5-sweep      - Run descending Stage 5 continuation sweep on discovered equations"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
@@ -68,6 +70,28 @@ stage4-discover:
 		--mode production \
 		--lambda 1e-3 \
 		--library-mode contract90
+
+stage5-stability:
+	@echo "Running Stage 5 stability mapper (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/stage5_bifurcation_analysis.jl \
+		--stage4-json data/outputs/stage4_production_equations_$(CAMPAIGN_SLUG).json \
+		--output-json data/outputs/stage5_stability_manifest_$(CAMPAIGN_SLUG).json \
+		--output-csv data/outputs/stage5_equilibria_$(CAMPAIGN_SLUG).csv
+
+stage5-sweep:
+	@echo "Sweeping parameter space for $(CAMPAIGN) (slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/stage5_bifurcation_analysis.jl \
+		--stage4-json data/outputs/stage4_discovered_equations_$(CAMPAIGN_SLUG).json \
+		--output-json data/outputs/stage5_stability_manifest_$(CAMPAIGN_SLUG).json \
+		--output-csv data/outputs/stage5_equilibria_$(CAMPAIGN_SLUG).csv \
+		--continuation-csv data/outputs/stage5_bifurcation_branches_$(CAMPAIGN_SLUG).csv \
+		--gamma-min $(or $(G_MIN),0.07) \
+		--gamma-max $(or $(G_MAX),1.00) \
+		--gamma-steps $(or $(G_STEPS),50) \
+		--sweep-direction descending \
+		--scale-target both \
+		--linear-indices 1,2,3 \
+		--forcing-values 0.05,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
 
 tex:
 	@echo "Regenerating LaTeX exports..."
