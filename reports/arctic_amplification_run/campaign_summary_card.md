@@ -1,7 +1,7 @@
 # Synoptic Performance Monitoring Card
 
 - Campaign: ARCTIC-AMPLIFICATION
-- Generated: 2026-06-16T10:22:16.873
+- Generated: 2026-06-16T10:39:20.632
 - Total Processed Profiles: 2273
 - Mean Campaign Modal Dimension (D_eff estimate): 1.2115
 - Arctic Acceptance Guard: PASS

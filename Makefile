@@ -1,4 +1,4 @@
-.PHONY: init test process tex report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
+.PHONY: init test process tex stage2-pipeline report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -14,6 +14,7 @@ help:
 	@echo "Available commands:"
 	@echo "  make init              - Instantiate the Julia environment"
 	@echo "  make process           - Run attractor diagnostics on campaign data"
+	@echo "  make stage2-pipeline   - Run Stage 2 routing + operator diagnostics on trajectory CSV"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
@@ -34,6 +35,10 @@ init:
 process:
 	@echo "Running attractor pipeline (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/extract_attractor_diagnostics.jl $(CAMPAIGN)
+
+stage2-pipeline:
+	@echo "Running Stage 2 pipeline (campaign=$(CAMPAIGN))..."
+	julia --project="." scripts/stage2_pipeline.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
 
 tex:
 	@echo "Regenerating LaTeX exports..."

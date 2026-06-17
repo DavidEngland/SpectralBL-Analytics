@@ -19,9 +19,9 @@ Based on the processed analytics run, the structural characteristics of the unde
     \begin{tabular}{l p{9cm}}
         \hline
                 \textbf{Diagnostic Metric} & \textbf{Pipeline Evaluation Summary for \texttt{ ALL }} \\ \hline
-        Data Footprint & Analyzed 6682 observations across a temporal scale of 59149.5 hours. \\
-        Manifold Complexity & Mean singular value entropy registers at $H_{\text{mean}} = 0.223$, yielding a Shannon effective dimension of $D_{\text{eff}} = 2.0537$. \\
-        Numerical Stability & The condition number $\kappa = 6.85$ confirms a well-conditioned low-rank basis projection ($N_0 = 0$ nullspace modes). \\ \hline
+        Data Footprint & Analyzed 8955 observations across a temporal scale of 319955.7 hours. \\
+        Manifold Complexity & Mean singular value entropy registers at $H_{\text{mean}} = 0.264$, yielding a Shannon effective dimension of $D_{\text{eff}} = 2.0202$. \\
+        Numerical Stability & The condition number $\kappa = 8.43$ confirms a well-conditioned low-rank basis projection ($N_0 = 0$ nullspace modes). \\ \hline
     \end{tabular}
     \caption{Key pipeline execution and manifold metrics for the current campaign.}
     \label{tab:pipeline_summary_ALL}
@@ -41,10 +41,10 @@ By mapping the boundary layer dynamics into the orthogonal coordinates $(\eta_1,
 
 These signatures confirm that \texttt{ ALL } contributes campaign-specific constraints in the verification pipeline. Its operational role can be summarized through runtime geometry and conditioning diagnostics:
 \begin{equation}
-    \mathcal{M}_{\text{validation}} = \mathbf{f}\Big(\mathcal{A}_{\text{site}}\big(\kappa_{\text{rank}}=6.85,\ D_{\text{eff}}=2.0537\big),\ \mathcal{S}_{\text{surface}}\Big)
+    \mathcal{M}_{\text{validation}} = \mathbf{f}\Big(\mathcal{A}_{\text{site}}\big(\kappa_{\text{rank}}=8.43,\ D_{\text{eff}}=2.0202\big),\ \mathcal{S}_{\text{surface}}\Big)
 \end{equation}
 
-Surface roughness context for this run: \texttt{ 0.033 m }.
+Surface roughness context for this run: \texttt{ 0.027 m }.
 
 When integrated into multi-campaign workflows, low-roughness and canopy-dominated sites jointly provide empirical constraints for model behavior in non-local, intermittent, and collapse-prone stable boundary-layer conditions.
 
