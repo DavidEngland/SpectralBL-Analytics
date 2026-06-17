@@ -1,10 +1,11 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
 WORKSPACE_ROOT := $(shell pwd)
 OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,main.pdf)))
+OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3-audit.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION-audit.pdf,audit.pdf)))
 REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,all_run)))
 CAMPAIGN_SLUG = $(shell echo "$(CAMPAIGN)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$$//')
 
@@ -25,6 +26,7 @@ help:
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make audit             - Build standalone markdown campaign audit (campaign-scoped output)"
 	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
+	@echo "  make compile-audit     - Compile standalone audit TeX to PDF (campaign-scoped filename)"
 	@echo "  make cases99-audit     - Fast CASES-99 audit-only flow (outputs campaign_audit.md)"
 	@echo "  make gabls3-audit      - Fast GABLS3 audit-only flow (outputs campaign_audit.md)"
 	@echo "  make arctic-audit      - Fast ARCTIC-AMPLIFICATION audit-only flow"
@@ -122,21 +124,26 @@ compile-report:
 	cd reports/$(REPORT_RUN_DIR) && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
 	cd reports/$(REPORT_RUN_DIR) && cp -f main.pdf $(OUTPUT_PDF)
 
+compile-audit:
+	@echo "Compiling standalone audit PDF via latexmk as $(OUTPUT_AUDIT_PDF)..."
+	cd reports/$(REPORT_RUN_DIR) && latexmk -lualatex -shell-escape -interaction=nonstopmode audit.tex
+	cd reports/$(REPORT_RUN_DIR) && cp -f audit.pdf $(OUTPUT_AUDIT_PDF)
+
 compile-cards:
 	@echo "Compiling campaign monitoring card (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/compile_campaign_reports.jl $(CAMPAIGN)
 
 cases99-audit: CAMPAIGN=CASES-99
-cases99-audit: process audit
-	@echo "Lean audit generation complete: check reports/cases99_run/campaign_audit.md"
+cases99-audit: process audit compile-audit
+	@echo "Lean audit generation complete: check reports/cases99_run/campaign_audit.md and CASES-99-audit.pdf"
 
 gabls3-audit: CAMPAIGN=GABLS3
-gabls3-audit: process audit
-	@echo "Lean audit generation complete: check reports/gabls3_run/campaign_audit.md"
+gabls3-audit: process audit compile-audit
+	@echo "Lean audit generation complete: check reports/gabls3_run/campaign_audit.md and GABLS3-audit.pdf"
 
 arctic-audit: CAMPAIGN=ARCTIC-AMPLIFICATION
-arctic-audit: process audit
-	@echo "Lean audit generation complete: check reports/arctic_amplification_run/campaign_audit.md"
+arctic-audit: process audit compile-audit
+	@echo "Lean audit generation complete: check reports/arctic_amplification_run/campaign_audit.md and ARCTIC-AMPLIFICATION-audit.pdf"
 
 cases99-report: CAMPAIGN=CASES-99
 cases99-report: process tex report audit compile-report

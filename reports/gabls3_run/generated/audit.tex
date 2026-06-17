@@ -1,0 +1,91 @@
+% templates/audit.tex.mustache
+% AUTO-GENERATED campaign audit section
+% Rendered by scripts/build_campaign_report.jl
+% DO NOT EDIT MANUALLY
+
+\section{Campaign Audit Summary}
+
+\subsection{Campaign Snapshot}
+
+\begin{itemize}
+    \item \textbf{Campaign:} GABLS3
+    \item \textbf{Baseline:} v0.1 (spectralbl-attractor)
+    \item \textbf{Samples:} 144
+    \item \textbf{Temporal Coverage:} 23.8 h
+    \item \textbf{Mean Entropy:} $H_{\mathrm{mean}} = 0.755$
+    \item \textbf{Effective Dimension:} $D_{\mathrm{eff}} = 2.5398$
+    \item \textbf{Condition Number:} $\kappa = 4.37$
+\end{itemize}
+
+\subsection{Audit Figure A: Spectral Scatter Map}
+
+\begin{figure}[htbp]
+    \centering
+    \tikzsetnextfilename{audit-scatter}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.88\textwidth,
+            height=0.52\textwidth,
+            grid=major,
+            xlabel={$\eta_1$},
+            ylabel={$\eta_2$},
+            title={Audit Scatter: GABLS3},
+            colormap/plasma,
+            colorbar,
+            point meta=explicit,
+            colorbar style={title={$\eta_3$}},
+            mark size=1.7pt
+        ]
+            \addplot[
+                only marks,
+                scatter,
+                scatter src=explicit
+            ] table[
+                col sep=comma,
+                x=eta_1,
+                y=eta_2,
+                meta=eta_3
+            ] {../../data/outputs/regime_scatterplots_gabls3.csv};
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Audit scatter projection with $\eta_3$ encoded as the color channel.}
+    \label{fig:audit_scatter_gabls3}
+\end{figure}
+
+\subsection{Audit Figure B: Temporal Component Trajectories}
+
+\begin{figure}[htbp]
+    \centering
+    \tikzsetnextfilename{audit-trajectory}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.88\textwidth,
+            height=0.52\textwidth,
+            grid=major,
+            xlabel={time value},
+            ylabel={component amplitude},
+            title={Audit Trajectory Components: GABLS3},
+            legend style={at={(0.03,0.97)}, anchor=north west, draw=none, fill=none},
+            cycle list name=color list
+        ]
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x=time_value, y=eta_1] {../../data/outputs/regime_trajectories_gabls3.csv};
+            \addlegendentry{$\eta_1$}
+
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x=time_value, y=eta_2] {../../data/outputs/regime_trajectories_gabls3.csv};
+            \addlegendentry{$\eta_2$}
+
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x=time_value, y=eta_3] {../../data/outputs/regime_trajectories_gabls3.csv};
+            \addlegendentry{$\eta_3$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Temporal trajectories of reduced-order components across the campaign timeline.}
+    \label{fig:audit_trajectory_gabls3}
+\end{figure}
+
+\subsection{Audit Notes}
+
+\begin{itemize}
+    \item Low-rank modal partition: constrained $N_c=3$, nullspace $N_0=0$.
+    \item Interaction proxy: $\mathcal{I}_{ij}=0.000000$.
+    \item Surface roughness context: $z_{0m}=0.150 m$.
+\end{itemize}

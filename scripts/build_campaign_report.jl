@@ -25,7 +25,8 @@ end
 const REGISTRY = [
     ReportDefinition("attractor", "templates/attractor_report.tex.mustache", "generated/attractor.tex"),
     ReportDefinition("regime", "templates/regime_decomposition.tex.mustache", "generated/regime.tex"),
-    ReportDefinition("conclusions", "templates/conclusions_and_diagnostics.tex.mustache", "generated/conclusions_and_diagnostics.tex")
+    ReportDefinition("conclusions", "templates/conclusions_and_diagnostics.tex.mustache", "generated/conclusions_and_diagnostics.tex"),
+    ReportDefinition("audit", "templates/audit.tex.mustache", "generated/audit.tex")
 ]
 
 function scatter_downsample_rate(campaign::Union{Nothing,String})
@@ -300,11 +301,7 @@ function summarize_stage5(stability_path::String, branch_path::String)
     )
 end
 
-function build_visual_exhibits(rel_scatter::String, rel_stage2::String, rel_stage4::String, rel_stage5_branch::String)
-    scatter_tex = "{" * rel_scatter * "}"
-    stage2_tex = "{" * rel_stage2 * "}"
-    stage4_tex = "{" * rel_stage4 * "}"
-    stage5_tex = "{" * rel_stage5_branch * "}"
+function build_visual_exhibits(rel_traj::String, rel_scatter::String)
 
     return [
         Dict(
@@ -312,54 +309,34 @@ function build_visual_exhibits(rel_scatter::String, rel_stage2::String, rel_stag
             "title" => "Spectral Orthogonality Projection",
             "key_signal" => "Color-encoded eta_3 separates compressed orbit clusters from vertical-structure departures.",
             "caption" => "This projection plots eta_1 against eta_2 and encodes eta_3 as the color channel, preserving the low-rank geometry and the vertical structural component in one view. The exhibit is intended to show whether the reduced manifold is dominated by tight recurrent clusters or whether structurally distinct departures remain visible outside the mean state. For CASES-99 style runs, this chart is most useful for confirming that compression in campaign-mean entropy does not erase intermittent vertical-structure events.",
-            "tikz_code" => string(raw"```tex
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.82\textwidth,height=0.48\textwidth,xlabel={$\eta_1$},ylabel={$\eta_2$},grid=major,colormap/plasma,colorbar,point meta=explicit]
-\addplot[only marks,scatter,scatter src=explicit] table[col sep=comma,x=eta_1,y=eta_2,meta=eta_3] ", scatter_tex, raw";
-\end{axis}
-\end{tikzpicture}
-\end{center}
-```") ,
+            "image_path" => "tikz-cache/audit-scatter.pdf",
+            "source_csv" => rel_scatter,
         ),
         Dict(
             "index" => "2",
-            "title" => "Stage 2 Disagreement Window Monitor",
-            "key_signal" => "Window-level disagreement shows whether route selection uncertainty is isolated or persistent.",
-            "caption" => "This chart traces disagreement_norm by window_start across the campaign and exposes whether threshold exceedances are concentrated in a few episodes or distributed across much of the archive. High disagreement windows indicate that the conditional delay-routing and operator comparison logic are flagging ambiguous structure rather than cleanly separable regimes. For an audit reader, this is the fastest exhibit for assessing how much of the run should be treated as transition-dominated rather than operationally settled.",
-            "tikz_code" => "```tex\n\\begin{center}\n\\begin{tikzpicture}\n\\begin{axis}[width=0.82\\textwidth,height=0.38\\textwidth,xlabel={window start},ylabel={disagreement norm},grid=major]\n\\addplot+[thick,mark=none] table[col sep=comma,x=window_start,y=disagreement_norm] " * stage2_tex * ";\n\\end{axis}\n\\end{tikzpicture}\n\\end{center}\n```",
-        ),
-        Dict(
-            "index" => "3",
-            "title" => "Stage 4 Lambda Sweep",
-            "key_signal" => "Residual increase versus nnz collapse reveals the sparsification elbow.",
-            "caption" => "This exhibit plots residual_norm against lambda across the Stage 4 sparse-regression sweep and is used to identify the transition from modest sparsification to aggressive structure loss. The useful reading is not the absolute residual alone but the point where nonzero term count collapses faster than residual increases. In practice, this chart documents whether the selected sparse model sits on a stable elbow or on an over-threshold pruning edge.",
-            "tikz_code" => string(raw"```tex
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.82\textwidth,height=0.38\textwidth,xlabel={$\lambda$},ylabel={residual norm},xmode=log,grid=major]
-\addplot+[mark=*] table[col sep=comma,x=lambda,y=residual_norm] ", stage4_tex, raw";
-\end{axis}
-\end{tikzpicture}
-\end{center}
-```") ,
-        ),
-        Dict(
-            "index" => "4",
-            "title" => "Stage 5 Stability Margin Branch",
-            "key_signal" => "The maximum real eigenvalue branch shows the distance to the stability fence and the terminal divergence point.",
-            "caption" => "This continuation branch plots gamma against the maximum real eigenvalue exported by the Stage 5 stability scan. It provides a compact view of how close the traced equilibrium branch is to losing local stability and where continuation stops due to divergence. When the branch stays negative but terminates abruptly, the operational interpretation is that the model validity envelope closes before a smooth Hopf-style crossing is observed.",
-            "tikz_code" => string(raw"```tex
-\begin{center}
-\begin{tikzpicture}
-\begin{axis}[width=0.82\textwidth,height=0.38\textwidth,xlabel={$\gamma$},ylabel={max real eig},grid=major]
-\addplot+[mark=*] table[col sep=comma,x=gamma,y=max_real_eig] ", stage5_tex, raw";
-\end{axis}
-\end{tikzpicture}
-\end{center}
-```") ,
+            "title" => "Temporal Trajectory Components",
+            "key_signal" => "Component-wise eta(t) traces expose transition pacing and episodic bursts across the campaign.",
+            "caption" => "The temporal panel tracks eta_1, eta_2, and eta_3 against the run timeline and highlights where smooth regime drift gives way to abrupt structural shifts. In compressed campaigns, this view is often where short-duration events appear most clearly.",
+            "image_path" => "tikz-cache/audit-trajectory.pdf",
+            "source_csv" => rel_traj,
         ),
     ]
+end
+
+function render_audit_entrypoint(report_run_dir::String, campaign_label::String)
+    audit_main_template = joinpath("templates", "audit_main.tex.mustache")
+    if !isfile(audit_main_template)
+        error("Missing audit main TeX template: $(audit_main_template)")
+    end
+
+    out_path = joinpath(report_run_dir, "audit.tex")
+    tokens = Dict(
+        "campaign_display_name" => campaign_label,
+    )
+    open(out_path, "w") do io
+        template_content = read(audit_main_template, String)
+        Mustache.render(io, template_content, tokens)
+    end
 end
 
 function build_markdown_audit_tokens(manifest, campaign_label::String, report_run_dir::String, rel_traj::String, rel_scat::String, workspace_dir::String)
@@ -374,6 +351,10 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
     stage2 = summarize_stage2_diagnostics(stage2_path)
     stage4 = summarize_stage4_lambda_sweep(stage4_path)
     stage5 = summarize_stage5(stage5_stability_path, stage5_branch_path)
+
+    condition_value = Float64(manifest["condition_num"])
+    condition_is_ok = isfinite(condition_value) && condition_value < 100.0
+    condition_text = isfinite(condition_value) ? @sprintf("%.2f", condition_value) : "inf"
 
     rel_stage2 = relpath(stage2_path, report_run_dir)
     rel_stage4 = relpath(stage4_path, report_run_dir)
@@ -390,14 +371,14 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
     ]
 
     status_signals = [
-        make_signal("[OK]", "Low-rank basis remained numerically usable with condition number $(isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf") and $(manifest["n_0"]) exported nullspace modes."),
+        make_signal(condition_is_ok ? "[OK]" : "[WARN]", condition_is_ok ? "Low-rank basis remained numerically usable with condition number $(condition_text) and $(manifest["n_0"]) exported nullspace modes." : "Low-rank basis is ill-conditioned with condition number $(condition_text), exceeding the audit threshold of 100."),
         make_signal("[INFO]", "Campaign mean entropy registered at H_mean = $( @sprintf("%.4f", manifest["h_mean"]) ) with effective dimension D_eff = $( @sprintf("%.4f", manifest["d_eff"]) )."),
         make_signal(stage5.available && stage5.terminated ? "[WARN]" : "[INFO]", stage5.available && stage5.terminated ? @sprintf("Stage 5 continuation terminated at gamma=%.6f, marking the current stability-envelope boundary.", stage5.termination_gamma) : "Stage 5 stability scan did not report a terminal divergence boundary."),
     ]
 
     positive_findings = [
         Dict("finding" => "The exported low-rank basis remained fully constrained with $(manifest["n_c"]) constrained modes and $(manifest["n_0"]) nullspace modes."),
-        Dict("finding" => "The projection condition number stayed at $(isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf"), which is below the audit stress threshold of 100."),
+        Dict("finding" => "The projection condition number was measured at $(condition_text) for conditioning diagnostics."),
         Dict("finding" => stage5.available ? "Stage 5 resolved $(stage5.stable_count) stable equilibrium and $(stage5.hopf_candidate_count) Hopf candidates in the current scan." : "Stage 5 stability artifacts were not available for this run."),
     ]
 
@@ -406,6 +387,9 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
         Dict("finding" => @sprintf("The maximum Stage 2 disagreement norm reached %.4f, indicating localized route-selection ambiguity.", stage2.disagreement_max === nothing ? 0.0 : stage2.disagreement_max)),
         Dict("finding" => stage5.available && stage5.terminated ? @sprintf("The descending continuation branch remained stable until gamma=%.6f and then terminated in Divergence_Blowup before a smooth crossing was logged.", stage5.termination_gamma) : "No Stage 5 divergence boundary was recorded in the current artifact set."),
     ]
+    if !condition_is_ok
+        push!(negative_findings, Dict("finding" => "Condition number $(condition_text) exceeds the audit stress threshold of 100, indicating potential numerical instability in the reduced basis."))
+    end
 
     neutral_findings = [
         Dict("finding" => "Campaign-mean reduced coordinates were ($(format_metric(manifest["mean_eta_1"]; digits=3)), $(format_metric(manifest["mean_eta_2"]; digits=3)), $(format_metric(manifest["mean_eta_3"]; digits=3)))."),
@@ -419,7 +403,7 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
         Dict("risk_item" => "Mean entropy $(format_metric(manifest["h_mean"]; digits=4)) indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed."),
     ]
 
-    visual_exhibits = build_visual_exhibits(rel_scat, rel_stage2, rel_stage4, rel_stage5_branch)
+    visual_exhibits = build_visual_exhibits(rel_traj, rel_scat)
 
     custom_metrics = [
         Dict("metric_name" => "H", "latex_formula" => "-\\sum_{i=1}^{r} p_i \\log p_i"),
@@ -569,6 +553,7 @@ function execute_orchestration(
         rel_scat = relpath(export_result.scatter_csv, report_run_dir)
         
         campaign_label = String(manifest["campaign"])
+        campaign_slug = replace(campaign_slug_local(campaign_label), "_" => "")
         insights = infer_campaign_conclusions(campaign_label)
         campaign_conclusions = [
             Dict(
@@ -581,6 +566,7 @@ function execute_orchestration(
         tokens = Dict(
             "campaign_name"           => campaign_label,
             "campaign_id"             => lowercase(campaign_label),
+            "campaign_slug"           => campaign_slug,
             "campaign"                => campaign_label,
             "campaign_display_name"   => campaign_label,
             "campaign_conclusions"    => campaign_conclusions,
@@ -635,6 +621,9 @@ function execute_orchestration(
         template_content = read(audit_template_path, String)
         Mustache.render(io, template_content, audit_tokens)
     end
+
+        # 7. Render standalone audit TeX entrypoint for compile-audit target.
+        render_audit_entrypoint(report_run_dir, campaign_label)
     
     @info "==> All Mustache templates rendered successfully!"
     @info "==> Report components ready at: $(joinpath(report_run_dir, "generated"))"

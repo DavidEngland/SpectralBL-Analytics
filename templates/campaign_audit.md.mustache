@@ -7,7 +7,7 @@ Date: {{{generation_date}}} | Auditor: Spectral-Analytics Engine
 | Metric | Value | Target | Variance |
 | :--- | :--- | :--- | :--- |
 {{#kpis}}
-| {{metric}} | {{value}} | {{target}} | {{variance}} |
+| {{{metric}}} | {{{value}}} | {{{target}}} | {{{variance}}} |
 {{/kpis}}
 
 ### Status Summary
@@ -48,26 +48,22 @@ Date: {{{generation_date}}} | Auditor: Spectral-Analytics Engine
 
 ---
 
-\newpage
-
 ## 4. Visual Exhibits
 
 {{#visual_exhibits}}
 ### {{{title}}}
 
-{{{tikz_code}}}
+![{{{title}}}]({{{image_path}}})
 
 **Figure {{index}}:** {{{caption}}}
 
 **Key Signal:** *{{{key_signal}}}*
 
-\newpage
+Source data: {{{source_csv}}}
 
 {{/visual_exhibits}}
 
 ---
-
-\newpage
 
 # Appendix: Methodology & Technical Explanations
 
