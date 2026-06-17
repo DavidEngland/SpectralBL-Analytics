@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
+.PHONY: init test process tex stage2-pipeline stage3-assemble report compile-report compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -6,6 +6,7 @@ CAMPAIGN ?= ALL
 WORKSPACE_ROOT := $(shell pwd)
 OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,main.pdf)))
 REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,all_run)))
+CAMPAIGN_SLUG = $(shell echo "$(CAMPAIGN)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$$//')
 
 # Default target
 all: init process tex report
@@ -15,6 +16,7 @@ help:
 	@echo "  make init              - Instantiate the Julia environment"
 	@echo "  make process           - Run attractor diagnostics on campaign data"
 	@echo "  make stage2-pipeline   - Run Stage 2 routing + operator diagnostics on trajectory CSV"
+	@echo "  make stage3-assemble   - Assemble Stage 3 global closure matrices from Stage 2 packets"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make compile-report    - Compile TeX document to PDF (campaign-scoped filename)"
@@ -39,6 +41,14 @@ process:
 stage2-pipeline:
 	@echo "Running Stage 2 pipeline (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/stage2_pipeline.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
+
+stage3-assemble:
+	@echo "Assembling Stage 3 global closure matrices (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/stage3_matrix_assembler.jl \
+		--packet data/outputs/stage2_packets_$(CAMPAIGN_SLUG).csv \
+		--trajectory $(TRAJECTORY_CSV) \
+		--campaign $(CAMPAIGN) \
+		--emit-csv true
 
 tex:
 	@echo "Regenerating LaTeX exports..."
