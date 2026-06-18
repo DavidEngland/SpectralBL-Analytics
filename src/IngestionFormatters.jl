@@ -41,6 +41,9 @@ function get_campaign_geometry(campaign::Symbol)
     elseif campaign == :ARCTIC_AMPLIFICATION
         # Arctic stable-boundary layer surrogate heights (SHEBA-informed near-surface coverage)
         return CampaignConfig("ARCTIC-AMPLIFICATION", [2.5, 10.0, 20.0, 40.0, 80.0], 0.01, 0.001, 0.0)
+    elseif campaign == :FLOSS
+        # Snow-surface tower stack used for FLOSS profile reconstruction.
+        return CampaignConfig("FLOSS", [0.5, 1.0, 2.0, 4.0], 0.001, 0.0001, 0.0)
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -68,6 +71,29 @@ function load_campaign_samples(campaign::Symbol, pfem_grid::Vector{Float64}; dat
     elseif campaign == :ARCTIC_AMPLIFICATION
         data_path = joinpath(data_root, "sheba", "processed", "sheba_input.csv")
         samples = read_arctic_sheba_csv(data_path, config, pfem_grid)
+    elseif campaign == :FLOSS
+        folders = [
+            joinpath(data_root, "floss", "dee002169518", "datapGoGK6"),
+            joinpath(data_root, "floss", "dee002170636", "dataSSTAdH"),
+        ]
+
+        samples = CampaignSample[]
+        missing_dirs = String[]
+        for folder in folders
+            if !isdir(folder)
+                push!(missing_dirs, folder)
+                continue
+            end
+
+            nc_paths = sort(filter(p -> endswith(lowercase(p), ".nc"), readdir(folder; join=true)))
+            for path in nc_paths
+                append!(samples, read_floss_netcdf(path, config, pfem_grid))
+            end
+        end
+
+        if !isempty(missing_dirs)
+            @warn "One or more FLOSS directories were not found." missing_dirs
+        end
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -281,6 +307,142 @@ function read_arctic_sheba_csv(path::String, config::CampaignConfig, pfem_grid::
     end
 
     return out
+end
+
+function read_floss_netcdf(path::String, config::CampaignConfig, pfem_grid::Vector{Float64})
+    if !isfile(path)
+        error("Missing netCDF file: $(path)")
+    end
+
+    ds = NCDataset(path)
+    try
+        time_values = vec(Array(read_variable(ds, [:time])))
+        height_values, u_mat = read_floss_tower_series(ds)
+
+        if isempty(height_values) || size(u_mat, 2) == 0
+            return CampaignSample[]
+        end
+
+        n_time = min(length(time_values), size(u_mat, 2))
+        out = CampaignSample[]
+
+        for t in 1:n_time
+            z_t = copy(height_values)
+            u_t = Vector{Float64}(u_mat[:, t])
+
+            valid_pairs = isfinite.(z_t) .& isfinite.(u_t)
+            count(valid_pairs) < 2 && continue
+
+            z_valid = z_t[valid_pairs]
+            u_valid = u_t[valid_pairs]
+            z_sorted, u_sorted = sort_pairs(z_valid, u_valid)
+
+            z_min, z_max = extrema(z_sorted)
+            active_tower_targets = filter(h -> z_min <= h <= z_max, config.tower_heights)
+            active_pfem_targets = filter(h -> z_min <= h <= z_max, pfem_grid)
+
+            if isempty(active_tower_targets) || isempty(active_pfem_targets)
+                continue
+            end
+
+            tower_vector = interpolate_profile(z_sorted, u_sorted, config.tower_heights)
+            grid_vector = interpolate_profile(z_sorted, u_sorted, pfem_grid)
+
+            if !all(isfinite, tower_vector) || !all(isfinite, grid_vector)
+                continue
+            end
+
+            push!(out, CampaignSample(path, normalize_time_value(time_values[t]), tower_vector, grid_vector))
+        end
+
+        return out
+    finally
+        close(ds)
+    end
+end
+
+function read_floss_tower_series(ds::NCDataset)
+    vars = collect(keys(ds))
+
+    # Prefer sonic u_*m variables; fall back to U_*m only if needed.
+    names = String[]
+    for name in vars
+        s = String(name)
+        if match(r"^u_(\d+(?:_\d+)?)m$", s) !== nothing
+            push!(names, s)
+        end
+    end
+    if isempty(names)
+        for name in vars
+            s = String(name)
+            if match(r"^U_(\d+(?:_\d+)?)m$", s) !== nothing
+                push!(names, s)
+            end
+        end
+    end
+
+    isempty(names) && return Float64[], zeros(Float64, 0, 0)
+
+    parsed = Tuple{Float64,String}[]
+    for name in names
+        m = match(r"^[uU]_(\d+(?:_\d+)?)m$", name)
+        m === nothing && continue
+        height = parse(Float64, replace(m.captures[1], "_" => "."))
+        push!(parsed, (height, name))
+    end
+
+    sort!(parsed; by = x -> x[1])
+
+    heights = Float64[]
+    series = Vector{Vector{Float64}}()
+    for (h, name) in parsed
+        push!(heights, h)
+        push!(series, extract_time_series(ds[name]))
+    end
+
+    isempty(series) && return Float64[], zeros(Float64, 0, 0)
+    n_time = minimum(length(s) for s in series)
+    n_levels = length(series)
+    out = zeros(Float64, n_levels, n_time)
+    for (j, s) in enumerate(series)
+        out[j, :] .= s[1:n_time]
+    end
+
+    return heights, out
+end
+
+function extract_time_series(var)
+    raw = Array(var[:])
+    arr = map(v -> ismissing(v) ? NaN : Float64(v), raw)
+    dnames = collect(dimnames(var))
+
+    if ndims(arr) == 1
+        return Vector{Float64}(arr)
+    elseif ndims(arr) == 2
+        tdim = findfirst(==("time"), dnames)
+        if tdim === nothing
+            tdim = size(arr, 1) >= size(arr, 2) ? 1 : 2
+        end
+
+        if tdim == 1
+            return [finite_mean(view(arr, t, :)) for t in 1:size(arr, 1)]
+        else
+            return [finite_mean(view(arr, :, t)) for t in 1:size(arr, 2)]
+        end
+    end
+
+    error("Unsupported FLOSS variable rank $(ndims(arr)); expected 1D/2D variable.")
+end
+
+function finite_mean(v)
+    vals = Float64[]
+    for x in v
+        if isfinite(x)
+            push!(vals, x)
+        end
+    end
+    isempty(vals) && return NaN
+    return mean(vals)
 end
 
 function read_cases_tower_series(ds::NCDataset)

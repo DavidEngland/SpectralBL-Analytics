@@ -23,6 +23,8 @@ function canonical_campaign_token(token::String)
         return "ARCTIC-AMPLIFICATION"
     elseif t in ("CASES_99",)
         return "CASES-99"
+    elseif t in ("FLOSS_I", "FLOSS-I", "FLOSS_II", "FLOSS-II")
+        return "FLOSS"
     end
     return strip(token)
 end

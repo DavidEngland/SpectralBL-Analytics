@@ -17,15 +17,17 @@ using .DiagnosticsBaseline
 function parse_campaign_arg(arg::String)
     normalized = uppercase(strip(arg))
     if normalized == "ALL"
-        return [:CASES_99, :GABLS3, :ARCTIC_AMPLIFICATION]
+        return [:CASES_99, :GABLS3, :ARCTIC_AMPLIFICATION, :FLOSS]
     elseif normalized in ("CASES-99", "CASES_99")
         return [:CASES_99]
     elseif normalized == "GABLS3"
         return [:GABLS3]
     elseif normalized in ("ARCTIC-AMPLIFICATION", "ARCTIC_AMPLIFICATION", "ARCTIC")
         return [:ARCTIC_AMPLIFICATION]
+    elseif normalized in ("FLOSS", "FLOSS_I", "FLOSS-I", "FLOSS_II", "FLOSS-II")
+        return [:FLOSS]
     end
-    error("Unsupported campaign selector: $(arg). Use ALL, CASES-99, GABLS3, or ARCTIC-AMPLIFICATION.")
+    error("Unsupported campaign selector: $(arg). Use ALL, CASES-99, GABLS3, ARCTIC-AMPLIFICATION, or FLOSS.")
 end
 
 println("=================================================================")
