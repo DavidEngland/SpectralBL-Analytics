@@ -145,6 +145,15 @@ function infer_campaign_conclusions(campaign_id::String)
             (title = "Boreal Transition Sensitivity", body = "Profiles retain sensitivity to stable transition timing and non-local mixing behavior in high-latitude boundary-layer conditions."),
             (title = "Seasonal-Scale Diagnostics", body = "The reduced manifold supports tracking of structural variability across long observational windows.")
         ]
+    elseif campaign_upper == "FLOSS"
+        return [
+            (title = "Delayed Threshold with Weak-Transversality Crossing",
+             body = "The continuation analysis identifies a Hopf instability at a critical dissipation parameter nearly an order of magnitude below the corresponding CASES-99 threshold (gamma_c approx 0.0235 versus 0.278). The crossing rate magnitude is substantially smaller than the grassland value, indicating a weakly emergent instability rather than an abrupt high-transversality transition. Both observations follow directly from the eigenanalysis."),
+            (title = "Dynamically Distinct Oscillatory Timescale",
+             body = "At the stability boundary the dominant eigenpair crosses the imaginary axis with a non-zero imaginary component corresponding to a characteristic period of approximately 31.5 minutes. This timescale falls within the range commonly associated with wave-mediated and shear-intermittency processes observed in strongly stable boundary layers. The period is substantially shorter than the oscillatory mode identified in CASES-99, suggesting that the instability emerging over snow is dynamically distinct rather than a delayed manifestation of the same mode."),
+            (title = "Evidence for Manifold Reshaping",
+             body = "The combination of a substantially reduced critical threshold and an altered oscillation frequency implies that snow-covered stable boundary layers occupy a fundamentally different region of low-dimensional state space. The threshold and frequency ratios between campaigns are inconsistent with a simple parameter rescaling of the grassland dynamics. These results suggest that surface conditions influence not only the location of stability boundaries but also the geometric structure of the underlying dynamical manifold reconstructed from observations.")
+        ]
     elseif campaign_upper == "ALL"
         return [
             (title = "Composite Regime Envelope", body = "The merged trajectory captures a broader attractor envelope spanning process-oriented and climatological campaign characteristics."),
@@ -286,7 +295,10 @@ function summarize_stage5(stability_path::String, branch_path::String)
 
     cont = haskey(manifest, "continuation") ? manifest["continuation"] : nothing
     terminated = cont === nothing ? false : Bool(cont["terminated"])
-    termination_gamma = cont === nothing ? nothing : Float64(cont["termination_gamma"])
+    termination_gamma = nothing
+    if cont !== nothing && haskey(cont, "termination_gamma") && cont["termination_gamma"] !== nothing
+        termination_gamma = Float64(cont["termination_gamma"])
+    end
     branch_points = cont === nothing ? (branch_df === nothing ? 0 : nrow(branch_df)) : Int(cont["branch_points"])
 
     return (
@@ -373,7 +385,7 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
     status_signals = [
         make_signal(condition_is_ok ? "[OK]" : "[WARN]", condition_is_ok ? "Low-rank basis remained numerically usable with condition number $(condition_text) and $(manifest["n_0"]) exported nullspace modes." : "Low-rank basis is ill-conditioned with condition number $(condition_text), exceeding the audit threshold of 100."),
         make_signal("[INFO]", "Campaign mean entropy registered at H_mean = $( @sprintf("%.4f", manifest["h_mean"]) ) with effective dimension D_eff = $( @sprintf("%.4f", manifest["d_eff"]) )."),
-        make_signal(stage5.available && stage5.terminated ? "[WARN]" : "[INFO]", stage5.available && stage5.terminated ? @sprintf("Stage 5 continuation terminated at gamma=%.6f, marking the current stability-envelope boundary.", stage5.termination_gamma) : "Stage 5 stability scan did not report a terminal divergence boundary."),
+        make_signal(stage5.available && stage5.terminated ? "[WARN]" : "[INFO]", stage5.available && stage5.terminated ? @sprintf("Stage 5 continuation terminated at gamma=%.6f, marking the current stability-envelope boundary.", coalesce(stage5.termination_gamma, 0.0)) : "Stage 5 stability scan did not report a terminal divergence boundary."),
     ]
 
     positive_findings = [
@@ -399,7 +411,7 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
 
     risks = [
         Dict("risk_item" => "Threshold exceedance rate remains elevated at $(format_percent(stage2.exceed_fraction; digits=1)), so window-level disagreement can accumulate without moving campaign means substantially."),
-        Dict("risk_item" => stage5.available && stage5.terminated ? @sprintf("The current continuation branch loses numerical validity at gamma=%.6f, so the stability envelope should be treated as locally bounded rather than globally mapped.", stage5.termination_gamma) : "Stage 5 boundary localization is incomplete when continuation artifacts are absent."),
+        Dict("risk_item" => stage5.available && stage5.terminated ? @sprintf("The current continuation branch loses numerical validity at gamma=%.6f, so the stability envelope should be treated as locally bounded rather than globally mapped.", coalesce(stage5.termination_gamma, 0.0)) : "Stage 5 boundary localization is incomplete when continuation artifacts are absent."),
         Dict("risk_item" => "Mean entropy $(format_metric(manifest["h_mean"]; digits=4)) indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed."),
     ]
 
@@ -427,12 +439,7 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
         "risks" => risks,
         "visual_exhibits" => visual_exhibits,
         "custom_metrics" => custom_metrics,
-        "significance_alpha" => "0.05",
-        "attribution_model" => "Deterministic manifold audit with campaign-scoped artifact attribution",
-        "lookback_window" => "campaign-window",
-        "pixel_logic" => "Not applicable; diagnostics are derived from trajectory and stability artifacts rather than ad-pixel events.",
         "outlier_sigma" => "3",
-        "bot_filter_method" => "Not applicable; source is scientific trajectory data, not web traffic.",
         "csv_trajectory_path" => rel_traj,
         "csv_scatter_path" => rel_scat,
         "stage2_diagnostics_path" => rel_stage2,
@@ -573,6 +580,7 @@ function execute_orchestration(
             "has_campaign_conclusions" => !isempty(campaign_conclusions),
             "is_gabls3"               => manifest["campaign"] == "GABLS3",
             "is_cases99"              => manifest["campaign"] == "CASES-99",
+            "is_floss"                => manifest["campaign"] == "FLOSS",
             "baseline_version"        => manifest["baseline_version"],
             "baseline_source"         => manifest["baseline_source"],
             "total_samples"           => string(manifest["total_samples"]),

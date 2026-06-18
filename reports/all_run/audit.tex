@@ -1,0 +1,33 @@
+% templates/audit_main.tex.mustache
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{tikz}
+
+\pgfplotsset{
+    unbounded coords=discard,
+    filter discard warning=false,
+    compat=1.18
+}
+
+\usepgfplotslibrary{external}
+\tikzexternalize[prefix=tikz-cache/]
+
+\title{\textbf{SpectralBL Campaign Audit}\\
+       \large ALL}
+\author{\textbf{Automated Analytics Pipeline Engine}\\
+        \small SpectralBL-Analytics Framework}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\input{generated/audit.tex}
+
+\end{document}

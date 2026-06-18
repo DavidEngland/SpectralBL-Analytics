@@ -19,6 +19,17 @@ const ARCTIC_TOKEN_SET = Set([
 	"arctic",
 ])
 
+const FLOSS_TOKEN_SET = Set([
+	"floss",
+	"FLOSS",
+	"floss-i",
+	"FLOSS-I",
+	"floss_ii",
+	"FLOSS_II",
+	"floss-ii",
+	"FLOSS-II",
+])
+
 function normalize_campaign(flag::String)
 	stripped = strip(flag)
 	isempty(stripped) && return "cases99"
@@ -28,6 +39,7 @@ end
 function resolve_routes(campaign_flag::String)
 	output_root = "reports"
 	is_arctic = campaign_flag in ARCTIC_TOKEN_SET
+	is_floss = campaign_flag in FLOSS_TOKEN_SET || lowercase(campaign_flag) == "floss"
 
 	if is_arctic
 		return (
@@ -35,6 +47,13 @@ function resolve_routes(campaign_flag::String)
 			data_file = joinpath("data", "outputs", "regime_trajectories_arctic_amplification.csv"),
 			campaign_label = "ARCTIC-AMPLIFICATION",
 			is_arctic = true,
+		)
+	elseif is_floss
+		return (
+			report_dir = joinpath(output_root, "floss_run"),
+			data_file = joinpath("data", "outputs", "regime_trajectories_floss.csv"),
+			campaign_label = "FLOSS",
+			is_arctic = false,
 		)
 	elseif lowercase(campaign_flag) in ("gabls3", "cabauw")
 		return (

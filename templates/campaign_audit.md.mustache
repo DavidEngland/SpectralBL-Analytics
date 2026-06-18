@@ -65,45 +65,44 @@ Source data: {{{source_csv}}}
 
 ---
 
-# Appendix: Methodology & Technical Explanations
+# Appendix: Methodology & Technical Notes
 
-### A. Core Performance Metrics
+### A. Spectral Diagnostic Definitions
 
-The primary campaign-style performance indicators are mathematically defined as:
+The reduced-order coordinates are obtained by projecting observed vertical profiles onto the empirical low-rank basis:
 
-$$CTR = \frac{\text{Clicks}}{\text{Impressions}}$$
+$$\eta_i(t) = \mathbf{\Phi}_i^T \mathbf{z}(t)$$
 
-$$CPA = \frac{\text{Spend}}{\text{Conversions}}$$
+where $\mathbf{\Phi}_i$ is the $i$-th empirical basis vector and $\mathbf{z}(t)$ is the state vector assembled from wind speed and temperature profiles at observation time $t$.
 
-$$ROAS = \frac{\text{Total Revenue Generated}}{\text{Total Campaign Spend}}$$
+The local Jacobian evaluated at a candidate equilibrium $\mathbf{z}^*$ is:
 
-The primary spectral diagnostics used in this audit are:
+$$J_{ij} = \frac{\partial f_i}{\partial x_j}\Bigg|_{\mathbf{z}^*}$$
+
+Stability is assessed from the eigenspectrum $\lambda = \alpha \pm i\beta$. A Hopf instability is identified when a complex conjugate pair crosses the imaginary axis ($\alpha = 0$, $\beta \neq 0$) as the continuation parameter $\gamma$ varies.
+
+The primary scalar diagnostics derived from the singular value decomposition of the trajectory matrix are:
 
 {{#custom_metrics}}
 $${{{metric_name}}} = {{{latex_formula}}}$$
 
 {{/custom_metrics}}
 
-### B. Statistical Evaluation & Significance
+### B. Threshold and Exceedance Criteria
 
-To isolate performance signal from short-window noise, a two-tailed Z-test can be expressed as:
+Stage 2 routing disagreement is flagged when the operator-selection norm $\|\delta\|$ exceeds a fixed tolerance $\tau$. The exceedance rate $R_{\mathrm{exceed}}$ measures the fraction of analysis windows where this threshold is crossed. An elevated $R_{\mathrm{exceed}}$ indicates that the campaign trajectory does not resolve cleanly into a single dominant routing class, consistent with multi-scale or intermittently stable conditions.
 
-$$Z = \frac{(\hat{p}_1 - \hat{p}_2) - 0}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$$
+Outliers in the raw profile time series are identified as observations deviating more than $\pm{{{outlier_sigma}}}\sigma$ from the local running median, computed within a sub-hourly smoothing window prior to ingestion.
 
-Findings should be rejected unless they cross the threshold of $\alpha = {{{significance_alpha}}}$.
+### C. Projection Method
 
-### C. Attribution Methodology
+- **Projection model:** {{{projection_method}}}
+- **Baseline version:** {{{baseline_version}}} ({{{baseline_source}}})
 
-- **Model:** {{{attribution_model}}}
-- **Lookback Window:** {{{lookback_window}}}
-- **Pixel Logic:** {{{pixel_logic}}}
+### D. Artifact Provenance
 
-### D. Data Quality Controls
-
-- **Anomaly Detection:** Outliers exceeding ${{{outlier_sigma}}}\sigma$ from the moving median were scrubbed.
-- **Bot Traffic Filter:** {{{bot_filter_method}}}
-- **Trajectory Source:** {{{csv_trajectory_path}}}
-- **Scatter Source:** {{{csv_scatter_path}}}
-- **Stage 2 Diagnostics Source:** {{{stage2_diagnostics_path}}}
-- **Stage 4 Lambda Sweep Source:** {{{stage4_lambda_sweep_path}}}
-- **Stage 5 Branch Source:** {{{stage5_branch_path}}}
+- **Trajectory source:** {{{csv_trajectory_path}}}
+- **Scatter source:** {{{csv_scatter_path}}}
+- **Stage 2 diagnostics:** {{{stage2_diagnostics_path}}}
+- **Stage 4 lambda sweep:** {{{stage4_lambda_sweep_path}}}
+- **Stage 5 branch CSV:** {{{stage5_branch_path}}}
