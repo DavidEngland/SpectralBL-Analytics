@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -27,6 +27,7 @@ help:
 	@echo "  make stage5-stability  - Run Stage 5 equilibrium + Jacobian spectrum analysis"
 	@echo "  make stage5-sweep      - Run configurable Stage 5 continuation sweep on discovered equations"
 	@echo "  make stage5-panels     - Export Stage 5 3-panel diagnostic CSVs (trajectory/abscissa/distance)"
+	@echo "  make stage5-summary    - Emit JSON summary diagnostics for Stage 5 branch/manifest outputs"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make audit             - Build standalone markdown campaign audit (campaign-scoped output)"
@@ -107,6 +108,10 @@ stage5-sweep:
 stage5-panels:
 	@echo "Exporting Stage 5 diagnostic panel CSVs (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
 	julia --project="." scripts/stage5_plot_branches.jl --campaign $(CAMPAIGN)
+
+stage5-summary:
+	@echo "Summarizing Stage 5 diagnostics (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/stage5_summary.jl --campaign $(CAMPAIGN)
 
 tex:
 	@echo "Regenerating LaTeX exports..."

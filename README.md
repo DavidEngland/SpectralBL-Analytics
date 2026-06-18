@@ -2,7 +2,7 @@
 
 SpectralBL-Analytics is a Julia-based atmospheric boundary layer (ABL) diagnostics and reporting pipeline. It ingests campaign observations, projects profiles into a reduced attractor space, computes physically interpretable metrics, and renders publication-ready TeX/PDF outputs.
 
-Production workflows support CASES-99 (tower data) and GABLS3 (Cabauw observations). Experimental support for SMEAR-I, NEON, ICOS, and SHEBA campaigns is available via the SmearPipeline adapter ecosystem. All workflows include automated report generation with PGFPlots externalized figures.
+Production workflows support CASES-99 (tower data), GABLS3 (Cabauw observations), and FLOSS (Fluxes Over Snow Surfaces). Experimental support for SMEAR-I, NEON, ICOS, and SHEBA campaigns is available via the SmearPipeline adapter ecosystem. All workflows include automated report generation with PGFPlots externalized figures.
 
 ## What This Repository Does
 
@@ -107,6 +107,8 @@ Dedicated campaign report targets:
 ```bash
 make cases99-report
 make gabls3-report
+make process CAMPAIGN=FLOSS
+make stage2-pipeline CAMPAIGN=FLOSS
 ```
 
 Campaign-scoped variants:
@@ -116,6 +118,8 @@ make process CAMPAIGN=GABLS3
 make report CAMPAIGN=GABLS3
 make process CAMPAIGN=CASES-99
 make report CAMPAIGN=CASES-99
+make process CAMPAIGN=FLOSS
+make stage2-pipeline CAMPAIGN=FLOSS
 ```
 
 Primary artifacts produced:
@@ -127,6 +131,8 @@ Primary artifacts produced:
 5. `reports/cases99_run/CASES-99.pdf` — campaign-specific report for CASES-99
 6. `reports/gabls3_run/GABLS3.pdf` — campaign-specific report for GABLS3 (Cabauw)
 7. `reports/all_run/main.pdf` — mixed-campaign analysis output (experimental; only produced if `CAMPAIGN=ALL` and reports/all_run/ is initialized)
+8. `data/outputs/stage5_summary_cases_99.json` — campaign Stage 5 summary metrics (thresholds, slopes, periods)
+9. `data/outputs/stage5_summary_floss.json` — campaign Stage 5 summary metrics (thresholds, slopes, periods)
 
 Intermediate TeX/LaTeX artifacts (e.g., `attractor.tex`, `regime.tex`, diagnostics sections) are generated in each report's `generated/` directory during the report-build stage.
 
@@ -145,6 +151,27 @@ Run `make help` for the latest command list. Core targets:
 9. `make test` — run regression test suite (campaign configs, operators, baselines; 20 tests expected to pass)
 10. `make clean` — remove logs and temporary runtime files
 11. `make purge` — deep clean report/data build artifacts and cached figures
+12. `make stage5-sweep` — continuation sweep for Stage 5 stability analysis (`CAMPAIGN`, `SWEEP_DIRECTION`, `GAMMA_MIN`, `GAMMA_MAX`, `GAMMA_STEPS`)
+13. `make stage5-panels` — export three panel CSVs for trajectory/abscissa/distance diagnostics
+14. `make stage5-summary` — emit campaign summary JSON with comparative Stage 5 metrics
+
+## Stage 5 Comparative Diagnostics
+
+After running Stage 5 for one or more campaigns, use:
+
+```bash
+make stage5-panels CAMPAIGN=CASES-99
+make stage5-summary CAMPAIGN=CASES-99
+make stage5-panels CAMPAIGN=FLOSS
+make stage5-summary CAMPAIGN=FLOSS
+```
+
+Key summary fields in `data/outputs/stage5_summary_<campaign>.json`:
+
+1. `gamma_c_hopf` - interpolated Hopf threshold from continuation events
+2. `closest_to_axis_max_imag` - inferred oscillation clock at the axis approach/crossing
+3. `hopf_period_Th` - period estimate `2π/|beta|`
+4. `dRe_dgamma_at_crossing` - local crossing slope (vulnerability index)
 
 ## Notes on Scientific Interpretation
 
@@ -163,6 +190,7 @@ For operator usage details and practical command examples, see `QUICKSTART.md`.
 |----------|----------------|-------------|--------|----------------|
 | CASES-99 | IngestionFormatters | Tower netCDF profiles | **Production** | scripts/extract_attractor_diagnostics.jl |
 | GABLS3 | CabauwAdapter | Cabauw tower observations | **Production** | SmearPipeline.extract_cabauw_observations |
+| FLOSS | IngestionFormatters | NCAR/EOL FLOSS-I and FLOSS-II NetCDF tower profiles | **Production** | scripts/extract_attractor_diagnostics.jl |
 | SMEAR-I | SmearAdapter | SMEAR station JSON records | Experimental | SmearPipeline.extract_smear_observations |
 | NEON | NEONAdapter | NEON tower API (offline fallback) | Experimental | SmearPipeline.extract_neon_observations |
 | ICOS | ICOSAdapter | ICOS sparse profiles | Experimental | SmearPipeline.upscale_sparse_icos_observation |

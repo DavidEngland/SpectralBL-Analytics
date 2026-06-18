@@ -2,6 +2,51 @@
 
 All notable changes to this repository are documented in this file.
 
+## [2026-06-18] - FLOSS Ingestion and Comparative Stage 5 Fingerprints
+
+### Added
+1. FLOSS campaign ingestion support in `src/IngestionFormatters.jl`:
+   - `:FLOSS` campaign geometry and roughness constants
+   - multi-directory NetCDF discovery (FLOSS-I and FLOSS-II)
+   - `read_floss_netcdf`, `read_floss_tower_series`, `extract_time_series`, `finite_mean`
+2. Campaign routing updates:
+   - `scripts/extract_attractor_diagnostics.jl` recognizes `FLOSS` campaign selector and aliases
+   - `scripts/stage2_pipeline.jl` canonicalizes FLOSS aliases (`FLOSS-I`, `FLOSS-II`)
+3. New Stage 5 summary utility: `scripts/stage5_summary.jl`
+   - emits `data/outputs/stage5_summary_<campaign>.json`
+   - extracts branch/manifest diagnostics including Hopf threshold and crossing metrics
+4. New Make target: `make stage5-summary`
+
+### Changed
+1. Stage 5 panel export behavior hardened for empty-branch edge cases.
+2. Stage 5 summary extraction now includes comparative dynamics fields:
+   - `gamma_c_hopf`
+   - `closest_to_axis_max_imag`
+   - `hopf_period_Th`
+   - `dRe_dgamma_at_crossing`
+
+### Fixed
+1. Stage 5 summary parser now robust to mixed CSV typing (numeric/string/NaN coercion).
+2. Added fallback extraction of imaginary components from manifest branch eigenvalues when CSV lacks `max_imag_eig`.
+3. Added derivative fallback from first real-part sign-change bracket when central difference at closest row is unavailable.
+
+### Verified
+1. FLOSS ingestion and Stage 2 packet generation:
+   - `make process CAMPAIGN=FLOSS`
+   - `make stage2-pipeline CAMPAIGN=FLOSS`
+2. FLOSS Stage 3 -> Stage 5 chain:
+   - `make stage3-assemble CAMPAIGN=FLOSS`
+   - `make stage4-discover CAMPAIGN=FLOSS`
+   - `make stage5-sweep CAMPAIGN=FLOSS SWEEP_DIRECTION=descending`
+   - deep continuation run with `GAMMA_MIN=0.005`, `GAMMA_STEPS=200`
+   - `make stage5-panels CAMPAIGN=FLOSS`
+3. Cross-campaign summary outputs:
+   - `data/outputs/stage5_summary_cases_99.json`
+   - `data/outputs/stage5_summary_floss.json`
+4. Comparative metrics captured from summary outputs:
+   - CASES-99: `gamma_c_hopf=0.2780253391644811`, `closest_to_axis_max_imag=0.0012580449289076908`, `hopf_period_Th=4994.40454216132`, `dRe_dgamma_at_crossing=-0.41104780080573683`
+   - FLOSS: `gamma_c_hopf=0.023458628379562793`, `closest_to_axis_max_imag=0.0033190592671963333`, `hopf_period_Th=1893.062100239958`, `dRe_dgamma_at_crossing=-0.07126931961959397`
+
 ## [2026-06-15] - Documentation Sync & Data Privacy Hardening
 
 ### Added

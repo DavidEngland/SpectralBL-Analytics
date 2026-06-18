@@ -52,8 +52,28 @@ make arctic-finalize
 
 Campaign notes:
 
-- Extraction/report compile targets use `CAMPAIGN=CASES-99|GABLS3|ARCTIC-AMPLIFICATION|ALL`
+- Extraction/report compile targets use `CAMPAIGN=CASES-99|GABLS3|FLOSS|ARCTIC-AMPLIFICATION|ALL`
 - Card compiler accepts aliases such as `arctic_hlbl` and `ARCTIC-AMPLIFICATION`
+
+### FLOSS (Fluxes Over Snow Surfaces) Operational Path
+
+```bash
+make process CAMPAIGN=FLOSS
+make stage2-pipeline CAMPAIGN=FLOSS
+make stage3-assemble CAMPAIGN=FLOSS
+make stage4-discover CAMPAIGN=FLOSS
+make stage5-sweep CAMPAIGN=FLOSS SWEEP_DIRECTION=descending
+make stage5-panels CAMPAIGN=FLOSS
+make stage5-summary CAMPAIGN=FLOSS
+```
+
+Deep continuation scan example:
+
+```bash
+make stage5-sweep CAMPAIGN=FLOSS SWEEP_DIRECTION=descending GAMMA_MIN=0.005 GAMMA_MAX=1.00 GAMMA_STEPS=200
+make stage5-panels CAMPAIGN=FLOSS
+make stage5-summary CAMPAIGN=FLOSS
+```
 
 ## 4. Primary Outputs
 
@@ -67,6 +87,9 @@ Campaign notes:
    - `drafts/sections/generated/arctic_params.tex`
    - `drafts/sections/generated/table_arctic_synoptic.tex`
 8. Arctic monitoring card: `reports/arctic_amplification_run/campaign_summary_card.md`
+9. Stage 5 campaign summaries:
+   - `data/outputs/stage5_summary_cases_99.json`
+   - `data/outputs/stage5_summary_floss.json`
 9. Final PDFs:
    - `reports/cases99_run/CASES-99.pdf`
    - `reports/gabls3_run/GABLS3.pdf`
@@ -83,6 +106,13 @@ For Arctic card-only refresh after outputs are present:
 
 ```bash
 make compile-cards CAMPAIGN=arctic_hlbl
+```
+
+For Stage 5 summary-only refresh:
+
+```bash
+make stage5-summary CAMPAIGN=CASES-99
+make stage5-summary CAMPAIGN=FLOSS
 ```
 
 ## 6. Data Organization
@@ -121,7 +151,16 @@ Common required fields for reporting/diagnostics:
 
 Additional fields are preserved and may be campaign-specific.
 
-## 8. Verify Compile Health
+## 8. Stage 5 Summary Fields
+
+`make stage5-summary` writes `data/outputs/stage5_summary_<campaign>.json` with:
+
+1. `gamma_c_hopf` - interpolated Hopf crossing gamma from continuation events
+2. `closest_to_axis_max_imag` - imaginary component magnitude near the axis crossing
+3. `hopf_period_Th` - period estimate from `2π/|beta|`
+4. `dRe_dgamma_at_crossing` - local crossing slope (transversality proxy)
+
+## 9. Verify Compile Health
 
 ```bash
 cd reports/arctic_amplification_run
@@ -134,7 +173,7 @@ Then run regression tests:
 make test
 ```
 
-## 9. Troubleshooting
+## 10. Troubleshooting
 
 ### Campaign/Extraction Issues
 ˜
