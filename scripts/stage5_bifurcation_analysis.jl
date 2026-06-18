@@ -262,7 +262,12 @@ function run_stage5(; stage4_json::String, output_json::String, output_csv::Stri
     )
 
     isempty(result.equilibria) && error("No equilibrium found for continuation seed discovery.")
-    seed_eq = result.equilibria[argmin([eq.residual_norm for eq in result.equilibria])]
+    stable_eqs = filter(eq -> eq.is_stable, result.equilibria)
+    seed_eq = if !isempty(stable_eqs)
+        stable_eqs[argmin([eq.residual_norm for eq in stable_eqs])]
+    else
+        result.equilibria[argmin([eq.residual_norm for eq in result.equilibria])]
+    end
 
     n = n_states(sys)
     idx = parse_int_list(linear_indices)

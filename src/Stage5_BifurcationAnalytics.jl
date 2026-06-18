@@ -569,9 +569,25 @@ function trace_continuation_branch(
     tol::Float64=1e-8,
     refine_steps::Int=8,
     refine_gamma_tol::Float64=1e-4,
+    max_bisection_depth::Int=8,
+    step_recovery_factor::Float64=1.2,
+    min_gamma_step::Union{Nothing,Float64}=nothing,
 )
     validate_continuation_config(sys, cfg)
-    gammas = continuation_gammas(cfg)
+
+    step_recovery_factor > 1.0 || error("step_recovery_factor must be > 1.0")
+    max_bisection_depth >= 0 || error("max_bisection_depth must be >= 0")
+
+    gamma_start = cfg.sweep_direction == :descending ? cfg.gamma_max : cfg.gamma_min
+    gamma_limit = cfg.sweep_direction == :descending ? cfg.gamma_min : cfg.gamma_max
+    direction = cfg.sweep_direction == :descending ? -1.0 : 1.0
+
+    initial_step = abs(cfg.gamma_max - cfg.gamma_min) / (cfg.gamma_steps - 1)
+    initial_step > 0 || error("gamma range must be non-zero for continuation.")
+    d_gamma = initial_step
+
+    gamma_step_floor = something(min_gamma_step, refine_gamma_tol)
+    gamma_step_floor > 0 || error("min_gamma_step/refine_gamma_tol must be positive")
 
     branch = NamedTuple[]
     hopf_events = NamedTuple[]
@@ -580,19 +596,114 @@ function trace_continuation_branch(
     prev_gamma = nothing
     prev_z = nothing
 
-    for (k, gamma) in enumerate(gammas)
-        z_seed = if k == 1
-            copy(z0)
+    start_point = solve_branch_point(sys, copy(z0), gamma_start, cfg; max_iter=max_iter, tol=tol)
+    if !start_point.converged
+        return (
+            branch=branch,
+            hopf_events=hopf_events,
+            terminated=true,
+            termination_gamma=gamma_start,
+            termination_reason=start_point.divergence ? "Divergence_At_Start" : "Newton_Failure_At_Start",
+        )
+    end
+
+    push!(branch, (
+        gamma=gamma_start,
+        z=start_point.z,
+        max_real_eig=start_point.max_real_eig,
+        is_stable=start_point.is_stable,
+        bifurcation_tag="none",
+        converged=true,
+        residual_norm=start_point.residual_norm,
+        eigenvalues=start_point.eigenvalues,
+        predictor_seed=copy(z0),
+        accepted_step=0.0,
+        bisection_depth=0,
+    ))
+
+    prev_complex_growth = dominant_complex_real(start_point.eigenvalues)
+    prev_gamma = gamma_start
+    prev_z = start_point.z
+
+    gamma_curr = gamma_start
+    bisection_depth = 0
+
+    while true
+        gamma_next = gamma_curr + direction * d_gamma
+        if direction < 0
+            gamma_next < gamma_limit && (gamma_next = gamma_limit)
         else
-            predictor_state(branch, gammas[k - 1], gamma)
+            gamma_next > gamma_limit && (gamma_next = gamma_limit)
         end
 
-        point = solve_branch_point(sys, z_seed, gamma, cfg; max_iter=max_iter, tol=tol)
+        if abs(gamma_next - gamma_curr) < gamma_step_floor
+            return (
+                branch=branch,
+                hopf_events=hopf_events,
+                terminated=true,
+                termination_gamma=gamma_curr,
+                termination_reason="Bisection_Step_Floor_Reached",
+            )
+        end
 
-        if !point.converged
-            blowup = point.divergence
+        z_seed = predictor_state(branch, gamma_curr, gamma_next)
+        point = solve_branch_point(sys, z_seed, gamma_next, cfg; max_iter=max_iter, tol=tol)
+
+        if point.converged && !point.divergence
+            bif_tag = "none"
+            curr_growth = dominant_complex_real(point.eigenvalues)
+
+            if prev_complex_growth !== nothing && curr_growth !== nothing && prev_gamma !== nothing && prev_z !== nothing
+                if prev_complex_growth < 0.0 && curr_growth >= 0.0 && isfinite(prev_complex_growth) && isfinite(curr_growth)
+                    denom = curr_growth - prev_complex_growth
+                    θ = abs(denom) < 1e-12 ? 0.0 : clamp(-prev_complex_growth / denom, 0.0, 1.0)
+                    gamma_cross = prev_gamma + θ * (gamma_next - prev_gamma)
+                    z_cross = prev_z .+ θ .* (point.z .- prev_z)
+
+                    push!(hopf_events, (
+                        gamma=gamma_cross,
+                        z=z_cross,
+                        tag="hopf_bifurcation",
+                    ))
+                    bif_tag = "hopf_crossing_step"
+                end
+            end
+
             push!(branch, (
-                gamma=gamma,
+                gamma=gamma_next,
+                z=point.z,
+                max_real_eig=point.max_real_eig,
+                is_stable=point.is_stable,
+                bifurcation_tag=bif_tag,
+                converged=true,
+                residual_norm=point.residual_norm,
+                eigenvalues=point.eigenvalues,
+                predictor_seed=z_seed,
+                accepted_step=abs(gamma_next - gamma_curr),
+                bisection_depth=bisection_depth,
+            ))
+
+            prev_complex_growth = curr_growth
+            prev_gamma = gamma_next
+            prev_z = point.z
+            gamma_curr = gamma_next
+
+            if gamma_curr == gamma_limit
+                break
+            end
+
+            if bisection_depth > 0
+                d_gamma = min(initial_step, d_gamma * step_recovery_factor)
+                bisection_depth -= 1
+            end
+            continue
+        end
+
+        blowup = point.divergence
+        hit_fence = bisection_depth >= max_bisection_depth || d_gamma <= gamma_step_floor
+        if hit_fence
+            failure_row = (
+                gamma=gamma_next,
                 z=blowup ? point.z : fill(NaN, n_states(sys)),
                 max_real_eig=NaN,
                 is_stable=false,
@@ -601,68 +712,38 @@ function trace_continuation_branch(
                 residual_norm=point.residual_norm,
                 eigenvalues=point.eigenvalues,
                 predictor_seed=z_seed,
-            ))
-            if blowup
-                if !isempty(branch) && length(branch) >= 2
-                    inserted_rows, refined_divergence = refine_divergence_boundary(
-                        sys,
-                        branch[end - 1],
-                        branch[end],
-                        cfg;
-                        max_iter=max_iter,
-                        tol=tol,
-                        refine_steps=refine_steps,
-                        gamma_tol=refine_gamma_tol,
-                    )
-                    splice!(branch, length(branch):length(branch), inserted_rows)
-                    branch[end] = refined_divergence
-                    gamma = refined_divergence.gamma
-                end
-                return (
-                    branch=branch,
-                    hopf_events=hopf_events,
-                    terminated=true,
-                    termination_gamma=gamma,
-                    termination_reason="Divergence_Blowup",
+                accepted_step=abs(gamma_next - gamma_curr),
+                bisection_depth=bisection_depth,
+            )
+            push!(branch, failure_row)
+
+            if blowup && length(branch) >= 2
+                inserted_rows, refined_divergence = refine_divergence_boundary(
+                    sys,
+                    branch[end - 1],
+                    branch[end],
+                    cfg;
+                    max_iter=max_iter,
+                    tol=tol,
+                    refine_steps=refine_steps,
+                    gamma_tol=refine_gamma_tol,
                 )
+                splice!(branch, length(branch):length(branch), inserted_rows)
+                branch[end] = refined_divergence
+                gamma_next = refined_divergence.gamma
             end
-            continue
+
+            return (
+                branch=branch,
+                hopf_events=hopf_events,
+                terminated=true,
+                termination_gamma=gamma_next,
+                termination_reason=blowup ? "Divergence_Blowup_BisectionFence" : "Newton_Failure_BisectionFence",
+            )
         end
 
-        bif_tag = "none"
-        curr_growth = dominant_complex_real(point.eigenvalues)
-
-        if prev_complex_growth !== nothing && curr_growth !== nothing && prev_gamma !== nothing && prev_z !== nothing
-            if prev_complex_growth < 0.0 && curr_growth >= 0.0 && isfinite(prev_complex_growth) && isfinite(curr_growth)
-                denom = curr_growth - prev_complex_growth
-                θ = abs(denom) < 1e-12 ? 0.0 : clamp(-prev_complex_growth / denom, 0.0, 1.0)
-                gamma_cross = prev_gamma + θ * (gamma - prev_gamma)
-                z_cross = prev_z .+ θ .* (point.z .- prev_z)
-
-                push!(hopf_events, (
-                    gamma=gamma_cross,
-                    z=z_cross,
-                    tag="hopf_bifurcation",
-                ))
-                bif_tag = "hopf_crossing_step"
-            end
-        end
-
-        push!(branch, (
-            gamma=gamma,
-            z=point.z,
-            max_real_eig=point.max_real_eig,
-            is_stable=point.is_stable,
-            bifurcation_tag=bif_tag,
-            converged=true,
-            residual_norm=point.residual_norm,
-            eigenvalues=point.eigenvalues,
-            predictor_seed=z_seed,
-        ))
-
-        prev_complex_growth = curr_growth
-        prev_gamma = gamma
-        prev_z = point.z
+        d_gamma *= 0.5
+        bisection_depth += 1
     end
 
     return (

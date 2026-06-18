@@ -1,8 +1,12 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
+SWEEP_DIRECTION ?= descending
+GAMMA_MIN ?= 0.07
+GAMMA_MAX ?= 1.00
+GAMMA_STEPS ?= 50
 WORKSPACE_ROOT := $(shell pwd)
 OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,main.pdf)))
 OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3-audit.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION-audit.pdf,audit.pdf)))
@@ -21,7 +25,8 @@ help:
 	@echo "  make stage4-calibrate  - Run Stage 4 Pareto lambda sweep + select sparse model"
 	@echo "  make stage4-discover   - Run Stage 4 production STLS with fixed lambda"
 	@echo "  make stage5-stability  - Run Stage 5 equilibrium + Jacobian spectrum analysis"
-	@echo "  make stage5-sweep      - Run descending Stage 5 continuation sweep on discovered equations"
+	@echo "  make stage5-sweep      - Run configurable Stage 5 continuation sweep on discovered equations"
+	@echo "  make stage5-panels     - Export Stage 5 3-panel diagnostic CSVs (trajectory/abscissa/distance)"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make audit             - Build standalone markdown campaign audit (campaign-scoped output)"
@@ -91,13 +96,17 @@ stage5-sweep:
 		--output-json data/outputs/stage5_stability_manifest_$(CAMPAIGN_SLUG).json \
 		--output-csv data/outputs/stage5_equilibria_$(CAMPAIGN_SLUG).csv \
 		--continuation-csv data/outputs/stage5_bifurcation_branches_$(CAMPAIGN_SLUG).csv \
-		--gamma-min $(or $(G_MIN),0.07) \
-		--gamma-max $(or $(G_MAX),1.00) \
-		--gamma-steps $(or $(G_STEPS),50) \
-		--sweep-direction descending \
+		--gamma-min $(GAMMA_MIN) \
+		--gamma-max $(GAMMA_MAX) \
+		--gamma-steps $(GAMMA_STEPS) \
+		--sweep-direction $(SWEEP_DIRECTION) \
 		--scale-target both \
 		--linear-indices 1,2,3 \
 		--forcing-values 0.05,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
+
+stage5-panels:
+	@echo "Exporting Stage 5 diagnostic panel CSVs (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/stage5_plot_branches.jl --campaign $(CAMPAIGN)
 
 tex:
 	@echo "Regenerating LaTeX exports..."
