@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit floss-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -7,6 +7,19 @@ SWEEP_DIRECTION ?= descending
 GAMMA_MIN ?= 0.07
 GAMMA_MAX ?= 1.00
 GAMMA_STEPS ?= 50
+
+# Set dynamic defaults based on Campaign choice
+ifeq ($(CAMPAIGN),DOMEC)
+	WINDOW_SIZE ?= 128
+	STEP_SIZE ?= 32
+else ifeq ($(CAMPAIGN),GABLS3)
+	WINDOW_SIZE ?= 64
+	STEP_SIZE ?= 32
+else
+	WINDOW_SIZE ?= 256
+	STEP_SIZE ?= 128
+endif
+
 WORKSPACE_ROOT := $(shell pwd)
 OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS.pdf,main.pdf))))
 OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3-audit.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION-audit.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS-audit.pdf,audit.pdf))))
@@ -58,8 +71,24 @@ process:
 	julia --project="." scripts/extract_attractor_diagnostics.jl $(CAMPAIGN)
 
 stage2-pipeline:
-	@echo "Running Stage 2 pipeline (campaign=$(CAMPAIGN))..."
-	julia --project="." scripts/stage2_pipeline.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
+	@echo "Running Stage 2 pipeline (campaign=$(CAMPAIGN)) with window=$(WINDOW_SIZE), step=$(STEP_SIZE)..."
+	julia --project="." scripts/stage2_pipeline.jl $(TRAJECTORY_CSV) $(CAMPAIGN) $(WINDOW_SIZE) $(STEP_SIZE)
+
+# Atomic target: runs an entire campaign in sequence with explicit campaign-scoped parameters.
+build-campaign-atomic:
+	@echo "=========================================================="
+	@echo " Executing Atomic Pipeline for Campaign: $(CAMPAIGN)"
+	@echo " Parameters: Window=$(WINDOW_SIZE), Step=$(STEP_SIZE)"
+	@echo "=========================================================="
+	$(MAKE) process CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) stage2-pipeline CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) stage3-assemble CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) stage4-discover CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) stage5-sweep CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) stage5-summary CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) tex CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) report CAMPAIGN=$(CAMPAIGN)
+	$(MAKE) compile-report CAMPAIGN=$(CAMPAIGN)
 
 stage3-assemble:
 	@echo "Assembling Stage 3 global closure matrices (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."

@@ -1,6 +1,6 @@
 # Campaign Performance Audit: GABLS3
 
-Date: 2026-06-18T17:42:29.664 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-20T22:42:38.976 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -11,14 +11,14 @@ Date: 2026-06-18T17:42:29.664 | Auditor: Spectral-Analytics Engine
 | Mean Singular Value Entropy | 0.7549 | contextual | broad |
 | Effective Dimension | 2.5398 | >1.5 | above floor |
 | Condition Number | 4.37 | <100 | within |
-| Stage 2 Threshold Exceedance Rate | n/a | <25.0% | n/a |
-| Stable Equilibria / Hopf Candidates | n/a | >=1 / 0+ | n/a |
+| Stage 2 Threshold Exceedance Rate | 66.7% | <25.0% | elevated |
+| Stable Equilibria / Hopf Candidates | 0 / 0 | >=1 / 0+ | no crossing |
 
 ### Status Summary
 
 [OK] Low-rank basis remained numerically usable with condition number 4.37 and 0 exported nullspace modes.
 [INFO] Campaign mean entropy registered at H_mean = 0.7549 with effective dimension D_eff = 2.5398.
-[INFO] Stage 5 stability scan did not report a terminal divergence boundary.
+[WARN] Stage 5 continuation terminated at gamma=0.402931, marking the current stability-envelope boundary.
 
 ---
 
@@ -28,26 +28,26 @@ Date: 2026-06-18T17:42:29.664 | Auditor: Spectral-Analytics Engine
 
 - The exported low-rank basis remained fully constrained with 3 constrained modes and 0 nullspace modes.
 - The projection condition number was measured at 4.37 for conditioning diagnostics.
-- Stage 5 stability artifacts were not available for this run.
+- Stage 5 resolved 0 stable equilibrium and 0 Hopf candidates in the current scan.
 
 ### Negative Findings
 
-- Stage 2 disagreement exceeded threshold in 0 of 0 windows (n/a).
-- The maximum Stage 2 disagreement norm reached 0.0000, indicating localized route-selection ambiguity.
-- No Stage 5 divergence boundary was recorded in the current artifact set.
+- Stage 2 disagreement exceeded threshold in 2 of 3 windows (66.7%).
+- The maximum Stage 2 disagreement norm reached 6.8199, indicating localized route-selection ambiguity.
+- The descending continuation branch remained stable until gamma=0.402931 and then terminated in Divergence_Blowup before a smooth crossing was logged.
 
 ### Neutral Findings
 
 - Campaign-mean reduced coordinates were (0.151, 0.076, 0.044).
 - Stage 4 lambda sweep artifact was not available for summary.
-- The dominant Stage 2 routing label was n/a, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
+- The dominant Stage 2 routing label was intermittent_conditional_ami, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
 
 ---
 
 ## 3. Risks & Monitoring Items
 
-- Threshold exceedance rate remains elevated at n/a, so window-level disagreement can accumulate without moving campaign means substantially.
-- Stage 5 boundary localization is incomplete when continuation artifacts are absent.
+- Threshold exceedance rate remains elevated at 66.7%, so window-level disagreement can accumulate without moving campaign means substantially.
+- The current continuation branch loses numerical validity at gamma=0.402931, so the stability envelope should be treated as locally bounded rather than globally mapped.
 - Mean entropy 0.7549 indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed.
 
 ---

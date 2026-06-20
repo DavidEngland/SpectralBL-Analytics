@@ -1,6 +1,6 @@
 # Campaign Performance Audit: FLOSS
 
-Date: 2026-06-18T21:41:38.777 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-20T22:43:41.705 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -8,16 +8,16 @@ Date: 2026-06-18T21:41:38.777 | Auditor: Spectral-Analytics Engine
 | :--- | :--- | :--- | :--- |
 | Total Samples | 70796 | >=1000 | observed |
 | Temporal Coverage | 11732.5 h | >=24 h | observed |
-| Mean Singular Value Entropy | 0.4248 | contextual | compressed |
-| Effective Dimension | 1.5369 | >1.5 | above floor |
-| Condition Number | 48.95 | <100 | within |
-| Stage 2 Threshold Exceedance Rate | 61.8% | <25.0% | elevated |
+| Mean Singular Value Entropy | 0.4255 | contextual | compressed |
+| Effective Dimension | 1.4920 | >1.5 | compressed |
+| Condition Number | 55.88 | <100 | within |
+| Stage 2 Threshold Exceedance Rate | 61.1% | <25.0% | elevated |
 | Stable Equilibria / Hopf Candidates | 1 / 0 | >=1 / 0+ | no crossing |
 
 ### Status Summary
 
-[OK] Low-rank basis remained numerically usable with condition number 48.95 and 0 exported nullspace modes.
-[INFO] Campaign mean entropy registered at H_mean = 0.4248 with effective dimension D_eff = 1.5369.
+[OK] Low-rank basis remained numerically usable with condition number 55.88 and 0 exported nullspace modes.
+[INFO] Campaign mean entropy registered at H_mean = 0.4255 with effective dimension D_eff = 1.4920.
 [INFO] Stage 5 stability scan did not report a terminal divergence boundary.
 
 ---
@@ -27,18 +27,18 @@ Date: 2026-06-18T21:41:38.777 | Auditor: Spectral-Analytics Engine
 ### Positive Findings
 
 - The exported low-rank basis remained fully constrained with 3 constrained modes and 0 nullspace modes.
-- The projection condition number was measured at 48.95 for conditioning diagnostics.
+- The projection condition number was measured at 55.88 for conditioning diagnostics.
 - Stage 5 resolved 1 stable equilibrium and 0 Hopf candidates in the current scan.
 
 ### Negative Findings
 
-- Stage 2 disagreement exceeded threshold in 341 of 552 windows (61.8%).
-- The maximum Stage 2 disagreement norm reached 166.8462, indicating localized route-selection ambiguity.
+- Stage 2 disagreement exceeded threshold in 337 of 552 windows (61.1%).
+- The maximum Stage 2 disagreement norm reached 190.7874, indicating localized route-selection ambiguity.
 - No Stage 5 divergence boundary was recorded in the current artifact set.
 
 ### Neutral Findings
 
-- Campaign-mean reduced coordinates were (-5.970, -1.227, -0.222).
+- Campaign-mean reduced coordinates were (-5.484, -1.379, -0.334).
 - Stage 4 lambda sweep artifact was not available for summary.
 - The dominant Stage 2 routing label was intermittent_conditional_ami, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
 
@@ -46,9 +46,9 @@ Date: 2026-06-18T21:41:38.777 | Auditor: Spectral-Analytics Engine
 
 ## 3. Risks & Monitoring Items
 
-- Threshold exceedance rate remains elevated at 61.8%, so window-level disagreement can accumulate without moving campaign means substantially.
+- Threshold exceedance rate remains elevated at 61.1%, so window-level disagreement can accumulate without moving campaign means substantially.
 - Stage 5 boundary localization is incomplete when continuation artifacts are absent.
-- Mean entropy 0.4248 indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed.
+- Mean entropy 0.4255 indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed.
 
 ---
 

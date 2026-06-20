@@ -16,16 +16,16 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
         \begin{groupplot}[
             group style={group size=1 by 3, vertical sep=14pt},
             width=0.85\textwidth,
-            height=4.5cm,
+            height=5.2cm,
             grid=both,
             tick label style={font=\small},
             label style={font=\small},
-            title style={font=\normalsize\bfseries},
+            title style={font=\small\bfseries, align=center},
             axis background/.style={fill=gray!2}
         ]
 
         \nextgroupplot[
-            title={Panel A: Branch Stability / Reversed S-Curve Proxy},
+            title={Panel A: Stability Branch (S-Curve Proxy)},
             xlabel={$\gamma$},
             ylabel={$\alpha=\max\Re(\lambda)$}
         ]
@@ -46,7 +46,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
 {{/has_transition_gamma_critical}}
 
         \nextgroupplot[
-            title={Panel B: State-Space Projection with Spin Encoding},
+            title={Panel B: State-Space Projection},
             xlabel={$z_1$},
             ylabel={$z_2$}
         ]
@@ -62,8 +62,36 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 meta=z3
             ] {{{transition_panel_b_path_tex}}};
 
+{{#has_transition_panel_c_profile}}
         \nextgroupplot[
-            title={Panel C: Transition Window / Profile Warping},
+            title={Panel C: Reconstructed Profile Warping ($\mathcal{M}_{eq}$ Spatial Shadow)},
+            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$},
+            ylabel={Height $z$ [m]},
+            xmin=-0.5, xmax=2.5,
+            ymin={{{transition_panel_c_profile_height_min}}}, ymax={{{transition_panel_c_profile_height_max}}},
+            axis lines=left,
+            legend style={at={(0.98,0.05)}, anchor=south east, font=\footnotesize},
+            axis background/.style={fill=gray!2}
+        ]
+            \addplot[color=red!60!black, dashed, line width=0.8pt] coordinates {(0.25, {{{transition_panel_c_profile_height_min}}}) (0.25, {{{transition_panel_c_profile_height_max}}})};
+            \addlegendentry{$\mathrm{Ri}_c = 0.25$}
+
+            \addplot[
+                color=teal!80!black,
+                line width=1.4pt,
+                mark=none
+            ] table[
+                col sep=comma,
+                x=ri_g,
+                y=height_z
+            ] {{{transition_panel_c_profile_path_tex}}};
+            \addlegendentry{Reconstructed $\mathrm{Ri}_g(z)$}
+
+            \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis cs:0.4, 60) {$\eta_3$ Curvature Inflexion};
+{{/has_transition_panel_c_profile}}
+{{^has_transition_panel_c_profile}}
+        \nextgroupplot[
+            title={Panel C: Transition Window},
             xlabel={time},
             ylabel={$\eta_3$}
         ]
@@ -78,6 +106,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 x=time_value,
                 y=eta_3
             ] {{{transition_panel_c_path_tex}}};
+{{/has_transition_panel_c_profile}}
 
         \end{groupplot}
     \end{tikzpicture}
@@ -87,9 +116,9 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
 
 \paragraph{Transition Metrics}
 \begin{itemize}
-    \item Critical coupling estimate: {{transition_gamma_critical_fmt}}
-    \item Hopf period estimate: {{transition_hopf_period_fmt}}
-    \item Peak $|\eta_3|$ in transition window: {{transition_peak_eta3_fmt}}
+    \item Critical coupling estimate: {{{transition_gamma_critical_fmt}}}
+    \item Hopf period estimate: {{{transition_hopf_period_fmt}}}
+    \item Peak $|\eta_3|$ in transition window: {{{transition_peak_eta3_fmt}}}
 \end{itemize}
 {{/has_transition_assets}}
 

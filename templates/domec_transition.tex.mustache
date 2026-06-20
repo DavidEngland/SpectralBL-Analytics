@@ -1,0 +1,144 @@
+% templates/domec_transition.tex.mustache
+% AUTO-GENERATED Dome C transition + inset density diagnostics
+% Rendered by scripts/build_campaign_report.jl
+% DO NOT EDIT MANUALLY
+
+\section{Dome C Regime Transition and Inset Density Diagnostics}
+
+{{#has_domec_assets}}
+\begin{figure}[htbp]
+    \centering
+    \tikzsetnextfilename{domec-s-curve-analysis}
+    \begin{tikzpicture}
+
+        % Main axis: U_9m versus near-surface inversion strength.
+        \begin{axis}[
+            name=main_scurve,
+            width=0.75\textwidth,
+            height=0.55\textwidth,
+            xlabel={9\,m Wind Speed $U_{9m}$ [m\,s$^{-1}$]},
+            ylabel={Near-Surface Inversion $\Delta T = T_{9m} - T_s$ [K]},
+            xmin=0, xmax=14,
+            ymin=0, ymax=30,
+            grid=both,
+            grid style={line width=.1pt, draw=gray!15},
+            major grid style={line width=.2pt, draw=gray!35},
+            axis background/.style={fill=gray!2},
+            legend style={at={(0.03,0.97)}, anchor=north west, draw=none, fill=none, font=\small}
+        ]
+            \addplot[
+                only marks,
+                mark=*,
+                mark size=1.0pt,
+                color=gray!60
+            ] table[
+                col sep=comma,
+                x=u9,
+                y=dt9
+            ] {{{csv_domec_observations}}};
+            \addlegendentry{Obs.}
+
+            \addplot[
+                color=blue!75!black,
+                line width=1.3pt,
+                mark=none
+            ] table[
+                col sep=comma,
+                x=u9,
+                y=dt9
+            ] {{{csv_domec_lmdz103}}};
+            \addlegendentry{LMDZ (103-level)}
+
+            \addplot[
+                color=red!75!black,
+                dashed,
+                line width=1.1pt,
+                mark=square*,
+                mark size=1.4pt
+            ] table[
+                col sep=comma,
+                x=u9,
+                y=dt9
+            ] {{{csv_domec_erai}}};
+            \addlegendentry{ERA-Interim}
+        \end{axis}
+
+        % Left inset: vertical PDF of inversion strength.
+        \begin{axis}[
+            at={(main_scurve.north west)},
+            anchor=north east,
+            xshift=-8pt,
+            width=0.20\textwidth,
+            height=0.55\textwidth,
+            ymin=0, ymax=30,
+            xlabel={Prob. Density},
+            xticklabels={},
+            axis y line*=right,
+            axis x line*=bottom,
+            grid=both,
+            grid style={line width=.1pt, draw=gray!15},
+            major grid style={line width=.2pt, draw=gray!35}
+        ]
+            \addplot[
+                color=black,
+                thin,
+                dotted
+            ] table[
+                col sep=comma,
+                x=pdf_val,
+                y=dt_bin
+            ] {{{csv_domec_obs_dt_pdf}}};
+
+            \addplot[
+                color=blue!75!black,
+                line width=1.0pt
+            ] table[
+                col sep=comma,
+                x=pdf_val,
+                y=dt_bin
+            ] {{{csv_domec_model_dt_pdf}}};
+        \end{axis}
+
+        % Bottom inset: horizontal PDF of wind speed.
+        \begin{axis}[
+            at={(main_scurve.south west)},
+            anchor=north west,
+            yshift=-30pt,
+            width=0.75\textwidth,
+            height=3.2cm,
+            xmin=0, xmax=14,
+            ylabel={Prob. Density},
+            yticklabels={},
+            grid=both,
+            grid style={line width=.1pt, draw=gray!15},
+            major grid style={line width=.2pt, draw=gray!35}
+        ]
+            \addplot[
+                color=black,
+                thin,
+                dotted
+            ] table[
+                col sep=comma,
+                x=u_bin,
+                y=pdf_val
+            ] {{{csv_domec_obs_u_pdf}}};
+
+            \addplot[
+                color=blue!75!black,
+                line width=1.0pt
+            ] table[
+                col sep=comma,
+                x=u_bin,
+                y=pdf_val
+            ] {{{csv_domec_model_u_pdf}}};
+        \end{axis}
+
+    \end{tikzpicture}
+    \caption{Dome C regime blueprint in the Vignon-style layout. The main panel shows the reversed S-curve relation between 9 m wind speed and near-surface inversion. The left and bottom insets provide marginalized PDFs for inversion strength and wind speed, respectively, for direct observational/model regime-comparison diagnostics.}
+    \label{fig:vignon_domec_reproduction}
+\end{figure}
+{{/has_domec_assets}}
+
+{{^has_domec_assets}}
+\noindent\textit{Dome C inset assets were not available at render time. Expected CSV files in \path{{{domec_assets_expected_dir}}}: domec_observations_u_dt.csv, domec_lmdz103_u_dt.csv, domec_erai_u_dt.csv, domec_obs_dt_pdf.csv, domec_model_dt_pdf.csv, domec_obs_u_pdf.csv, and domec_model_u_pdf.csv.}
+{{/has_domec_assets}}

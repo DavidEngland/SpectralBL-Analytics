@@ -43,7 +43,8 @@ function get_campaign_geometry(campaign::Symbol)
         return CampaignConfig("ARCTIC-AMPLIFICATION", [2.5, 10.0, 20.0, 40.0, 80.0], 0.01, 0.001, 0.0)
     elseif campaign == :FLOSS
         # Snow-surface tower stack used for FLOSS profile reconstruction.
-        return CampaignConfig("FLOSS", [0.5, 1.0, 2.0, 4.0], 0.001, 0.0001, 0.0)
+        # Smooth snow roughness can be substantially lower than grassland.
+        return CampaignConfig("FLOSS", [0.5, 1.0, 2.0, 4.0], 0.0003, 0.00003, 0.0)
     else
         error("Unknown campaign target configuration: ", campaign)
     end

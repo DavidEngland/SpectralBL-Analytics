@@ -149,25 +149,25 @@ function build_panel_b(branch_df::DataFrame)
     return out
 end
 
-function build_panel_c(traj_df::DataFrame)
+function select_transition_window(traj_df::DataFrame)
     needed = ["time_value", "eta_1", "eta_2", "eta_3"]
     if nrow(traj_df) == 0 || any(c -> !(c in names(traj_df)), needed)
-        return DataFrame(time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
+        return DataFrame(source_index=Int[], time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
     end
 
     rows = Vector{NamedTuple}()
-    for row in eachrow(traj_df)
+    for (idx, row) in enumerate(eachrow(traj_df))
         t = safe_float(row.time_value)
         e1 = safe_float(row.eta_1)
         e2 = safe_float(row.eta_2)
         e3 = safe_float(row.eta_3)
         if t !== nothing && e1 !== nothing && e2 !== nothing && e3 !== nothing
-            push!(rows, (time_value=t, eta_1=e1, eta_2=e2, eta_3=e3, abs_eta_3=abs(e3)))
+            push!(rows, (source_index=idx, time_value=t, eta_1=e1, eta_2=e2, eta_3=e3, abs_eta_3=abs(e3)))
         end
     end
 
     if isempty(rows)
-        return DataFrame(time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
+        return DataFrame(source_index=Int[], time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
     end
 
     tmp = DataFrame(rows)
@@ -189,6 +189,7 @@ function build_panel_c(traj_df::DataFrame)
     end
 
     out = DataFrame(
+        source_index = Int.(window.source_index),
         time_value = Float64.(window.time_value),
         eta_1 = Float64.(window.eta_1),
         eta_2 = Float64.(window.eta_2),
@@ -197,6 +198,67 @@ function build_panel_c(traj_df::DataFrame)
     )
 
     sort!(out, :time_value)
+    return out
+end
+
+function build_panel_c(traj_df::DataFrame)
+    window = select_transition_window(traj_df)
+    if nrow(window) == 0
+        return DataFrame(time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
+    end
+
+    return DataFrame(
+        time_value = Float64.(window.time_value),
+        eta_1 = Float64.(window.eta_1),
+        eta_2 = Float64.(window.eta_2),
+        eta_3 = Float64.(window.eta_3),
+        phase = String.(window.phase),
+    )
+end
+
+function parse_ri_g_height(col_name::String)
+    startswith(col_name, "ri_g_") || return nothing
+    raw = col_name[6:end]
+    candidate = replace(raw, "_" => ".")
+    h = tryparse(Float64, candidate)
+    return h
+end
+
+function ri_g_profile_columns(traj_df::DataFrame)
+    cols = Vector{Tuple{Symbol,Float64}}()
+    for n in names(traj_df)
+        s = String(n)
+        h = parse_ri_g_height(s)
+        if h !== nothing && isfinite(h)
+            push!(cols, (Symbol(n), h))
+        end
+    end
+    sort!(cols, by=x -> x[2])
+    return cols
+end
+
+function build_panel_c_profile(traj_df::DataFrame)
+    window = select_transition_window(traj_df)
+    nrow(window) == 0 && return DataFrame(ri_g=Float64[], height_z=Float64[], phase=String[], time_value=Float64[])
+
+    ri_cols = ri_g_profile_columns(traj_df)
+    length(ri_cols) < 3 && return DataFrame(ri_g=Float64[], height_z=Float64[], phase=String[], time_value=Float64[])
+
+    rows = Vector{NamedTuple}()
+    for row in eachrow(window)
+        src_idx = Int(row.source_index)
+        for (col, z) in ri_cols
+            ri = safe_float(traj_df[src_idx, col])
+            if ri !== nothing
+                push!(rows, (ri_g=ri, height_z=z, phase=String(row.phase), time_value=Float64(row.time_value)))
+            end
+        end
+    end
+
+    isempty(rows) && return DataFrame(ri_g=Float64[], height_z=Float64[], phase=String[], time_value=Float64[])
+
+    out = DataFrame(rows)
+    sort!(out, [:time_value, :height_z])
     return out
 end
 
@@ -243,11 +305,15 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
     panel_a_path = joinpath(output_dir, "transition_panel_a_$(slug).csv")
     panel_b_path = joinpath(output_dir, "transition_panel_b_$(slug).csv")
     panel_c_path = joinpath(output_dir, "transition_panel_c_$(slug).csv")
+    panel_c_profile_path = joinpath(output_dir, "transition_panel_c_profile_$(slug).csv")
     meta_path = joinpath(output_dir, "transition_assets_$(slug).json")
+
+    panel_c_profile = build_panel_c_profile(traj_df)
 
     CSV.write(panel_a_path, panel_a)
     CSV.write(panel_b_path, panel_b)
     CSV.write(panel_c_path, panel_c)
+    CSV.write(panel_c_profile_path, panel_c_profile)
 
     γc = summary_gamma(summary)
     Th = summary_period_minutes(summary)
@@ -257,15 +323,20 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
         "campaign" => campaign,
         "slug" => slug,
         "has_transition_assets" => (nrow(panel_a) > 0 && nrow(panel_b) > 0 && nrow(panel_c) > 0),
+        "has_transition_panel_c_profile" => nrow(panel_c_profile) > 0,
         "panel_a_csv" => panel_a_path,
         "panel_b_csv" => panel_b_path,
         "panel_c_csv" => panel_c_path,
+        "panel_c_profile_csv" => panel_c_profile_path,
         "gamma_critical" => γc,
         "hopf_period_minutes" => Th,
         "peak_abs_eta3" => peak_eta3,
         "panel_a_rows" => nrow(panel_a),
         "panel_b_rows" => nrow(panel_b),
         "panel_c_rows" => nrow(panel_c),
+        "panel_c_profile_rows" => nrow(panel_c_profile),
+        "panel_c_profile_height_min" => nrow(panel_c_profile) > 0 ? minimum(panel_c_profile.height_z) : nothing,
+        "panel_c_profile_height_max" => nrow(panel_c_profile) > 0 ? maximum(panel_c_profile.height_z) : nothing,
         "source_branch_csv" => branch_csv,
         "source_summary_json" => summary_json,
         "source_trajectory_csv" => trajectory_csv,
@@ -277,6 +348,7 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
     println("  panel_a: $(panel_a_path) [$(nrow(panel_a)) rows]")
     println("  panel_b: $(panel_b_path) [$(nrow(panel_b)) rows]")
     println("  panel_c: $(panel_c_path) [$(nrow(panel_c)) rows]")
+    println("  panel_c_profile: $(panel_c_profile_path) [$(nrow(panel_c_profile)) rows]")
     println("  meta:    $(meta_path)")
 end
 

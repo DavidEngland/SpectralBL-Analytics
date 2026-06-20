@@ -14,9 +14,124 @@ The leading eigenvalue $\alpha(\gamma) = \max\,\Re(\lambda_i)$ serves as a scala
 
 \section{Stage 5 Bifurcation Spectrum}
 
+This panel summarizes the continuation branch spectral abscissa $\alpha(\gamma)$ for campaign \texttt{ GABLS3 }.
+The inferred Hopf crossing occurs at $\gamma_c \approx 0.5405$ with local transversality $d\alpha/d\gamma \approx n/a$ and characteristic period $T_H \approx 0.6\,\mathrm{min}$ (35.3 s).
 
-\noindent\textit{Stage 5 branch artifacts were not available for this campaign at report render time. Expected source: \path{../../data/outputs/stage5_bifurcation_branches_gabls3.csv}.}
+\begin{figure}[htbp]
+    \centering
+    \usepgfplotslibrary{groupplots}
+    	tikzsetnextfilename{bifurcation-panel-gabls3}
+    \begin{tikzpicture}
+        \begin{groupplot}[
+            group style={
+                group name=bifurcation_plots,
+                group size=1 by 2,
+                vertical sep=12pt,
+                x descriptions at=edge bottom
+            },
+            width=0.96\textwidth,
+            grid=both,
+            grid style={line width=.1pt, draw=gray!15},
+            major grid style={line width=.2pt, draw=gray!35},
+            xmin=0.402931, xmax=1.000000,
+            tick label style={font=\small},
+            label style={font=\small},
+            axis background/.style={fill=gray!2}
+        ]
 
+        \nextgroupplot[
+            height=4.5cm,
+            ylabel={Growth $\alpha = \max\,\Re(\lambda)$},
+            axis lines=middle,
+            axis line style={draw=gray!60},
+            legend style={at={(0.98,0.05)}, anchor=south east, font=\small},
+            xticklabels={}
+        ]
+            \addplot[
+                color=blue!70!black,
+                line width=1.3pt,
+                mark=none
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=max_real_eig
+            ] {../../data/outputs/stage5_bifurcation_branches_gabls3.csv};
+            \addlegendentry{$\alpha(\gamma)$}
+
+            \addplot[
+                color=red!60,
+                dashed,
+                line width=1.0pt,
+                domain=0.490476:0.590476,
+                samples=2
+            ] {(x - 0.540476) * (0.0)};
+            \addlegendentry{Slope $\left.\frac{d\alpha}{d\gamma}\right|_{\gamma_c}$}
+
+            \addplot[
+                color=red,
+                mark=*,
+                mark size=2.8pt
+            ] coordinates {(0.540476, 0.0)};
+            \addlegendentry{Hopf crossing}
+
+            \node[anchor=south west, text=red!80!black, font=\small\bfseries] at (axis cs:0.540476, 0.05)
+                {$\gamma_c = 0.5405$};
+
+        \nextgroupplot[
+            height=3.8cm,
+            xlabel={Dissipation parameter ($\gamma$)},
+            ylabel={Frequency $\beta\,(\mathrm{rad\,s^{-1}})$},
+            ymin=0.0, ymax=0.199360,
+            axis lines=left,
+            axis line style={draw=gray!60},
+            legend style={at={(0.98,0.92)}, anchor=north east, font=\small}
+        ]
+            \addplot[
+                color=teal!80!black,
+                line width=1.3pt,
+                mark=none
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=max_imag_eig
+            ] {../../data/outputs/stage5_bifurcation_branches_gabls3.csv};
+            \addlegendentry{$\beta(\gamma)$ frequency branch}
+
+        \end{groupplot}
+    \end{tikzpicture}
+    \caption{Stage 5 parameter continuation spectrum: the top panel charts the principal manifold stability branch $\alpha(\gamma)$, while the bottom panel shows the aligned oscillation-frequency branch $\beta(\gamma)$ when available.}
+    \label{fig:bifurcation_spectrum_gabls3}
+\end{figure}
+
+
+\subsection{Stage~5 Manifold Stability Diagnostics}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage~5 manifold stability diagnostics for campaign \texttt{ GABLS3 }.
+    Values derived from automated parameter continuation;
+    \textit{n/a} indicates a diagnostic not resolved in the current sweep.}
+\label{tab:stage5_stability_gabls3}
+\begin{tabular}{llcc}
+\toprule
+Diagnostic & Symbol & Value & Units \\
+\midrule
+Critical coupling parameter & $\gamma_c$ & 0.5405 & -- \\
+Transversality slope & $\left.d\alpha/d\gamma\right|_{\gamma_c}$ & n/a & s$^{-1}$ \\
+Hopf frequency & $\beta_H$ & 0.17818 & rad\,s$^{-1}$ \\
+Oscillation period & $T_H$ & 0.6 & min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Classical Boundary-Layer Interpretation}
+
+The manifold transition identified at $\gamma_c \approx 0.5405$ coincides with the onset of atmospheric decoupling commonly observed in strongly stable nocturnal boundary layers.
+Below the threshold, turbulent transport maintains communication between the surface inversion and the overlying residual flow, and the reconstructed attractor contracts toward a stable equilibrium.
+Near $\gamma_c$, the attractor develops a loss of structural stability, indicated by the sign change of the leading eigenvalue, making the boundary layer increasingly susceptible to intermittent turbulence bursts and gravity-wave excitation.
+Beyond the threshold, the manifold evolves toward oscillatory dynamics consistent with observed low-level jet pulsations, wave-modulated transport, and the periodic recovery cycles characteristic of very stable conditions.
+
+This geometric framework complements local Richardson-number diagnostics by providing a globally consistent indicator of the boundary-layer stability state that remains valid through and beyond the classical collapse threshold of $\mathrm{Ri}_g = 0.25$.
 
 
 \noindent\textit{Cross-campaign Stage 5 comparison table omitted because one or more required summary manifests were not available at render time.}

@@ -1,0 +1,89 @@
+% templates/transition_exhibit.tex.mustache
+% AUTO-GENERATED transition exhibit section
+% Rendered by scripts/build_campaign_report.jl
+% DO NOT EDIT MANUALLY
+
+\section{Transition Event Mapping}
+
+Transition plots are the primary dynamical fingerprint for regime transitions in the stable boundary layer. This section provides a three-panel bridge between continuation stability signatures and reduced-state trajectory structure for campaign \texttt{ FLOSS }.
+
+\begin{figure}[htbp]
+    \centering
+    \usepgfplotslibrary{groupplots}
+    \tikzsetnextfilename{transition-panel-floss}
+    \begin{tikzpicture}
+        \begin{groupplot}[
+            group style={group size=1 by 3, vertical sep=14pt},
+            width=0.85\textwidth,
+            height=5.2cm,
+            grid=both,
+            tick label style={font=\small},
+            label style={font=\small},
+            title style={font=\small\bfseries, align=center},
+            axis background/.style={fill=gray!2}
+        ]
+
+        \nextgroupplot[
+            title={Panel A: Stability Branch (S-Curve Proxy)},
+            xlabel={$\gamma$},
+            ylabel={$\alpha=\max\Re(\lambda)$}
+        ]
+            \addplot[
+                color=blue!70!black,
+                line width=1.2pt,
+                mark=* ,
+                mark size=1.4pt,
+                mark options={fill=blue!70!black}
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=max_real_eig
+            ] {../../data/outputs/transition_panel_a_floss.csv};
+
+        \nextgroupplot[
+            title={Panel B: State-Space Projection},
+            xlabel={$z_1$},
+            ylabel={$z_2$}
+        ]
+            \addplot[
+                only marks,
+                scatter,
+                scatter src=explicit,
+                mark size=1.8pt
+            ] table[
+                col sep=comma,
+                x=z1,
+                y=z2,
+                meta=z3
+            ] {../../data/outputs/transition_panel_b_floss.csv};
+
+        \nextgroupplot[
+            title={Panel C: Transition Window},
+            xlabel={time},
+            ylabel={$\eta_3$}
+        ]
+            \addplot[
+                color=teal!80!black,
+                line width=1.2pt,
+                mark=* ,
+                mark size=1.4pt,
+                mark options={fill=teal!80!black}
+            ] table[
+                col sep=comma,
+                x=time_value,
+                y=eta_3
+            ] {../../data/outputs/transition_panel_c_floss.csv};
+
+        \end{groupplot}
+    \end{tikzpicture}
+    \caption{Three-panel transition exhibit. Panel A tracks the stability branch and the Hopf-like crossing. Panel B projects the continuation branch in reduced manifold coordinates. Panel C shows the localized $\eta_3$ transition window from campaign trajectories.}
+    \label{fig:transition_exhibit_floss}
+\end{figure}
+
+\paragraph{Transition Metrics}
+\begin{itemize}
+    \item Critical coupling estimate: n/a
+    \item Hopf period estimate: 3.33 min
+    \item Peak $|\eta_3|$ in transition window: 106.9604
+\end{itemize}
+

@@ -25,6 +25,7 @@ end
 
 const REGISTRY = [
     ReportDefinition("main", "templates/main.tex.mustache", "main.tex"),
+    ReportDefinition("domec_transition", "templates/domec_transition.tex.mustache", "generated/domec_transition.tex"),
     ReportDefinition("attractor", "templates/attractor_report.tex.mustache", "generated/attractor.tex"),
     ReportDefinition("regime", "templates/regime_decomposition.tex.mustache", "generated/regime.tex"),
     ReportDefinition("bifurcation", "templates/bifurcation_spectrum.tex.mustache", "generated/bifurcation_spectrum.tex"),
@@ -66,6 +67,11 @@ function campaign_slug_local(campaign::Union{Nothing,String})
     safe = lowercase(replace(campaign, r"[^A-Za-z0-9]+" => "_"))
     safe = strip(safe, '_')
     return isempty(safe) ? "campaign" : safe
+end
+
+function is_domec_campaign(campaign::String)
+    token = uppercase(replace(strip(campaign), r"[^A-Za-z0-9]+" => ""))
+    return token == "DOMEC"
 end
 
 function ensure_report_workspace(report_run_dir::String, workspace_dir::String)
@@ -531,11 +537,13 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
     panel_a_path = joinpath(data_out_dir, "transition_panel_a_$(slug).csv")
     panel_b_path = joinpath(data_out_dir, "transition_panel_b_$(slug).csv")
     panel_c_path = joinpath(data_out_dir, "transition_panel_c_$(slug).csv")
+    panel_c_profile_path = joinpath(data_out_dir, "transition_panel_c_profile_$(slug).csv")
     meta_path = joinpath(data_out_dir, "transition_assets_$(slug).json")
 
     panel_a_rel = relpath(panel_a_path, report_run_dir)
     panel_b_rel = relpath(panel_b_path, report_run_dir)
     panel_c_rel = relpath(panel_c_path, report_run_dir)
+    panel_c_profile_rel = relpath(panel_c_profile_path, report_run_dir)
 
     tokens = Dict{String,Any}(
         "has_transition_assets" => false,
@@ -545,6 +553,11 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
         "transition_panel_a_path_tex" => "{" * panel_a_rel * "}",
         "transition_panel_b_path_tex" => "{" * panel_b_rel * "}",
         "transition_panel_c_path_tex" => "{" * panel_c_rel * "}",
+        "transition_panel_c_profile_path" => panel_c_profile_rel,
+        "transition_panel_c_profile_path_tex" => "{" * panel_c_profile_rel * "}",
+        "has_transition_panel_c_profile" => false,
+        "transition_panel_c_profile_height_min" => "0",
+        "transition_panel_c_profile_height_max" => "200",
         "transition_meta_path" => relpath(meta_path, report_run_dir),
         "has_transition_gamma_critical" => false,
         "transition_gamma_critical" => "0.0",
@@ -569,6 +582,19 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
 
     if isfile(meta_path)
         meta = JSON3.read(read(meta_path, String))
+
+        if haskey(meta, "has_transition_panel_c_profile") && Bool(meta["has_transition_panel_c_profile"]) && isfile(panel_c_profile_path)
+            profile_df = CSV.read(panel_c_profile_path, DataFrame)
+            if nrow(profile_df) > 0 && (:height_z in Symbol.(names(profile_df)))
+                tokens["has_transition_panel_c_profile"] = true
+                z_vals = Float64.(profile_df.height_z)
+                if !isempty(z_vals)
+                    tokens["transition_panel_c_profile_height_min"] = @sprintf("%.1f", minimum(z_vals))
+                    tokens["transition_panel_c_profile_height_max"] = @sprintf("%.1f", maximum(z_vals))
+                end
+            end
+        end
+
         if haskey(meta, "gamma_critical") && meta["gamma_critical"] !== nothing
             gamma_critical = tryparse(Float64, string(meta["gamma_critical"]))
             if gamma_critical !== nothing && isfinite(gamma_critical)
@@ -594,6 +620,41 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
     end
 
     return tokens
+end
+
+function extract_domec_tokens(data_out_dir::String, report_run_dir::String)
+    obs_path = joinpath(data_out_dir, "domec_observations_u_dt.csv")
+    lmdz103_path = joinpath(data_out_dir, "domec_lmdz103_u_dt.csv")
+    erai_path = joinpath(data_out_dir, "domec_erai_u_dt.csv")
+
+    obs_dt_pdf_path = joinpath(data_out_dir, "domec_obs_dt_pdf.csv")
+    model_dt_pdf_path = joinpath(data_out_dir, "domec_model_dt_pdf.csv")
+    obs_u_pdf_path = joinpath(data_out_dir, "domec_obs_u_pdf.csv")
+    model_u_pdf_path = joinpath(data_out_dir, "domec_model_u_pdf.csv")
+
+    all_paths = [
+        obs_path,
+        lmdz103_path,
+        erai_path,
+        obs_dt_pdf_path,
+        model_dt_pdf_path,
+        obs_u_pdf_path,
+        model_u_pdf_path,
+    ]
+
+    has_assets = all(isfile, all_paths)
+
+    return Dict{String,Any}(
+        "has_domec_assets" => has_assets,
+        "csv_domec_observations" => "{" * relpath(obs_path, report_run_dir) * "}",
+        "csv_domec_lmdz103" => "{" * relpath(lmdz103_path, report_run_dir) * "}",
+        "csv_domec_erai" => "{" * relpath(erai_path, report_run_dir) * "}",
+        "csv_domec_obs_dt_pdf" => "{" * relpath(obs_dt_pdf_path, report_run_dir) * "}",
+        "csv_domec_model_dt_pdf" => "{" * relpath(model_dt_pdf_path, report_run_dir) * "}",
+        "csv_domec_obs_u_pdf" => "{" * relpath(obs_u_pdf_path, report_run_dir) * "}",
+        "csv_domec_model_u_pdf" => "{" * relpath(model_u_pdf_path, report_run_dir) * "}",
+        "domec_assets_expected_dir" => relpath(data_out_dir, report_run_dir),
+    )
 end
 
 function build_visual_exhibits(rel_traj::String, rel_scatter::String)
@@ -845,6 +906,7 @@ function execute_orchestration(
         
         campaign_label = String(manifest["campaign"])
         campaign_slug = replace(campaign_slug_local(campaign_label), "_" => "")
+        domec_flag = is_domec_campaign(campaign_label)
         insights = infer_campaign_conclusions(campaign_label)
         campaign_conclusions = [
             Dict(
@@ -866,6 +928,7 @@ function execute_orchestration(
             "is_gabls3"               => manifest["campaign"] == "GABLS3",
             "is_cases99"              => manifest["campaign"] == "CASES-99",
             "is_floss"                => manifest["campaign"] == "FLOSS",
+            "is_domec"                => domec_flag,
             "baseline_version"        => manifest["baseline_version"],
             "baseline_source"         => manifest["baseline_source"],
             "total_samples"           => string(manifest["total_samples"]),
@@ -897,8 +960,10 @@ function execute_orchestration(
 
         stage5_tokens = extract_stage5_summary_tokens(data_out_dir, campaign_label, report_run_dir)
         transition_tokens = extract_transition_tokens(data_out_dir, campaign_label, report_run_dir)
+        domec_tokens = extract_domec_tokens(data_out_dir, report_run_dir)
         merge!(tokens, stage5_tokens)
         merge!(tokens, transition_tokens)
+        merge!(tokens, domec_tokens)
         merge!(tokens, cross_tokens)
         
         @info "Rendering template: $(report.name) -> $(full_tex_target)"

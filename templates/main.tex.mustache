@@ -76,7 +76,12 @@ To track these non-local structural reconfigurations, the SpectralBL pipeline ex
 \newpage
 
 % Injection hooks for Mustache-rendered sub-sections
+{{#is_domec}}
+\input{generated/domec_transition.tex}
+{{/is_domec}}
+{{^is_domec}}
 \input{generated/transition_exhibit.tex}
+{{/is_domec}}
 
 \newpage
 

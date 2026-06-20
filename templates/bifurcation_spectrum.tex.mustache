@@ -16,12 +16,12 @@ The leading eigenvalue $\alpha(\gamma) = \max\,\Re(\lambda_i)$ serves as a scala
 
 {{#has_stage5_branch_data}}
 This panel summarizes the continuation branch spectral abscissa $\alpha(\gamma)$ for campaign \texttt{ {{campaign_display_name}} }.
-{{#has_stage5_hopf_marker}}The inferred Hopf crossing occurs at $\gamma_c \approx {{gamma_c_fmt}}$ with local transversality $d\alpha/d\gamma \approx {{transversality_fmt}}$ and characteristic period $T_H \approx {{{period_fmt}}}\,\mathrm{min}$ ({{{period_seconds_fmt}}} s).{{/has_stage5_hopf_marker}}
+{{#has_stage5_hopf_marker}}The inferred Hopf crossing occurs at $\gamma_c \approx {{{gamma_c_fmt}}}$ with local transversality $d\alpha/d\gamma \approx {{{transversality_fmt}}}$ and characteristic period $T_H \approx {{{period_fmt}}}\,\mathrm{min}$ ({{{period_seconds_fmt}}} s).{{/has_stage5_hopf_marker}}
 
 \begin{figure}[htbp]
     \centering
     \usepgfplotslibrary{groupplots}
-    	ikzsetnextfilename{bifurcation-panel-{{campaign_slug}}}
+    	tikzsetnextfilename{bifurcation-panel-{{campaign_slug}}}
     \begin{tikzpicture}
         \begin{groupplot}[
             group style={
@@ -156,7 +156,7 @@ This geometric framework complements local Richardson-number diagnostics by prov
 \caption{Discovered low-rank boundary layer structural fingerprints from automated Stage 5 summaries.}
 \label{tab:cross_campaign_stability}
 \begin{tabular}{lcccc}
-    oprule
+	oprule
     \textbf{Campaign Regime} & $\gamma_c$ & $\beta_c\,(\mathrm{rad\,s^{-1}})$ & $T_H\,(\mathrm{min})$ & $\left.\frac{d\alpha}{d\gamma}\right|_{\gamma_c}$ \\
 \midrule
     \textbf{CASES-99} (Grassland) & {{cases_gc}} & {{cases_beta}} & {{cases_th}} & {{cases_trans}} \\
