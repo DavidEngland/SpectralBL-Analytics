@@ -1,6 +1,6 @@
 # Campaign Performance Audit: GABLS3
 
-Date: 2026-06-17T17:21:56.410 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-18T17:42:29.664 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -27,7 +27,7 @@ Date: 2026-06-17T17:21:56.410 | Auditor: Spectral-Analytics Engine
 ### Positive Findings
 
 - The exported low-rank basis remained fully constrained with 3 constrained modes and 0 nullspace modes.
-- The projection condition number stayed at 4.37, which is below the audit stress threshold of 100.
+- The projection condition number was measured at 4.37 for conditioning diagnostics.
 - Stage 5 stability artifacts were not available for this run.
 
 ### Negative Findings
@@ -77,19 +77,23 @@ Source data: ../../data/outputs/regime_trajectories_gabls3.csv
 
 ---
 
-# Appendix: Methodology & Technical Explanations
+# Appendix: Methodology & Technical Notes
 
-### A. Core Performance Metrics
+### A. Spectral Diagnostic Definitions
 
-The primary campaign-style performance indicators are mathematically defined as:
+The reduced-order coordinates are obtained by projecting observed vertical profiles onto the empirical low-rank basis:
 
-$$CTR = \frac{\text{Clicks}}{\text{Impressions}}$$
+$$\eta_i(t) = \mathbf{\Phi}_i^T \mathbf{z}(t)$$
 
-$$CPA = \frac{\text{Spend}}{\text{Conversions}}$$
+where $\mathbf{\Phi}_i$ is the $i$-th empirical basis vector and $\mathbf{z}(t)$ is the state vector assembled from wind speed and temperature profiles at observation time $t$.
 
-$$ROAS = \frac{\text{Total Revenue Generated}}{\text{Total Campaign Spend}}$$
+The local Jacobian evaluated at a candidate equilibrium $\mathbf{z}^*$ is:
 
-The primary spectral diagnostics used in this audit are:
+$$J_{ij} = \frac{\partial f_i}{\partial x_j}\Bigg|_{\mathbf{z}^*}$$
+
+Stability is assessed from the eigenspectrum $\lambda = \alpha \pm i\beta$. A Hopf instability is identified when a complex conjugate pair crosses the imaginary axis ($\alpha = 0$, $\beta \neq 0$) as the continuation parameter $\gamma$ varies.
+
+The primary scalar diagnostics derived from the singular value decomposition of the trajectory matrix are:
 
 $$H = -\sum_{i=1}^{r} p_i \log p_i$$
 
@@ -100,26 +104,21 @@ $$\kappa = \sigma_{\max} / \sigma_{\min}$$
 $$R_{\mathrm{exceed}} = \frac{1}{W} \sum_{w=1}^{W} \mathbf{1}\{\mathrm{disagreement\_norm}_w > \tau\}$$
 
 
-### B. Statistical Evaluation & Significance
+### B. Threshold and Exceedance Criteria
 
-To isolate performance signal from short-window noise, a two-tailed Z-test can be expressed as:
+Stage 2 routing disagreement is flagged when the operator-selection norm $\|\delta\|$ exceeds a fixed tolerance $\tau$. The exceedance rate $R_{\mathrm{exceed}}$ measures the fraction of analysis windows where this threshold is crossed. An elevated $R_{\mathrm{exceed}}$ indicates that the campaign trajectory does not resolve cleanly into a single dominant routing class, consistent with multi-scale or intermittently stable conditions.
 
-$$Z = \frac{(\hat{p}_1 - \hat{p}_2) - 0}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$$
+Outliers in the raw profile time series are identified as observations deviating more than $\pm3\sigma$ from the local running median, computed within a sub-hourly smoothing window prior to ingestion.
 
-Findings should be rejected unless they cross the threshold of $\alpha = 0.05$.
+### C. Projection Method
 
-### C. Attribution Methodology
+- **Projection model:** SVD / Low-Rank Attractor Decomposition
+- **Baseline version:** v0.1 (spectralbl-attractor)
 
-- **Model:** Deterministic manifold audit with campaign-scoped artifact attribution
-- **Lookback Window:** campaign-window
-- **Pixel Logic:** Not applicable; diagnostics are derived from trajectory and stability artifacts rather than ad-pixel events.
+### D. Artifact Provenance
 
-### D. Data Quality Controls
-
-- **Anomaly Detection:** Outliers exceeding $3\sigma$ from the moving median were scrubbed.
-- **Bot Traffic Filter:** Not applicable; source is scientific trajectory data, not web traffic.
-- **Trajectory Source:** ../../data/outputs/regime_trajectories_gabls3.csv
-- **Scatter Source:** ../../data/outputs/regime_scatterplots_gabls3.csv
-- **Stage 2 Diagnostics Source:** ../../data/outputs/stage2_diagnostics_gabls3.csv
-- **Stage 4 Lambda Sweep Source:** ../../data/outputs/stage4_lambda_sweep.csv
-- **Stage 5 Branch Source:** ../../data/outputs/stage5_bifurcation_branches_gabls3.csv
+- **Trajectory source:** ../../data/outputs/regime_trajectories_gabls3.csv
+- **Scatter source:** ../../data/outputs/regime_scatterplots_gabls3.csv
+- **Stage 2 diagnostics:** ../../data/outputs/stage2_diagnostics_gabls3.csv
+- **Stage 4 lambda sweep:** ../../data/outputs/stage4_lambda_sweep.csv
+- **Stage 5 branch CSV:** ../../data/outputs/stage5_bifurcation_branches_gabls3.csv

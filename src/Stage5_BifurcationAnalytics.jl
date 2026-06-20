@@ -60,6 +60,7 @@ function solve_branch_point(
             reason=sol.reason,
             eigenvalues=ComplexF64[],
             max_real_eig=NaN,
+            max_imag_eig=NaN,
             is_stable=false,
             bifurcation_tag=(sol.reason == "divergence_blowup" || state_is_divergent(sol.z)) ? "Divergence_Blowup" : "newton_failed",
         )
@@ -76,6 +77,7 @@ function solve_branch_point(
             reason="divergence_blowup",
             eigenvalues=ComplexF64[],
             max_real_eig=NaN,
+            max_imag_eig=NaN,
             is_stable=false,
             bifurcation_tag="Divergence_Blowup",
         )
@@ -95,10 +97,13 @@ function solve_branch_point(
             reason="divergence_blowup",
             eigenvalues=vals,
             max_real_eig=NaN,
+            max_imag_eig=NaN,
             is_stable=false,
             bifurcation_tag="Divergence_Blowup",
         )
     end
+
+    max_imag = dominant_complex_imag(vals)
 
     return (
         converged=true,
@@ -110,6 +115,7 @@ function solve_branch_point(
         reason="converged",
         eigenvalues=vals,
         max_real_eig=metrics.spectral_abscissa,
+        max_imag_eig=max_imag === nothing ? 0.0 : max_imag,
         is_stable=metrics.is_stable,
         bifurcation_tag="none",
     )
@@ -143,6 +149,7 @@ function refine_divergence_boundary(
                 gamma=mid.gamma,
                 z=mid.z,
                 max_real_eig=mid.max_real_eig,
+                max_imag_eig=mid.max_imag_eig,
                 is_stable=mid.is_stable,
                 bifurcation_tag="refine_stable",
                 converged=true,
@@ -157,6 +164,7 @@ function refine_divergence_boundary(
                 gamma=mid.gamma,
                 z=mid.z,
                 max_real_eig=NaN,
+                max_imag_eig=NaN,
                 is_stable=false,
                 bifurcation_tag="Divergence_Blowup",
                 converged=false,
@@ -539,6 +547,13 @@ function dominant_complex_real(vals::Vector{ComplexF64}; imag_eps::Float64=1e-8)
     return maximum(real.(complex_vals))
 end
 
+function dominant_complex_imag(vals::Vector{ComplexF64}; imag_eps::Float64=1e-8)
+    complex_vals = [v for v in vals if abs(imag(v)) > imag_eps]
+    isempty(complex_vals) && return nothing
+    vdom = complex_vals[argmax(real.(complex_vals))]
+    return abs(imag(vdom))
+end
+
 function continuation_gammas(cfg::ContinuationConfig)
     if cfg.sweep_direction == :descending
         return collect(range(cfg.gamma_max, cfg.gamma_min; length=cfg.gamma_steps))
@@ -611,6 +626,7 @@ function trace_continuation_branch(
         gamma=gamma_start,
         z=start_point.z,
         max_real_eig=start_point.max_real_eig,
+        max_imag_eig=start_point.max_imag_eig,
         is_stable=start_point.is_stable,
         bifurcation_tag="none",
         converged=true,
@@ -673,6 +689,7 @@ function trace_continuation_branch(
                 gamma=gamma_next,
                 z=point.z,
                 max_real_eig=point.max_real_eig,
+                max_imag_eig=point.max_imag_eig,
                 is_stable=point.is_stable,
                 bifurcation_tag=bif_tag,
                 converged=true,
@@ -706,6 +723,7 @@ function trace_continuation_branch(
                 gamma=gamma_next,
                 z=blowup ? point.z : fill(NaN, n_states(sys)),
                 max_real_eig=NaN,
+                max_imag_eig=NaN,
                 is_stable=false,
                 bifurcation_tag=blowup ? "Divergence_Blowup" : "newton_failed",
                 converged=false,

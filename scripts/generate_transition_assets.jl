@@ -1,0 +1,286 @@
+#!/usr/bin/env julia
+using Pkg
+Pkg.activate(".")
+
+using CSV
+using DataFrames
+using JSON3
+using Statistics
+using Printf
+
+function campaign_slug(campaign::String)
+    safe = lowercase(replace(campaign, r"[^A-Za-z0-9]+" => "_"))
+    safe = strip(safe, '_')
+    return isempty(safe) ? "campaign" : String(safe)
+end
+
+function parse_args(args::Vector{String})
+    campaign = "CASES-99"
+    output_dir = joinpath("data", "outputs")
+    trajectory_csv = joinpath("data", "drafts", "trajectories", "trajectory_master.csv")
+    branch_csv = ""
+    summary_json = ""
+
+    i = 1
+    while i <= length(args)
+        a = args[i]
+        if a == "--campaign"
+            i += 1
+            campaign = args[i]
+        elseif a == "--output-dir"
+            i += 1
+            output_dir = args[i]
+        elseif a == "--trajectory-csv"
+            i += 1
+            trajectory_csv = args[i]
+        elseif a == "--branch-csv"
+            i += 1
+            branch_csv = args[i]
+        elseif a == "--summary-json"
+            i += 1
+            summary_json = args[i]
+        else
+            error("Unknown argument: $(a)")
+        end
+        i += 1
+    end
+
+    slug = campaign_slug(campaign)
+    if isempty(branch_csv)
+        branch_csv = joinpath("data", "outputs", "stage5_bifurcation_branches_$(slug).csv")
+    end
+    if isempty(summary_json)
+        summary_json = joinpath("data", "outputs", "stage5_summary_$(slug).json")
+    end
+
+    return (
+        campaign = campaign,
+        slug = slug,
+        output_dir = output_dir,
+        trajectory_csv = trajectory_csv,
+        branch_csv = branch_csv,
+        summary_json = summary_json,
+    )
+end
+
+function safe_float(x)
+    if x isa Number
+        f = Float64(x)
+        return isfinite(f) ? f : nothing
+    end
+    parsed = tryparse(Float64, string(x))
+    if parsed === nothing || !isfinite(parsed)
+        return nothing
+    end
+    return parsed
+end
+
+function normalize_campaign_name(name)
+    if name === nothing
+        return nothing
+    end
+    raw = uppercase(strip(String(name)))
+    if raw in ("CASES-99", "CASES_99")
+        return "CASES-99"
+    elseif raw == "GABLS3"
+        return "GABLS3"
+    elseif raw in ("ARCTIC-AMPLIFICATION", "ARCTIC_AMPLIFICATION", "ARCTIC")
+        return "ARCTIC-AMPLIFICATION"
+    elseif raw in ("FLOSS", "FLOSS_I", "FLOSS-II", "FLOSS_II", "FLOSS-I")
+        return "FLOSS"
+    end
+    return String(name)
+end
+
+function load_campaign_trajectory(path::String, campaign::String)
+    if !isfile(path)
+        return DataFrame()
+    end
+    df = CSV.read(path, DataFrame)
+    if !("campaign" in names(df))
+        return DataFrame()
+    end
+
+    target = normalize_campaign_name(campaign)
+    normalized = [normalize_campaign_name(v) for v in df[!, "campaign"]]
+    mask = map(v -> v == target, normalized)
+    subset = df[mask, :]
+    return subset
+end
+
+function build_panel_a(branch_df::DataFrame)
+    if nrow(branch_df) == 0
+        return DataFrame(gamma=Float64[], max_real_eig=Float64[])
+    end
+
+    if !(("gamma" in names(branch_df)) && ("max_real_eig" in names(branch_df)))
+        return DataFrame(gamma=Float64[], max_real_eig=Float64[])
+    end
+
+    out = DataFrame(gamma=Float64[], max_real_eig=Float64[])
+    for row in eachrow(branch_df)
+        g = safe_float(row.gamma)
+        r = safe_float(row.max_real_eig)
+        if g !== nothing && r !== nothing
+            push!(out, (g, r))
+        end
+    end
+    return out
+end
+
+function build_panel_b(branch_df::DataFrame)
+    needed = ["z1", "z2", "z3", "gamma"]
+    if nrow(branch_df) == 0 || any(c -> !(c in names(branch_df)), needed)
+        return DataFrame(gamma=Float64[], z1=Float64[], z2=Float64[], z3=Float64[], max_imag_eig=Float64[])
+    end
+
+    has_imag = "max_imag_eig" in names(branch_df)
+    out = DataFrame(gamma=Float64[], z1=Float64[], z2=Float64[], z3=Float64[], max_imag_eig=Float64[])
+    for row in eachrow(branch_df)
+        g = safe_float(row.gamma)
+        z1 = safe_float(row.z1)
+        z2 = safe_float(row.z2)
+        z3 = safe_float(row.z3)
+        β = has_imag ? safe_float(row.max_imag_eig) : nothing
+        if g !== nothing && z1 !== nothing && z2 !== nothing && z3 !== nothing
+            push!(out, (g, z1, z2, z3, β === nothing ? NaN : β))
+        end
+    end
+    return out
+end
+
+function build_panel_c(traj_df::DataFrame)
+    needed = ["time_value", "eta_1", "eta_2", "eta_3"]
+    if nrow(traj_df) == 0 || any(c -> !(c in names(traj_df)), needed)
+        return DataFrame(time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
+    end
+
+    rows = Vector{NamedTuple}()
+    for row in eachrow(traj_df)
+        t = safe_float(row.time_value)
+        e1 = safe_float(row.eta_1)
+        e2 = safe_float(row.eta_2)
+        e3 = safe_float(row.eta_3)
+        if t !== nothing && e1 !== nothing && e2 !== nothing && e3 !== nothing
+            push!(rows, (time_value=t, eta_1=e1, eta_2=e2, eta_3=e3, abs_eta_3=abs(e3)))
+        end
+    end
+
+    if isempty(rows)
+        return DataFrame(time_value=Float64[], eta_1=Float64[], eta_2=Float64[], eta_3=Float64[], phase=String[])
+    end
+
+    tmp = DataFrame(rows)
+    peak_idx = argmax(tmp.abs_eta_3)
+
+    lo = max(1, peak_idx - 6)
+    hi = min(nrow(tmp), peak_idx + 6)
+    window = tmp[lo:hi, :]
+
+    phase = String[]
+    for i in 1:nrow(window)
+        if i < peak_idx - lo + 1
+            push!(phase, "pre")
+        elseif i == peak_idx - lo + 1
+            push!(phase, "peak")
+        else
+            push!(phase, "post")
+        end
+    end
+
+    out = DataFrame(
+        time_value = Float64.(window.time_value),
+        eta_1 = Float64.(window.eta_1),
+        eta_2 = Float64.(window.eta_2),
+        eta_3 = Float64.(window.eta_3),
+        phase = phase,
+    )
+
+    sort!(out, :time_value)
+    return out
+end
+
+function load_summary(path::String)
+    if !isfile(path)
+        return nothing
+    end
+    return JSON3.read(read(path, String))
+end
+
+function summary_gamma(summary)
+    summary === nothing && return nothing
+    if haskey(summary, "gamma_c_hopf")
+        return safe_float(summary["gamma_c_hopf"])
+    end
+    if haskey(summary, "closest_to_axis_gamma")
+        return safe_float(summary["closest_to_axis_gamma"])
+    end
+    return nothing
+end
+
+function summary_period_minutes(summary)
+    summary === nothing && return nothing
+    if haskey(summary, "hopf_period_Th")
+        sec = safe_float(summary["hopf_period_Th"])
+        if sec !== nothing && sec > 0.0
+            return sec / 60.0
+        end
+    end
+    return nothing
+end
+
+function main(; campaign::String, slug::String, output_dir::String, trajectory_csv::String, branch_csv::String, summary_json::String)
+    mkpath(output_dir)
+
+    branch_df = isfile(branch_csv) ? CSV.read(branch_csv, DataFrame) : DataFrame()
+    traj_df = load_campaign_trajectory(trajectory_csv, campaign)
+    summary = load_summary(summary_json)
+
+    panel_a = build_panel_a(branch_df)
+    panel_b = build_panel_b(branch_df)
+    panel_c = build_panel_c(traj_df)
+
+    panel_a_path = joinpath(output_dir, "transition_panel_a_$(slug).csv")
+    panel_b_path = joinpath(output_dir, "transition_panel_b_$(slug).csv")
+    panel_c_path = joinpath(output_dir, "transition_panel_c_$(slug).csv")
+    meta_path = joinpath(output_dir, "transition_assets_$(slug).json")
+
+    CSV.write(panel_a_path, panel_a)
+    CSV.write(panel_b_path, panel_b)
+    CSV.write(panel_c_path, panel_c)
+
+    γc = summary_gamma(summary)
+    Th = summary_period_minutes(summary)
+    peak_eta3 = nrow(panel_c) > 0 ? maximum(abs.(panel_c.eta_3)) : nothing
+
+    meta = Dict(
+        "campaign" => campaign,
+        "slug" => slug,
+        "has_transition_assets" => (nrow(panel_a) > 0 && nrow(panel_b) > 0 && nrow(panel_c) > 0),
+        "panel_a_csv" => panel_a_path,
+        "panel_b_csv" => panel_b_path,
+        "panel_c_csv" => panel_c_path,
+        "gamma_critical" => γc,
+        "hopf_period_minutes" => Th,
+        "peak_abs_eta3" => peak_eta3,
+        "panel_a_rows" => nrow(panel_a),
+        "panel_b_rows" => nrow(panel_b),
+        "panel_c_rows" => nrow(panel_c),
+        "source_branch_csv" => branch_csv,
+        "source_summary_json" => summary_json,
+        "source_trajectory_csv" => trajectory_csv,
+    )
+
+    write(meta_path, JSON3.write(meta))
+
+    println("Transition assets written:")
+    println("  panel_a: $(panel_a_path) [$(nrow(panel_a)) rows]")
+    println("  panel_b: $(panel_b_path) [$(nrow(panel_b)) rows]")
+    println("  panel_c: $(panel_c_path) [$(nrow(panel_c)) rows]")
+    println("  meta:    $(meta_path)")
+end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    args = parse_args(ARGS)
+    main(; args...)
+end

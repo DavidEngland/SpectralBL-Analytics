@@ -42,9 +42,9 @@
                 scatter src=explicit
             ] table[
                 col sep=comma,
-                x=eta_1,
-                y=eta_2,
-                meta=eta_3
+                x={eta_1},
+                y={eta_2},
+                meta={eta_3}
             ] {../../data/outputs/regime_scatterplots_gabls3.csv};
         \end{axis}
     \end{tikzpicture}
@@ -68,13 +68,13 @@
             legend style={at={(0.03,0.97)}, anchor=north west, draw=none, fill=none},
             cycle list name=color list
         ]
-            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x=time_value, y=eta_1] {../../data/outputs/regime_trajectories_gabls3.csv};
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_1}] {../../data/outputs/regime_trajectories_gabls3.csv};
             \addlegendentry{$\eta_1$}
 
-            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x=time_value, y=eta_2] {../../data/outputs/regime_trajectories_gabls3.csv};
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_2}] {../../data/outputs/regime_trajectories_gabls3.csv};
             \addlegendentry{$\eta_2$}
 
-            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x=time_value, y=eta_3] {../../data/outputs/regime_trajectories_gabls3.csv};
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_3}] {../../data/outputs/regime_trajectories_gabls3.csv};
             \addlegendentry{$\eta_3$}
         \end{axis}
     \end{tikzpicture}
@@ -85,7 +85,7 @@
 \subsection{Audit Notes}
 
 \begin{itemize}
-    \item Low-rank modal partition: constrained $N_c=3$, nullspace $N_0=0$.
-    \item Interaction proxy: $\mathcal{I}_{ij}=0.000000$.
-    \item Surface roughness context: $z_{0m}=0.150 m$.
+    \item Low-rank modal partition: constrained $N_c = 3$, nullspace $N_0 = 0$.
+    \item Interaction proxy: $\mathcal{I}_{ij} = 0.000000$
+    \item Surface roughness context: $z_{0m} = 0.150 m$
 \end{itemize}

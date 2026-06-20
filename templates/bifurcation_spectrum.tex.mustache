@@ -1,0 +1,178 @@
+% templates/bifurcation_spectrum.tex.mustache
+% AUTO-GENERATED Stage 5 bifurcation panel
+% Rendered by scripts/build_campaign_report.jl
+% DO NOT EDIT MANUALLY
+
+\section{Physical Interpretation of the Continuation Parameter}
+
+The continuation parameter $\gamma$ represents the effective atmosphere--surface coupling strength inferred from the sparse structural operator identified in Stage~4.
+Small values of $\gamma$ correspond to weak turbulent transport and strongly decoupled nocturnal conditions, where the surface inversion evolves in relative isolation from the overlying residual layer.
+Larger values of $\gamma$ represent enhanced vertical exchange between the surface inversion and the residual layer above, sustaining coherent turbulent structures through the column.
+
+Parameter continuation therefore traces the geometric deformation of the reconstructed attractor manifold as the atmospheric state transitions between coupled and decoupled regimes.
+The leading eigenvalue $\alpha(\gamma) = \max\,\Re(\lambda_i)$ serves as a scalar indicator of manifold stability: negative values indicate a contracting, stable attractor; the zero crossing at $\gamma_c$ marks the onset of structural instability; and the imaginary part $\beta(\gamma) = |\mathrm{Im}(\lambda_\mathrm{dom})|$ tracks the intrinsic oscillatory frequency of the emerging mode.
+
+\section{Stage 5 Bifurcation Spectrum}
+
+{{#has_stage5_branch_data}}
+This panel summarizes the continuation branch spectral abscissa $\alpha(\gamma)$ for campaign \texttt{ {{campaign_display_name}} }.
+{{#has_stage5_hopf_marker}}The inferred Hopf crossing occurs at $\gamma_c \approx {{gamma_c_fmt}}$ with local transversality $d\alpha/d\gamma \approx {{transversality_fmt}}$ and characteristic period $T_H \approx {{{period_fmt}}}\,\mathrm{min}$ ({{{period_seconds_fmt}}} s).{{/has_stage5_hopf_marker}}
+
+\begin{figure}[htbp]
+    \centering
+    \usepgfplotslibrary{groupplots}
+    	ikzsetnextfilename{bifurcation-panel-{{campaign_slug}}}
+    \begin{tikzpicture}
+        \begin{groupplot}[
+            group style={
+                group name=bifurcation_plots,
+                group size=1 by 2,
+                vertical sep=12pt,
+                x descriptions at=edge bottom
+            },
+            width=0.96\textwidth,
+            grid=both,
+            grid style={line width=.1pt, draw=gray!15},
+            major grid style={line width=.2pt, draw=gray!35},
+            xmin={{gamma_min}}, xmax={{gamma_max}},
+            tick label style={font=\small},
+            label style={font=\small},
+            axis background/.style={fill=gray!2}
+        ]
+
+        \nextgroupplot[
+            height=4.5cm,
+            ylabel={Growth $\alpha = \max\,\Re(\lambda)$},
+            axis lines=middle,
+            axis line style={draw=gray!60},
+            legend style={at={(0.98,0.05)}, anchor=south east, font=\small},
+            xticklabels={}
+        ]
+            \addplot[
+                color=blue!70!black,
+                line width=1.3pt,
+                mark=none
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=max_real_eig
+            ] {{{csv_stage5_branch_path_tex}}};
+            \addlegendentry{$\alpha(\gamma)$}
+
+{{#has_stage5_hopf_marker}}
+            \addplot[
+                color=red!60,
+                dashed,
+                line width=1.0pt,
+                domain={{hopf_line_min}}:{{hopf_line_max}},
+                samples=2
+            ] {(x - {{gamma_c}}) * ({{transversality}})};
+            \addlegendentry{Slope $\left.\frac{d\alpha}{d\gamma}\right|_{\gamma_c}$}
+
+            \addplot[
+                color=red,
+                mark=*,
+                mark size=2.8pt
+            ] coordinates {({{gamma_c}}, 0.0)};
+            \addlegendentry{Hopf crossing}
+
+            \node[anchor=south west, text=red!80!black, font=\small\bfseries] at (axis cs:{{gamma_c}}, 0.05)
+                {$\gamma_c = {{gamma_c_fmt}}$};
+{{/has_stage5_hopf_marker}}
+
+        \nextgroupplot[
+            height=3.8cm,
+            xlabel={Dissipation parameter ($\gamma$)},
+            ylabel={Frequency $\beta\,(\mathrm{rad\,s^{-1}})$},
+            ymin={{beta_axis_min}}, ymax={{beta_axis_max}},
+            axis lines=left,
+            axis line style={draw=gray!60},
+            legend style={at={(0.98,0.92)}, anchor=north east, font=\small}
+        ]
+{{#has_stage5_beta_series}}
+            \addplot[
+                color=teal!80!black,
+                line width=1.3pt,
+                mark=none
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=max_imag_eig
+            ] {{{csv_stage5_branch_path_tex}}};
+            \addlegendentry{$\beta(\gamma)$ frequency branch}
+{{/has_stage5_beta_series}}
+{{^has_stage5_beta_series}}
+            \node[anchor=center, text=gray] at (axis description cs:0.5,0.5)
+                {\footnotesize Imaginary branch series ($\beta$) unavailable};
+{{/has_stage5_beta_series}}
+
+        \end{groupplot}
+    \end{tikzpicture}
+    \caption{Stage 5 parameter continuation spectrum: the top panel charts the principal manifold stability branch $\alpha(\gamma)$, while the bottom panel shows the aligned oscillation-frequency branch $\beta(\gamma)$ when available.}
+    \label{fig:bifurcation_spectrum_{{campaign_slug}}}
+\end{figure}
+{{/has_stage5_branch_data}}
+
+{{^has_stage5_branch_data}}
+\noindent\textit{Stage 5 branch artifacts were not available for this campaign at report render time. Expected source: \path{{{csv_stage5_branch_path_tex}}}.}
+{{/has_stage5_branch_data}}
+
+{{#has_stage5_hopf_marker}}
+\subsection{Stage~5 Manifold Stability Diagnostics}
+
+\begin{table}[htbp]
+\centering
+\caption{Stage~5 manifold stability diagnostics for campaign \texttt{ {{campaign_display_name}} }.
+    Values derived from automated parameter continuation;
+    \textit{n/a} indicates a diagnostic not resolved in the current sweep.}
+\label{tab:stage5_stability_{{campaign_slug}}}
+\begin{tabular}{llcc}
+\toprule
+Diagnostic & Symbol & Value & Units \\
+\midrule
+Critical coupling parameter & $\gamma_c$ & {{{gamma_c_fmt}}} & -- \\
+Transversality slope & $\left.d\alpha/d\gamma\right|_{\gamma_c}$ & {{{transversality_fmt}}} & s$^{-1}$ \\
+Hopf frequency & $\beta_H$ & {{{beta_c_fmt}}} & rad\,s$^{-1}$ \\
+Oscillation period & $T_H$ & {{{period_fmt}}} & min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Classical Boundary-Layer Interpretation}
+
+The manifold transition identified at $\gamma_c \approx {{{gamma_c_fmt}}}$ coincides with the onset of atmospheric decoupling commonly observed in strongly stable nocturnal boundary layers.
+Below the threshold, turbulent transport maintains communication between the surface inversion and the overlying residual flow, and the reconstructed attractor contracts toward a stable equilibrium.
+Near $\gamma_c$, the attractor develops a loss of structural stability, indicated by the sign change of the leading eigenvalue, making the boundary layer increasingly susceptible to intermittent turbulence bursts and gravity-wave excitation.
+Beyond the threshold, the manifold evolves toward oscillatory dynamics consistent with observed low-level jet pulsations, wave-modulated transport, and the periodic recovery cycles characteristic of very stable conditions.
+
+This geometric framework complements local Richardson-number diagnostics by providing a globally consistent indicator of the boundary-layer stability state that remains valid through and beyond the classical collapse threshold of $\mathrm{Ri}_g = 0.25$.
+{{/has_stage5_hopf_marker}}
+
+{{#has_cross_comparison}}
+\subsection{Cross-Campaign Structural Fingerprints}
+
+\begin{table}[htbp]
+\centering
+\caption{Discovered low-rank boundary layer structural fingerprints from automated Stage 5 summaries.}
+\label{tab:cross_campaign_stability}
+\begin{tabular}{lcccc}
+    oprule
+    \textbf{Campaign Regime} & $\gamma_c$ & $\beta_c\,(\mathrm{rad\,s^{-1}})$ & $T_H\,(\mathrm{min})$ & $\left.\frac{d\alpha}{d\gamma}\right|_{\gamma_c}$ \\
+\midrule
+    \textbf{CASES-99} (Grassland) & {{cases_gc}} & {{cases_beta}} & {{cases_th}} & {{cases_trans}} \\
+    \textbf{FLOSS} (Snowpack) & {{floss_gc}} & {{floss_beta}} & {{floss_th}} & {{floss_trans}} \\
+\midrule
+    \textbf{Scaling Ratio ($R$)} & $\approx {{ratio_gc}}$ & $\approx {{ratio_beta}}$ & $\approx {{ratio_th}}$ & $\approx {{ratio_trans}}$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+\begin{minipage}{0.92\textwidth}
+\small\textit{Provenance}: values are parsed directly from \path{data/outputs/stage5_summary_cases_99.json} and \path{data/outputs/stage5_summary_floss.json} at report render time.
+\end{minipage}
+\end{table}
+{{/has_cross_comparison}}
+
+{{^has_cross_comparison}}
+\noindent\textit{Cross-campaign Stage 5 comparison table omitted because one or more required summary manifests were not available at render time.}
+{{/has_cross_comparison}}

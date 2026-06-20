@@ -163,6 +163,25 @@ function estimate_max_imag_from_manifest(continuation, gamma_target)
     return dominant_imag_from_branch_row(rows[best_idx])
 end
 
+function nearest_finite_imag(gamma_col::Vector{Float64}, imag_col::Vector{Float64}, gamma_target::Float64)
+    length(gamma_col) == length(imag_col) || return missing
+    best_dist = Inf
+    best_val = missing
+    for i in eachindex(gamma_col)
+        g = gamma_col[i]
+        im = imag_col[i]
+        if !(isfinite(g) && isfinite(im) && im > 0.0)
+            continue
+        end
+        d = abs(g - gamma_target)
+        if d < best_dist
+            best_dist = d
+            best_val = im
+        end
+    end
+    return best_val
+end
+
 function summarize_stage5(; campaign::String, manifest_json::String, branch_csv::String, output_json::String)
     isfile(manifest_json) || error("Missing manifest JSON: $(manifest_json)")
     isfile(branch_csv) || error("Missing branch CSV: $(branch_csv)")
@@ -181,6 +200,15 @@ function summarize_stage5(; campaign::String, manifest_json::String, branch_csv:
     gamma_max = n_rows > 0 ? maximum(gamma_col) : missing
     max_real_min = n_rows > 0 ? minimum(max_real_col) : missing
     max_real_max = n_rows > 0 ? maximum(max_real_col) : missing
+
+    hopf_events = haskey(continuation, "hopf_events") ? continuation["hopf_events"] : Any[]
+    gamma_c = missing
+    if !isempty(hopf_events)
+        first_event = hopf_events[1]
+        if haskey(first_event, "gamma")
+            gamma_c = finite_or_missing(first_event["gamma"])
+        end
+    end
 
     stable_rows = n_rows > 0 ? count(==(true), stable_col) : 0
     unstable_rows = n_rows > 0 ? count(==(false), stable_col) : 0
@@ -214,6 +242,12 @@ function summarize_stage5(; campaign::String, manifest_json::String, branch_csv:
         if imag_col !== nothing
             imag_float = to_float_vec(imag_col)
             closest_max_imag = finite_or_missing(imag_float[i_closest])
+            if closest_max_imag === missing
+                gamma_target = gamma_c !== missing ? gamma_c : closest_gamma
+                if gamma_target !== missing
+                    closest_max_imag = nearest_finite_imag(gamma_col, imag_float, gamma_target)
+                end
+            end
         elseif closest_gamma !== missing
             closest_max_imag = estimate_max_imag_from_manifest(continuation, closest_gamma)
         end
@@ -245,15 +279,6 @@ function summarize_stage5(; campaign::String, manifest_json::String, branch_csv:
                     break
                 end
             end
-        end
-    end
-
-    hopf_events = haskey(continuation, "hopf_events") ? continuation["hopf_events"] : Any[]
-    gamma_c = missing
-    if !isempty(hopf_events)
-        first_event = hopf_events[1]
-        if haskey(first_event, "gamma")
-            gamma_c = finite_or_missing(first_event["gamma"])
         end
     end
 

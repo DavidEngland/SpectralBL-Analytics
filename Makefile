@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit floss-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report arctic-report arctic-hlbl-synthetic arctic-finalize clean purge help all audit cases99-audit gabls3-audit floss-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -28,6 +28,7 @@ help:
 	@echo "  make stage5-sweep      - Run configurable Stage 5 continuation sweep on discovered equations"
 	@echo "  make stage5-panels     - Export Stage 5 3-panel diagnostic CSVs (trajectory/abscissa/distance)"
 	@echo "  make stage5-summary    - Emit JSON summary diagnostics for Stage 5 branch/manifest outputs"
+	@echo "  make stage5-transitions - Build transition-panel CSV assets for report rendering"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make audit             - Build standalone markdown campaign audit (campaign-scoped output)"
@@ -115,6 +116,10 @@ stage5-summary:
 	@echo "Summarizing Stage 5 diagnostics (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
 	julia --project="." scripts/stage5_summary.jl --campaign $(CAMPAIGN)
 
+stage5-transitions:
+	@echo "Generating transition-panel assets (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/generate_transition_assets.jl --campaign $(CAMPAIGN) --trajectory-csv $(TRAJECTORY_CSV)
+
 tex:
 	@echo "Regenerating LaTeX exports..."
 	julia --project="." scripts/regenerate_tex_exports.jl
@@ -127,7 +132,7 @@ clean:
 	find . -name ".DS_Store" -type f -delete
 	rm -rf .julia/logs
 
-report:
+report: stage5-transitions
 	@echo "Building Mustache templates and JSON manifest (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/build_campaign_report.jl $(TRAJECTORY_CSV) $(CAMPAIGN)
 

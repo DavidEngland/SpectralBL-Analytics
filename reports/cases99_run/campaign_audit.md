@@ -1,6 +1,6 @@
 # Campaign Performance Audit: CASES-99
 
-Date: 2026-06-17T17:27:10.813 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-20T13:45:02.871 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -11,14 +11,14 @@ Date: 2026-06-17T17:27:10.813 | Auditor: Spectral-Analytics Engine
 | Mean Singular Value Entropy | 0.2110 | contextual | compressed |
 | Effective Dimension | 2.0537 | >1.5 | above floor |
 | Condition Number | 6.85 | <100 | within |
-| Stage 2 Threshold Exceedance Rate | n/a | <25.0% | n/a |
-| Stable Equilibria / Hopf Candidates | n/a | >=1 / 0+ | n/a |
+| Stage 2 Threshold Exceedance Rate | 98.0% | <25.0% | elevated |
+| Stable Equilibria / Hopf Candidates | 1 / 0 | >=1 / 0+ | no crossing |
 
 ### Status Summary
 
 [OK] Low-rank basis remained numerically usable with condition number 6.85 and 0 exported nullspace modes.
 [INFO] Campaign mean entropy registered at H_mean = 0.2110 with effective dimension D_eff = 2.0537.
-[INFO] Stage 5 stability scan did not report a terminal divergence boundary.
+[WARN] Stage 5 continuation terminated at gamma=0.277898, marking the current stability-envelope boundary.
 
 ---
 
@@ -28,26 +28,26 @@ Date: 2026-06-17T17:27:10.813 | Auditor: Spectral-Analytics Engine
 
 - The exported low-rank basis remained fully constrained with 3 constrained modes and 0 nullspace modes.
 - The projection condition number was measured at 6.85 for conditioning diagnostics.
-- Stage 5 stability artifacts were not available for this run.
+- Stage 5 resolved 1 stable equilibrium and 0 Hopf candidates in the current scan.
 
 ### Negative Findings
 
-- Stage 2 disagreement exceeded threshold in 0 of 0 windows (n/a).
-- The maximum Stage 2 disagreement norm reached 0.0000, indicating localized route-selection ambiguity.
-- No Stage 5 divergence boundary was recorded in the current artifact set.
+- Stage 2 disagreement exceeded threshold in 49 of 50 windows (98.0%).
+- The maximum Stage 2 disagreement norm reached 29.6341, indicating localized route-selection ambiguity.
+- The descending continuation branch remained stable until gamma=0.277898 and then terminated in Divergence_Blowup before a smooth crossing was logged.
 
 ### Neutral Findings
 
 - Campaign-mean reduced coordinates were (0.583, 0.289, -0.080).
 - Stage 4 lambda sweep artifact was not available for summary.
-- The dominant Stage 2 routing label was n/a, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
+- The dominant Stage 2 routing label was intermittent_conditional_ami, which should be interpreted as the prevailing operator path rather than a regime proof by itself.
 
 ---
 
 ## 3. Risks & Monitoring Items
 
-- Threshold exceedance rate remains elevated at n/a, so window-level disagreement can accumulate without moving campaign means substantially.
-- Stage 5 boundary localization is incomplete when continuation artifacts are absent.
+- Threshold exceedance rate remains elevated at 98.0%, so window-level disagreement can accumulate without moving campaign means substantially.
+- The current continuation branch loses numerical validity at gamma=0.277898, so the stability envelope should be treated as locally bounded rather than globally mapped.
 - Mean entropy 0.2110 indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed.
 
 ---
@@ -77,19 +77,23 @@ Source data: ../../data/outputs/regime_trajectories_cases_99.csv
 
 ---
 
-# Appendix: Methodology & Technical Explanations
+# Appendix: Methodology & Technical Notes
 
-### A. Core Performance Metrics
+### A. Spectral Diagnostic Definitions
 
-The primary campaign-style performance indicators are mathematically defined as:
+The reduced-order coordinates are obtained by projecting observed vertical profiles onto the empirical low-rank basis:
 
-$$CTR = \frac{\text{Clicks}}{\text{Impressions}}$$
+$$\eta_i(t) = \mathbf{\Phi}_i^T \mathbf{z}(t)$$
 
-$$CPA = \frac{\text{Spend}}{\text{Conversions}}$$
+where $\mathbf{\Phi}_i$ is the $i$-th empirical basis vector and $\mathbf{z}(t)$ is the state vector assembled from wind speed and temperature profiles at observation time $t$.
 
-$$ROAS = \frac{\text{Total Revenue Generated}}{\text{Total Campaign Spend}}$$
+The local Jacobian evaluated at a candidate equilibrium $\mathbf{z}^*$ is:
 
-The primary spectral diagnostics used in this audit are:
+$$J_{ij} = \frac{\partial f_i}{\partial x_j}\Bigg|_{\mathbf{z}^*}$$
+
+Stability is assessed from the eigenspectrum $\lambda = \alpha \pm i\beta$. A Hopf instability is identified when a complex conjugate pair crosses the imaginary axis ($\alpha = 0$, $\beta \neq 0$) as the continuation parameter $\gamma$ varies.
+
+The primary scalar diagnostics derived from the singular value decomposition of the trajectory matrix are:
 
 $$H = -\sum_{i=1}^{r} p_i \log p_i$$
 
@@ -100,26 +104,21 @@ $$\kappa = \sigma_{\max} / \sigma_{\min}$$
 $$R_{\mathrm{exceed}} = \frac{1}{W} \sum_{w=1}^{W} \mathbf{1}\{\mathrm{disagreement\_norm}_w > \tau\}$$
 
 
-### B. Statistical Evaluation & Significance
+### B. Threshold and Exceedance Criteria
 
-To isolate performance signal from short-window noise, a two-tailed Z-test can be expressed as:
+Stage 2 routing disagreement is flagged when the operator-selection norm $\|\delta\|$ exceeds a fixed tolerance $\tau$. The exceedance rate $R_{\mathrm{exceed}}$ measures the fraction of analysis windows where this threshold is crossed. An elevated $R_{\mathrm{exceed}}$ indicates that the campaign trajectory does not resolve cleanly into a single dominant routing class, consistent with multi-scale or intermittently stable conditions.
 
-$$Z = \frac{(\hat{p}_1 - \hat{p}_2) - 0}{\sqrt{\hat{p}(1-\hat{p})\left(\frac{1}{n_1} + \frac{1}{n_2}\right)}}$$
+Outliers in the raw profile time series are identified as observations deviating more than $\pm3\sigma$ from the local running median, computed within a sub-hourly smoothing window prior to ingestion.
 
-Findings should be rejected unless they cross the threshold of $\alpha = 0.05$.
+### C. Projection Method
 
-### C. Attribution Methodology
+- **Projection model:** SVD / Low-Rank Attractor Decomposition
+- **Baseline version:** v0.1 (spectralbl-attractor)
 
-- **Model:** Deterministic manifold audit with campaign-scoped artifact attribution
-- **Lookback Window:** campaign-window
-- **Pixel Logic:** Not applicable; diagnostics are derived from trajectory and stability artifacts rather than ad-pixel events.
+### D. Artifact Provenance
 
-### D. Data Quality Controls
-
-- **Anomaly Detection:** Outliers exceeding $3\sigma$ from the moving median were scrubbed.
-- **Bot Traffic Filter:** Not applicable; source is scientific trajectory data, not web traffic.
-- **Trajectory Source:** ../../data/outputs/regime_trajectories_cases_99.csv
-- **Scatter Source:** ../../data/outputs/regime_scatterplots_cases_99.csv
-- **Stage 2 Diagnostics Source:** ../../data/outputs/stage2_diagnostics_cases_99.csv
-- **Stage 4 Lambda Sweep Source:** ../../data/outputs/stage4_lambda_sweep.csv
-- **Stage 5 Branch Source:** ../../data/outputs/stage5_bifurcation_branches_cases_99.csv
+- **Trajectory source:** ../../data/outputs/regime_trajectories_cases_99.csv
+- **Scatter source:** ../../data/outputs/regime_scatterplots_cases_99.csv
+- **Stage 2 diagnostics:** ../../data/outputs/stage2_diagnostics_cases_99.csv
+- **Stage 4 lambda sweep:** ../../data/outputs/stage4_lambda_sweep.csv
+- **Stage 5 branch CSV:** ../../data/outputs/stage5_bifurcation_branches_cases_99.csv

@@ -13,6 +13,7 @@ using DataFrames
 using JSON3
 using Mustache
 using Printf
+using Dates
 using LinearAlgebra
 using Statistics
 
@@ -23,8 +24,11 @@ struct ReportDefinition
 end
 
 const REGISTRY = [
+    ReportDefinition("main", "templates/main.tex.mustache", "main.tex"),
     ReportDefinition("attractor", "templates/attractor_report.tex.mustache", "generated/attractor.tex"),
     ReportDefinition("regime", "templates/regime_decomposition.tex.mustache", "generated/regime.tex"),
+    ReportDefinition("bifurcation", "templates/bifurcation_spectrum.tex.mustache", "generated/bifurcation_spectrum.tex"),
+    ReportDefinition("transitions", "templates/transition_exhibit.tex.mustache", "generated/transition_exhibit.tex"),
     ReportDefinition("conclusions", "templates/conclusions_and_diagnostics.tex.mustache", "generated/conclusions_and_diagnostics.tex"),
     ReportDefinition("audit", "templates/audit.tex.mustache", "generated/audit.tex")
 ]
@@ -69,15 +73,7 @@ function ensure_report_workspace(report_run_dir::String, workspace_dir::String)
     mkpath(joinpath(report_run_dir, "generated"))
     mkpath(joinpath(report_run_dir, "tikz-cache"))
 
-    main_tex = joinpath(report_run_dir, "main.tex")
-    if !isfile(main_tex)
-        base_main = joinpath(workspace_dir, "reports", "cases99_run", "main.tex")
-        if !isfile(base_main)
-            error("Missing base TeX template: $(base_main)")
-        end
-        cp(base_main, main_tex; force=true)
-        @info "Bootstrapped report workspace from $(base_main) -> $(main_tex)"
-    end
+    # main.tex is now rendered from templates/main.tex.mustache via the REGISTRY render loop.
 end
 
 function escape_latex_text(text::String)
@@ -311,6 +307,293 @@ function summarize_stage5(stability_path::String, branch_path::String)
         terminated = terminated,
         termination_gamma = termination_gamma,
     )
+end
+
+function extract_stage5_summary_tokens(data_out_dir::String, campaign_label::String, report_run_dir::String)
+    slug = campaign_slug_local(campaign_label)
+    summary_path = joinpath(data_out_dir, "stage5_summary_$(slug).json")
+    branch_path = joinpath(data_out_dir, "stage5_bifurcation_branches_$(slug).csv")
+
+    branch_rel = relpath(branch_path, report_run_dir)
+
+    tokens = Dict{String,Any}(
+        "has_stage5_summary" => false,
+        "has_stage5_branch_data" => false,
+        "has_stage5_hopf_marker" => false,
+        "has_stage5_period" => false,
+        "has_stage5_beta_c" => false,
+        "has_stage5_beta_series" => false,
+        "stage5_summary_path" => relpath(summary_path, report_run_dir),
+        "csv_stage5_branch_path" => branch_rel,
+        "csv_stage5_branch_path_tex" => "{" * branch_rel * "}",
+        "gamma_c" => "0.05",
+        "gamma_c_fmt" => "n/a",
+        "period_fmt" => "n/a",
+        "period_seconds_fmt" => "n/a",
+        "transversality" => "0.0",
+        "transversality_fmt" => "n/a",
+        "beta_c_fmt" => "n/a",
+        "gamma_min" => "0.0",
+        "gamma_max" => "1.0",
+        "beta_axis_min" => "0.0",
+        "beta_axis_max" => "0.010000",
+        "hopf_line_min" => "0.0",
+        "hopf_line_max" => "1.0",
+    )
+
+    branch_gamma_min = nothing
+    branch_gamma_max = nothing
+    if isfile(branch_path)
+        branch_df = CSV.read(branch_path, DataFrame)
+        branch_names = Set(Symbol.(names(branch_df)))
+        if nrow(branch_df) > 0 && :gamma in branch_names && :max_real_eig in branch_names
+            gamma_col = branch_df[!, "gamma"]
+            eig_col = branch_df[!, "max_real_eig"]
+            gamma_vals = [Float64(v) for v in gamma_col if !ismissing(v) && isfinite(Float64(v))]
+            eig_vals = [Float64(v) for v in eig_col if !ismissing(v) && isfinite(Float64(v))]
+            if !isempty(gamma_vals) && !isempty(eig_vals)
+                branch_gamma_min = minimum(gamma_vals)
+                branch_gamma_max = maximum(gamma_vals)
+                tokens["has_stage5_branch_data"] = true
+                tokens["gamma_min"] = @sprintf("%.6f", branch_gamma_min)
+                tokens["gamma_max"] = @sprintf("%.6f", branch_gamma_max)
+            end
+
+            if :max_imag_eig in branch_names
+                imag_col = branch_df[!, "max_imag_eig"]
+                imag_vals = [Float64(v) for v in imag_col if !ismissing(v) && isfinite(Float64(v))]
+                if !isempty(imag_vals)
+                    beta_max = maximum(imag_vals)
+                    beta_axis_max = max(0.001, 1.1 * beta_max)
+                    tokens["has_stage5_beta_series"] = true
+                    tokens["beta_axis_max"] = @sprintf("%.6f", beta_axis_max)
+                end
+            end
+        end
+    end
+
+    if !isfile(summary_path)
+        return tokens
+    end
+
+    summary = JSON3.read(read(summary_path, String))
+    gamma_c = (haskey(summary, "gamma_c_hopf") && summary["gamma_c_hopf"] !== nothing) ? tryparse(Float64, string(summary["gamma_c_hopf"])) : nothing
+    period_seconds = (haskey(summary, "hopf_period_Th") && summary["hopf_period_Th"] !== nothing) ? tryparse(Float64, string(summary["hopf_period_Th"])) : nothing
+    transversality = (haskey(summary, "dRe_dgamma_at_crossing") && summary["dRe_dgamma_at_crossing"] !== nothing) ? tryparse(Float64, string(summary["dRe_dgamma_at_crossing"])) : nothing
+
+    gamma_min_summary = (haskey(summary, "gamma_min") && summary["gamma_min"] !== nothing) ? tryparse(Float64, string(summary["gamma_min"])) : nothing
+    gamma_max_summary = (haskey(summary, "gamma_max") && summary["gamma_max"] !== nothing) ? tryparse(Float64, string(summary["gamma_max"])) : nothing
+
+    if gamma_min_summary !== nothing && gamma_max_summary !== nothing
+        tokens["gamma_min"] = @sprintf("%.6f", gamma_min_summary)
+        tokens["gamma_max"] = @sprintf("%.6f", gamma_max_summary)
+    end
+
+    if gamma_c !== nothing
+        tokens["has_stage5_hopf_marker"] = true
+        tokens["gamma_c"] = @sprintf("%.6f", gamma_c)
+        tokens["gamma_c_fmt"] = @sprintf("%.4f", gamma_c)
+
+        # Extract imaginary eigenvalue (Hopf frequency beta) at the crossing from branch CSV.
+        if isfile(branch_path)
+            bdf = CSV.read(branch_path, DataFrame)
+            bnames = Set(Symbol.(names(bdf)))
+            if :gamma in bnames && :max_imag_eig in bnames && nrow(bdf) > 0
+                # Find the row with the best valid imag eig closest to gamma_c.
+                # Skip hopf-event rows where max_imag_eig is NaN.
+                best_dist = Inf
+                best_beta = nothing
+                for row in eachrow(bdf)
+                    gval = Float64(row.gamma)
+                    ival = Float64(row.max_imag_eig)
+                    !isfinite(ival) && continue
+                    ival <= 1e-10 && continue
+                    d = abs(gval - gamma_c)
+                    if d < best_dist
+                        best_dist = d
+                        best_beta = ival
+                    end
+                end
+                if best_beta !== nothing
+                    tokens["beta_c_fmt"] = @sprintf("%.5f", best_beta)
+                    tokens["has_stage5_beta_c"] = true
+                end
+            end
+        end
+
+        lower = gamma_c - 0.05
+        upper = gamma_c + 0.05
+        if branch_gamma_min !== nothing
+            lower = max(lower, branch_gamma_min)
+        end
+        if branch_gamma_max !== nothing
+            upper = min(upper, branch_gamma_max)
+        end
+        tokens["hopf_line_min"] = @sprintf("%.6f", lower)
+        tokens["hopf_line_max"] = @sprintf("%.6f", upper)
+    end
+
+    if period_seconds !== nothing
+        tokens["period_seconds_fmt"] = @sprintf("%.1f", period_seconds)
+        tokens["period_fmt"] = @sprintf("%.1f", period_seconds / 60.0)
+        tokens["has_stage5_period"] = true
+    end
+
+    if transversality !== nothing
+        tokens["transversality"] = @sprintf("%.6f", transversality)
+        tokens["transversality_fmt"] = @sprintf("%.4f", transversality)
+    end
+
+    tokens["has_stage5_summary"] = true
+    return tokens
+end
+
+function build_cross_campaign_comparison_tokens(data_out_dir::String)
+    tokens = Dict{String,Any}(
+        "has_cross_comparison" => false,
+        "cases_gc" => "n/a",
+        "floss_gc" => "n/a",
+        "ratio_gc" => "n/a",
+        "cases_beta" => "n/a",
+        "floss_beta" => "n/a",
+        "ratio_beta" => "n/a",
+        "cases_th" => "n/a",
+        "floss_th" => "n/a",
+        "ratio_th" => "n/a",
+        "cases_trans" => "n/a",
+        "floss_trans" => "n/a",
+        "ratio_trans" => "n/a",
+    )
+
+    cases_json = joinpath(data_out_dir, "stage5_summary_cases_99.json")
+    floss_json = joinpath(data_out_dir, "stage5_summary_floss.json")
+    if !(isfile(cases_json) && isfile(floss_json))
+        return tokens
+    end
+
+    c_raw = JSON3.read(read(cases_json, String))
+    f_raw = JSON3.read(read(floss_json, String))
+
+    c_gc = (haskey(c_raw, "gamma_c_hopf") && c_raw["gamma_c_hopf"] !== nothing) ? tryparse(Float64, string(c_raw["gamma_c_hopf"])) : nothing
+    f_gc = (haskey(f_raw, "gamma_c_hopf") && f_raw["gamma_c_hopf"] !== nothing) ? tryparse(Float64, string(f_raw["gamma_c_hopf"])) : nothing
+
+    c_beta = (haskey(c_raw, "closest_to_axis_max_imag") && c_raw["closest_to_axis_max_imag"] !== nothing) ? tryparse(Float64, string(c_raw["closest_to_axis_max_imag"])) : nothing
+    f_beta = (haskey(f_raw, "closest_to_axis_max_imag") && f_raw["closest_to_axis_max_imag"] !== nothing) ? tryparse(Float64, string(f_raw["closest_to_axis_max_imag"])) : nothing
+
+    c_th_seconds = (haskey(c_raw, "hopf_period_Th") && c_raw["hopf_period_Th"] !== nothing) ? tryparse(Float64, string(c_raw["hopf_period_Th"])) : nothing
+    f_th_seconds = (haskey(f_raw, "hopf_period_Th") && f_raw["hopf_period_Th"] !== nothing) ? tryparse(Float64, string(f_raw["hopf_period_Th"])) : nothing
+
+    c_trans = (haskey(c_raw, "dRe_dgamma_at_crossing") && c_raw["dRe_dgamma_at_crossing"] !== nothing) ? tryparse(Float64, string(c_raw["dRe_dgamma_at_crossing"])) : nothing
+    f_trans = (haskey(f_raw, "dRe_dgamma_at_crossing") && f_raw["dRe_dgamma_at_crossing"] !== nothing) ? tryparse(Float64, string(f_raw["dRe_dgamma_at_crossing"])) : nothing
+
+    required = (c_gc, f_gc, c_beta, f_beta, c_th_seconds, f_th_seconds, c_trans, f_trans)
+    if any(x -> x === nothing || !isfinite(x), required)
+        return tokens
+    end
+
+    c_th = c_th_seconds / 60.0
+    f_th = f_th_seconds / 60.0
+
+    ratio_gc = f_gc == 0.0 ? nothing : c_gc / f_gc
+    ratio_beta = f_beta == 0.0 ? nothing : c_beta / f_beta
+    ratio_th = f_th == 0.0 ? nothing : c_th / f_th
+    ratio_trans = f_trans == 0.0 ? nothing : abs(c_trans / f_trans)
+
+    tokens["cases_gc"] = @sprintf("%.4f", c_gc)
+    tokens["floss_gc"] = @sprintf("%.4f", f_gc)
+    tokens["cases_beta"] = @sprintf("%.6f", c_beta)
+    tokens["floss_beta"] = @sprintf("%.6f", f_beta)
+    tokens["cases_th"] = @sprintf("%.1f", c_th)
+    tokens["floss_th"] = @sprintf("%.1f", f_th)
+    tokens["cases_trans"] = @sprintf("%.6f", c_trans)
+    tokens["floss_trans"] = @sprintf("%.6f", f_trans)
+
+    if ratio_gc !== nothing && isfinite(ratio_gc)
+        tokens["ratio_gc"] = @sprintf("%.2f", ratio_gc)
+    end
+    if ratio_beta !== nothing && isfinite(ratio_beta)
+        tokens["ratio_beta"] = @sprintf("%.2f", ratio_beta)
+    end
+    if ratio_th !== nothing && isfinite(ratio_th)
+        tokens["ratio_th"] = @sprintf("%.2f", ratio_th)
+    end
+    if ratio_trans !== nothing && isfinite(ratio_trans)
+        tokens["ratio_trans"] = @sprintf("%.2f", ratio_trans)
+    end
+
+    tokens["has_cross_comparison"] = true
+    return tokens
+end
+
+function extract_transition_tokens(data_out_dir::String, campaign_label::String, report_run_dir::String)
+    slug = campaign_slug_local(campaign_label)
+
+    panel_a_path = joinpath(data_out_dir, "transition_panel_a_$(slug).csv")
+    panel_b_path = joinpath(data_out_dir, "transition_panel_b_$(slug).csv")
+    panel_c_path = joinpath(data_out_dir, "transition_panel_c_$(slug).csv")
+    meta_path = joinpath(data_out_dir, "transition_assets_$(slug).json")
+
+    panel_a_rel = relpath(panel_a_path, report_run_dir)
+    panel_b_rel = relpath(panel_b_path, report_run_dir)
+    panel_c_rel = relpath(panel_c_path, report_run_dir)
+
+    tokens = Dict{String,Any}(
+        "has_transition_assets" => false,
+        "transition_panel_a_path" => panel_a_rel,
+        "transition_panel_b_path" => panel_b_rel,
+        "transition_panel_c_path" => panel_c_rel,
+        "transition_panel_a_path_tex" => "{" * panel_a_rel * "}",
+        "transition_panel_b_path_tex" => "{" * panel_b_rel * "}",
+        "transition_panel_c_path_tex" => "{" * panel_c_rel * "}",
+        "transition_meta_path" => relpath(meta_path, report_run_dir),
+        "has_transition_gamma_critical" => false,
+        "transition_gamma_critical" => "0.0",
+        "transition_gamma_critical_fmt" => "n/a",
+        "transition_hopf_period_fmt" => "n/a",
+        "transition_peak_eta3_fmt" => "n/a",
+    )
+
+    if !(isfile(panel_a_path) && isfile(panel_b_path) && isfile(panel_c_path))
+        return tokens
+    end
+
+    panel_a_df = CSV.read(panel_a_path, DataFrame)
+    panel_b_df = CSV.read(panel_b_path, DataFrame)
+    panel_c_df = CSV.read(panel_c_path, DataFrame)
+
+    if nrow(panel_a_df) == 0 || nrow(panel_b_df) == 0 || nrow(panel_c_df) == 0
+        return tokens
+    end
+
+    tokens["has_transition_assets"] = true
+
+    if isfile(meta_path)
+        meta = JSON3.read(read(meta_path, String))
+        if haskey(meta, "gamma_critical") && meta["gamma_critical"] !== nothing
+            gamma_critical = tryparse(Float64, string(meta["gamma_critical"]))
+            if gamma_critical !== nothing && isfinite(gamma_critical)
+                tokens["has_transition_gamma_critical"] = true
+                tokens["transition_gamma_critical"] = @sprintf("%.6f", gamma_critical)
+                tokens["transition_gamma_critical_fmt"] = @sprintf("%.4f", gamma_critical)
+            end
+        end
+
+        if haskey(meta, "hopf_period_minutes") && meta["hopf_period_minutes"] !== nothing
+            hopf_period = tryparse(Float64, string(meta["hopf_period_minutes"]))
+            if hopf_period !== nothing && isfinite(hopf_period)
+                tokens["transition_hopf_period_fmt"] = @sprintf("%.2f min", hopf_period)
+            end
+        end
+
+        if haskey(meta, "peak_abs_eta3") && meta["peak_abs_eta3"] !== nothing
+            peak_eta3 = tryparse(Float64, string(meta["peak_abs_eta3"]))
+            if peak_eta3 !== nothing && isfinite(peak_eta3)
+                tokens["transition_peak_eta3_fmt"] = @sprintf("%.4f", peak_eta3)
+            end
+        end
+    end
+
+    return tokens
 end
 
 function build_visual_exhibits(rel_traj::String, rel_scatter::String)
@@ -548,6 +831,7 @@ function execute_orchestration(
     ensure_report_workspace(report_run_dir, workspace_dir)
     
     @info "==> Rendering Mustache templates..."
+    cross_tokens = build_cross_campaign_comparison_tokens(data_out_dir)
     
     # 5. Generate portable .tex components
     for report in REGISTRY
@@ -571,6 +855,7 @@ function execute_orchestration(
 
         # Assemble token dictionary from manifest + computed metrics
         tokens = Dict(
+            "campaign_label"          => campaign_label,
             "campaign_name"           => campaign_label,
             "campaign_id"             => lowercase(campaign_label),
             "campaign_slug"           => campaign_slug,
@@ -609,6 +894,12 @@ function execute_orchestration(
             "condition_number"        => isfinite(manifest["condition_num"]) ? @sprintf("%.2f", manifest["condition_num"]) : "inf",
             "interaction_residual"    => String(manifest["interaction_proxy"])
         )
+
+        stage5_tokens = extract_stage5_summary_tokens(data_out_dir, campaign_label, report_run_dir)
+        transition_tokens = extract_transition_tokens(data_out_dir, campaign_label, report_run_dir)
+        merge!(tokens, stage5_tokens)
+        merge!(tokens, transition_tokens)
+        merge!(tokens, cross_tokens)
         
         @info "Rendering template: $(report.name) -> $(full_tex_target)"
         open(full_tex_target, "w") do io
@@ -633,6 +924,7 @@ function execute_orchestration(
         # 7. Render standalone audit TeX entrypoint for compile-audit target.
         render_audit_entrypoint(report_run_dir, campaign_label)
     
+    generate_institutional_sidecar(joinpath(workspace_dir, "data"))
     @info "==> All Mustache templates rendered successfully!"
     @info "==> Report components ready at: $(joinpath(report_run_dir, "generated"))"
     @info "==> Standalone audit ready at: $(audit_output_path)"
@@ -642,6 +934,28 @@ function execute_orchestration(
     @info "  2. latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex"
     @info "  3. Open main.pdf"
     
+end
+
+function generate_institutional_sidecar(output_dir::String)
+    source_txt_path = joinpath(output_dir, "sources.txt")
+    open(source_txt_path, "w") do io
+        println(io, "="^73)
+        println(io, "         SPECTRALBL-ANALYTICS ENGINE: DATA PROVENANCE MANIFEST           ")
+        println(io, "="^73)
+        println(io, "Generated: ", Dates.format(Dates.now(Dates.UTC), "yyyy-mm-dd HH:MM:SS"), " UTC")
+        println(io)
+        println(io, "The telemetry, multi-level micro-meteorological profiles, and numerical")
+        println(io, "framework assets ingested by this pipeline are credited to and maintained by:")
+        println(io)
+        println(io, "    University of Alabama in Huntsville (UAH)")
+        println(io, "    National Space Science and Technology Center (NSSTC)")
+        println(io, "    URL: https://nsstc.uah.edu")
+        println(io)
+        println(io, "Please cite institutional dataset references and the SpectralBL framework")
+        println(io, "in all derived publications.")
+        println(io, "="^73)
+    end
+    @info "Institutional data provenance sidecar written: $(source_txt_path)"
 end
 
 # Check for manual CLI execution flags

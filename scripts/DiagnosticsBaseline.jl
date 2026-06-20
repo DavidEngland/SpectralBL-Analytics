@@ -45,6 +45,12 @@ function write_curated_diagnostics_csv(df::DataFrame; output_path::String=joinpa
     curated.D_eff = sqrt.(df.eta_1 .^ 2 .+ df.eta_2 .^ 2 .+ df.eta_3 .^ 2)
     curated.F_W = copy(df.sv_entropy)
     curated.chi_N = abs.(df.eta_3) ./ (abs.(df.eta_1) .+ abs.(df.eta_2) .+ 1e-8)
+    if all(c -> c in names(df), ["theta_star", "L_obukhov", "cheby_residual_norm", "cheby_fit_quality"])
+        curated.theta_star = copy(df.theta_star)
+        curated.L_obukhov = copy(df.L_obukhov)
+        curated.cheby_residual_norm = copy(df.cheby_residual_norm)
+        curated.cheby_fit_quality = copy(df.cheby_fit_quality)
+    end
 
     mkpath(dirname(output_path))
     CSV.write(output_path, curated)

@@ -3,7 +3,12 @@ module AttractorDiagnostics
 
 using LinearAlgebra
 
+include("ChebyshevResidualEngine.jl")
+
+using .ChebyshevResidualEngine
+
 export build_observation_operator, compute_weighted_svd, ridge_fit, calculate_sv_entropy
+export ChebyshevResidualResult, chebyshev_basis, fit_chebyshev_residuals
 
 """
     build_observation_operator(p_fem_grid, config::CampaignConfig; von_karman=0.4)

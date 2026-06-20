@@ -226,6 +226,7 @@ function write_continuation_csv(path::String, branch_rows, hopf_events, n::Int)
             gamma = r.gamma,
             z_pairs...,
             max_real_eig = r.max_real_eig,
+            max_imag_eig = r.max_imag_eig,
             is_stable = r.is_stable,
             bifurcation_tag = r.bifurcation_tag,
         ))
@@ -240,6 +241,7 @@ function write_continuation_csv(path::String, branch_rows, hopf_events, n::Int)
             gamma = e.gamma,
             z_pairs...,
             max_real_eig = 0.0,
+            max_imag_eig = NaN,
             is_stable = false,
             bifurcation_tag = e.tag,
         ))
@@ -360,6 +362,7 @@ function run_stage5(; stage4_json::String, output_json::String, output_csv::Stri
                 "gamma" => r.gamma,
                 "state" => collect(r.z),
                 "max_real_eig" => r.max_real_eig,
+                "max_imag_eig" => r.max_imag_eig,
                 "is_stable" => r.is_stable,
                 "bifurcation_tag" => r.bifurcation_tag,
                 "converged" => r.converged,
