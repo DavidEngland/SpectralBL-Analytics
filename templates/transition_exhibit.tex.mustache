@@ -64,30 +64,48 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
 
 {{#has_transition_panel_c_profile}}
         \nextgroupplot[
-            title={Panel C: Reconstructed Profile Warping ($\mathcal{M}_{eq}$ Spatial Shadow)},
-            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$},
+            title={Panel C: Reconstructed $\mathrm{Ri}_g(z,\gamma)$ Structure},
+            xlabel={$\gamma$},
             ylabel={Height $z$ [m]},
-            xmin=-0.5, xmax=2.5,
             ymin={{{transition_panel_c_profile_height_min}}}, ymax={{{transition_panel_c_profile_height_max}}},
             axis lines=left,
+            point meta min=-0.5,
+            point meta max=2.5,
+            colormap/viridis,
+            colorbar,
+            colorbar style={title={$\mathrm{Ri}_g$}},
             legend style={at={(0.98,0.05)}, anchor=south east, font=\footnotesize},
             axis background/.style={fill=gray!2}
         ]
-            \addplot[color=red!60!black, dashed, line width=0.8pt] coordinates {(0.25, {{{transition_panel_c_profile_height_min}}}) (0.25, {{{transition_panel_c_profile_height_max}}})};
-            \addlegendentry{$\mathrm{Ri}_c = 0.25$}
-
             \addplot[
-                color=teal!80!black,
-                line width=1.4pt,
-                mark=none
+                matrix plot*,
+                mesh/cols={{{transition_panel_c_profile_height_count}}},
+                point meta=explicit
             ] table[
                 col sep=comma,
-                x=ri_g,
-                y=height_z
+                x=gamma,
+                y=height_z,
+                meta=ri_g
             ] {{{transition_panel_c_profile_path_tex}}};
-            \addlegendentry{Reconstructed $\mathrm{Ri}_g(z)$}
 
-            \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis cs:0.4, 60) {$\eta_3$ Curvature Inflexion};
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=0.5pt,
+                color=red!80!black,
+                forget plot
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=height_z,
+                row predicate/.code={
+                    \pgfmathparse{abs(\thisrow{ri_g}-{{{transition_ri_c}}}) < 0.02 ? 1 : 0}
+                    \ifnum\pgfmathresult=1\relax\else\pgfplotstableuserowfalse\fi
+                }
+            ] {{{transition_panel_c_profile_path_tex}}};
+            \addlegendentry{$\mathrm{Ri}_c \approx {{{transition_ri_c}}}$ band}
+
+            \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis description cs:0.03,0.94) {$\eta_3$ Curvature Inflexion};
 {{/has_transition_panel_c_profile}}
 {{^has_transition_panel_c_profile}}
         \nextgroupplot[

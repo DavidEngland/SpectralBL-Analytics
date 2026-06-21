@@ -20,6 +20,7 @@ function parse_args(args::Vector{String})
     trajectory_csv = joinpath("data", "drafts", "trajectories", "trajectory_master.csv")
     branch_csv = ""
     summary_json = ""
+    profile_mode = "persisted"
 
     i = 1
     while i <= length(args)
@@ -39,6 +40,9 @@ function parse_args(args::Vector{String})
         elseif a == "--summary-json"
             i += 1
             summary_json = args[i]
+        elseif a == "--profile-mode"
+            i += 1
+            profile_mode = lowercase(strip(args[i]))
         else
             error("Unknown argument: $(a)")
         end
@@ -60,6 +64,7 @@ function parse_args(args::Vector{String})
         trajectory_csv = trajectory_csv,
         branch_csv = branch_csv,
         summary_json = summary_json,
+        profile_mode = profile_mode,
     )
 end
 
@@ -291,7 +296,105 @@ function summary_period_minutes(summary)
     return nothing
 end
 
-function main(; campaign::String, slug::String, output_dir::String, trajectory_csv::String, branch_csv::String, summary_json::String)
+function gamma_samples_from_panel_a(panel_a::DataFrame)
+    if nrow(panel_a) == 0 || !(:gamma in Symbol.(names(panel_a)))
+        return Float64[]
+    end
+    vals = [Float64(g) for g in panel_a.gamma if isfinite(Float64(g))]
+    sort!(vals)
+    return unique(vals)
+end
+
+function phase_profile_means(window::DataFrame, traj_df::DataFrame, ri_cols::Vector{Tuple{Symbol,Float64}})
+    profiles = Dict{String,Dict{Float64,Float64}}()
+    for phase_name in ("pre", "peak", "post")
+        sub = filter(:phase => ==(phase_name), window)
+        if nrow(sub) == 0
+            continue
+        end
+        d = Dict{Float64,Float64}()
+        for (col, z) in ri_cols
+            vals = Float64[]
+            for row in eachrow(sub)
+                src_idx = Int(row.source_index)
+                ri = safe_float(traj_df[src_idx, col])
+                if ri !== nothing
+                    push!(vals, ri)
+                end
+            end
+            if !isempty(vals)
+                d[z] = mean(vals)
+            end
+        end
+        if !isempty(d)
+            profiles[phase_name] = d
+        end
+    end
+    return profiles
+end
+
+function interpolate_profile(pre_v::Float64, peak_v::Float64, post_v::Float64, gamma::Float64, g_min::Float64, g_mid::Float64, g_max::Float64)
+    epsv = 1e-9
+    if gamma <= g_mid
+        t = (gamma - g_min) / (max(g_mid - g_min, epsv))
+        return (1.0 - t) * pre_v + t * peak_v
+    end
+    t = (gamma - g_mid) / (max(g_max - g_mid, epsv))
+    return (1.0 - t) * peak_v + t * post_v
+end
+
+function build_panel_c_profile_matrix(traj_df::DataFrame, panel_a::DataFrame, gamma_critical)
+    window = select_transition_window(traj_df)
+    nrow(window) == 0 && return DataFrame(gamma=Float64[], height_z=Float64[], ri_g=Float64[])
+
+    ri_cols = ri_g_profile_columns(traj_df)
+    length(ri_cols) < 3 && return DataFrame(gamma=Float64[], height_z=Float64[], ri_g=Float64[])
+
+    gammas = gamma_samples_from_panel_a(panel_a)
+    length(gammas) < 3 && return DataFrame(gamma=Float64[], height_z=Float64[], ri_g=Float64[])
+
+    profiles = phase_profile_means(window, traj_df, ri_cols)
+    all_profile = Dict{Float64,Float64}()
+    for (col, z) in ri_cols
+        vals = Float64[]
+        for row in eachrow(window)
+            ri = safe_float(traj_df[Int(row.source_index), col])
+            ri !== nothing && push!(vals, ri)
+        end
+        if !isempty(vals)
+            all_profile[z] = mean(vals)
+        end
+    end
+    isempty(all_profile) && return DataFrame(gamma=Float64[], height_z=Float64[], ri_g=Float64[])
+
+    pre_p = get(profiles, "pre", all_profile)
+    peak_p = get(profiles, "peak", all_profile)
+    post_p = get(profiles, "post", all_profile)
+
+    g_min = minimum(gammas)
+    g_max = maximum(gammas)
+    g_mid = gamma_critical === nothing ? median(gammas) : clamp(Float64(gamma_critical), g_min, g_max)
+
+    rows = Vector{NamedTuple}()
+    for g in gammas
+        for (_, z) in ri_cols
+            pre_v = get(pre_p, z, get(all_profile, z, NaN))
+            peak_v = get(peak_p, z, pre_v)
+            post_v = get(post_p, z, peak_v)
+            if isfinite(pre_v) && isfinite(peak_v) && isfinite(post_v)
+                ri = interpolate_profile(pre_v, peak_v, post_v, g, g_min, g_mid, g_max)
+                push!(rows, (gamma=g, height_z=z, ri_g=ri))
+            end
+        end
+    end
+
+    isempty(rows) && return DataFrame(gamma=Float64[], height_z=Float64[], ri_g=Float64[])
+    out = DataFrame(rows)
+    sort!(out, [:gamma, :height_z])
+    return out
+end
+
+function main(; campaign::String, slug::String, output_dir::String, trajectory_csv::String, branch_csv::String, summary_json::String, profile_mode::String)
     mkpath(output_dir)
 
     branch_df = isfile(branch_csv) ? CSV.read(branch_csv, DataFrame) : DataFrame()
@@ -308,26 +411,37 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
     panel_c_profile_path = joinpath(output_dir, "transition_panel_c_profile_$(slug).csv")
     meta_path = joinpath(output_dir, "transition_assets_$(slug).json")
 
-    panel_c_profile = build_panel_c_profile(traj_df)
-
     CSV.write(panel_a_path, panel_a)
     CSV.write(panel_b_path, panel_b)
     CSV.write(panel_c_path, panel_c)
-    CSV.write(panel_c_profile_path, panel_c_profile)
 
     γc = summary_gamma(summary)
     Th = summary_period_minutes(summary)
     peak_eta3 = nrow(panel_c) > 0 ? maximum(abs.(panel_c.eta_3)) : nothing
 
+    panel_c_profile = if profile_mode == "analytical"
+        @warn "Analytical profile mode is scaffolded but not yet enabled; falling back to persisted profile columns." campaign=campaign
+        build_panel_c_profile_matrix(traj_df, panel_a, γc)
+    else
+        build_panel_c_profile_matrix(traj_df, panel_a, γc)
+    end
+
+    CSV.write(panel_c_profile_path, panel_c_profile)
+
+    gamma_count = nrow(panel_c_profile) > 0 ? length(unique(panel_c_profile.gamma)) : 0
+    height_count = nrow(panel_c_profile) > 0 ? length(unique(panel_c_profile.height_z)) : 0
+
     meta = Dict(
         "campaign" => campaign,
         "slug" => slug,
         "has_transition_assets" => (nrow(panel_a) > 0 && nrow(panel_b) > 0 && nrow(panel_c) > 0),
-        "has_transition_panel_c_profile" => nrow(panel_c_profile) > 0,
+        "has_transition_panel_c_profile" => (nrow(panel_c_profile) > 0 && gamma_count >= 3 && height_count >= 3),
         "panel_a_csv" => panel_a_path,
         "panel_b_csv" => panel_b_path,
         "panel_c_csv" => panel_c_path,
         "panel_c_profile_csv" => panel_c_profile_path,
+        "ri_c_critical" => 0.25,
+        "profile_source_mode" => profile_mode,
         "gamma_critical" => γc,
         "hopf_period_minutes" => Th,
         "peak_abs_eta3" => peak_eta3,
@@ -335,6 +449,8 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
         "panel_b_rows" => nrow(panel_b),
         "panel_c_rows" => nrow(panel_c),
         "panel_c_profile_rows" => nrow(panel_c_profile),
+        "panel_c_profile_gamma_count" => gamma_count,
+        "panel_c_profile_height_count" => height_count,
         "panel_c_profile_height_min" => nrow(panel_c_profile) > 0 ? minimum(panel_c_profile.height_z) : nothing,
         "panel_c_profile_height_max" => nrow(panel_c_profile) > 0 ? maximum(panel_c_profile.height_z) : nothing,
         "source_branch_csv" => branch_csv,

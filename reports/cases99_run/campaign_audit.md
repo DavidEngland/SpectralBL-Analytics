@@ -1,6 +1,6 @@
 # Campaign Performance Audit: CASES-99
 
-Date: 2026-06-20T22:59:35.512 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-21T13:17:03.650 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -18,7 +18,7 @@ Date: 2026-06-20T22:59:35.512 | Auditor: Spectral-Analytics Engine
 
 [OK] Low-rank basis remained numerically usable with condition number 6.85 and 0 exported nullspace modes.
 [INFO] Campaign mean entropy registered at H_mean = 0.2110 with effective dimension D_eff = 2.0537.
-[WARN] Stage 5 continuation terminated at gamma=0.277898, marking the current stability-envelope boundary.
+[WARN] Stage 5 continuation terminated at gamma=0.492680, marking the current stability-envelope boundary.
 
 ---
 
@@ -34,7 +34,7 @@ Date: 2026-06-20T22:59:35.512 | Auditor: Spectral-Analytics Engine
 
 - Stage 2 disagreement exceeded threshold in 49 of 50 windows (98.0%).
 - The maximum Stage 2 disagreement norm reached 29.6341, indicating localized route-selection ambiguity.
-- The descending continuation branch remained stable until gamma=0.277898 and then terminated in Divergence_Blowup before a smooth crossing was logged.
+- The descending continuation branch remained stable until gamma=0.492680 and then terminated in Bisection_Step_Floor_Reached before a smooth crossing was logged.
 
 ### Neutral Findings
 
@@ -47,7 +47,7 @@ Date: 2026-06-20T22:59:35.512 | Auditor: Spectral-Analytics Engine
 ## 3. Risks & Monitoring Items
 
 - Threshold exceedance rate remains elevated at 98.0%, so window-level disagreement can accumulate without moving campaign means substantially.
-- The current continuation branch loses numerical validity at gamma=0.277898, so the stability envelope should be treated as locally bounded rather than globally mapped.
+- The current continuation branch loses numerical validity at gamma=0.492680, so the stability envelope should be treated as locally bounded rather than globally mapped.
 - Mean entropy 0.2110 indicates a compressed campaign average, which can conceal short-duration burst structure unless the exhibit-level traces are reviewed.
 
 ---

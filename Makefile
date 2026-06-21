@@ -4,9 +4,10 @@
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
 SWEEP_DIRECTION ?= descending
-GAMMA_MIN ?= 0.07
-GAMMA_MAX ?= 1.00
-GAMMA_STEPS ?= 50
+GAMMA_MIN_DEFAULT := 0.07
+GAMMA_MAX_DEFAULT := 1.00
+GAMMA_STEPS_DEFAULT := 50
+FORCING_VALUES_DEFAULT := 0.05,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
 
 # Set dynamic defaults based on Campaign choice
 ifeq ($(CAMPAIGN),DOMEC)
@@ -19,6 +20,18 @@ else
 	WINDOW_SIZE ?= 256
 	STEP_SIZE ?= 128
 endif
+
+# Stage 5 continuation defaults can be campaign-specific to improve branch tracking robustness.
+ifeq ($(CAMPAIGN),CASES-99)
+	GAMMA_MIN_DEFAULT := 0.01
+	GAMMA_STEPS_DEFAULT := 200
+	FORCING_VALUES_DEFAULT := 0.10,0.04,0.0,0.02,0.0,0.0,0.0,0.0,0.0
+endif
+
+GAMMA_MIN ?= $(GAMMA_MIN_DEFAULT)
+GAMMA_MAX ?= $(GAMMA_MAX_DEFAULT)
+GAMMA_STEPS ?= $(GAMMA_STEPS_DEFAULT)
+FORCING_VALUES ?= $(FORCING_VALUES_DEFAULT)
 
 WORKSPACE_ROOT := $(shell pwd)
 OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS.pdf,main.pdf))))
@@ -123,7 +136,7 @@ stage5-stability:
 		--output-csv data/outputs/stage5_equilibria_$(CAMPAIGN_SLUG).csv
 
 stage5-sweep:
-	@echo "Sweeping parameter space for $(CAMPAIGN) (slug=$(CAMPAIGN_SLUG))..."
+	@echo "Sweeping parameter space for $(CAMPAIGN) (slug=$(CAMPAIGN_SLUG), gamma=[$(GAMMA_MIN),$(GAMMA_MAX)], steps=$(GAMMA_STEPS), forcing=$(FORCING_VALUES))..."
 	julia --project="." scripts/stage5_bifurcation_analysis.jl \
 		--stage4-json data/outputs/stage4_discovered_equations_$(CAMPAIGN_SLUG).json \
 		--output-json data/outputs/stage5_stability_manifest_$(CAMPAIGN_SLUG).json \
@@ -135,7 +148,7 @@ stage5-sweep:
 		--sweep-direction $(SWEEP_DIRECTION) \
 		--scale-target both \
 		--linear-indices 1,2,3 \
-		--forcing-values 0.05,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
+		--forcing-values $(FORCING_VALUES)
 
 stage5-panels:
 	@echo "Exporting Stage 5 diagnostic panel CSVs (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."

@@ -292,6 +292,7 @@ function summarize_stage5(stability_path::String, branch_path::String)
             branch_points = branch_df === nothing ? 0 : nrow(branch_df),
             terminated = false,
             termination_gamma = nothing,
+            termination_reason = "n/a",
         )
     end
 
@@ -301,6 +302,7 @@ function summarize_stage5(stability_path::String, branch_path::String)
     if cont !== nothing && haskey(cont, "termination_gamma") && cont["termination_gamma"] !== nothing
         termination_gamma = Float64(cont["termination_gamma"])
     end
+    termination_reason = (cont !== nothing && haskey(cont, "termination_reason") && cont["termination_reason"] !== nothing) ? String(cont["termination_reason"]) : "n/a"
     branch_points = cont === nothing ? (branch_df === nothing ? 0 : nrow(branch_df)) : Int(cont["branch_points"])
 
     return (
@@ -312,6 +314,7 @@ function summarize_stage5(stability_path::String, branch_path::String)
         branch_points = branch_points,
         terminated = terminated,
         termination_gamma = termination_gamma,
+        termination_reason = termination_reason,
     )
 end
 
@@ -556,6 +559,9 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
         "transition_panel_c_profile_path" => panel_c_profile_rel,
         "transition_panel_c_profile_path_tex" => "{" * panel_c_profile_rel * "}",
         "has_transition_panel_c_profile" => false,
+        "transition_panel_c_profile_gamma_count" => "0",
+        "transition_panel_c_profile_height_count" => "0",
+        "transition_ri_c" => "0.25",
         "transition_panel_c_profile_height_min" => "0",
         "transition_panel_c_profile_height_max" => "200",
         "transition_meta_path" => relpath(meta_path, report_run_dir),
@@ -585,13 +591,26 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
 
         if haskey(meta, "has_transition_panel_c_profile") && Bool(meta["has_transition_panel_c_profile"]) && isfile(panel_c_profile_path)
             profile_df = CSV.read(panel_c_profile_path, DataFrame)
-            if nrow(profile_df) > 0 && (:height_z in Symbol.(names(profile_df)))
+            pnames = Symbol.(names(profile_df))
+            if nrow(profile_df) > 0 && (:height_z in pnames) && (:gamma in pnames) && (:ri_g in pnames)
                 tokens["has_transition_panel_c_profile"] = true
                 z_vals = Float64.(profile_df.height_z)
+                gamma_vals = Float64.(profile_df.gamma)
                 if !isempty(z_vals)
                     tokens["transition_panel_c_profile_height_min"] = @sprintf("%.1f", minimum(z_vals))
                     tokens["transition_panel_c_profile_height_max"] = @sprintf("%.1f", maximum(z_vals))
                 end
+                if !isempty(gamma_vals)
+                    tokens["transition_panel_c_profile_gamma_count"] = string(length(unique(gamma_vals)))
+                end
+                tokens["transition_panel_c_profile_height_count"] = string(length(unique(z_vals)))
+            end
+        end
+
+        if haskey(meta, "ri_c_critical") && meta["ri_c_critical"] !== nothing
+            ri_c = tryparse(Float64, string(meta["ri_c_critical"]))
+            if ri_c !== nothing && isfinite(ri_c)
+                tokens["transition_ri_c"] = @sprintf("%.2f", ri_c)
             end
         end
 
@@ -741,7 +760,7 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
     negative_findings = [
         Dict("finding" => "Stage 2 disagreement exceeded threshold in $(stage2.exceed_count) of $(stage2.window_count) windows ($(format_percent(stage2.exceed_fraction; digits=1)))."),
         Dict("finding" => @sprintf("The maximum Stage 2 disagreement norm reached %.4f, indicating localized route-selection ambiguity.", stage2.disagreement_max === nothing ? 0.0 : stage2.disagreement_max)),
-        Dict("finding" => stage5.available && stage5.terminated ? @sprintf("The descending continuation branch remained stable until gamma=%.6f and then terminated in Divergence_Blowup before a smooth crossing was logged.", stage5.termination_gamma) : "No Stage 5 divergence boundary was recorded in the current artifact set."),
+        Dict("finding" => stage5.available && stage5.terminated ? @sprintf("The descending continuation branch remained stable until gamma=%.6f and then terminated in %s before a smooth crossing was logged.", stage5.termination_gamma, stage5.termination_reason) : "No Stage 5 divergence boundary was recorded in the current artifact set."),
     ]
     if !condition_is_ok
         push!(negative_findings, Dict("finding" => "Condition number $(condition_text) exceeds the audit stress threshold of 100, indicating potential numerical instability in the reduced basis."))
