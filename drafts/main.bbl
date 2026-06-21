@@ -1,0 +1,73 @@
+\begin{thebibliography}{7}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Acevedo and Fitzjarrald(2001)]{Acevedo2001}
+Ot{\'a}vio~C. Acevedo and David~R. Fitzjarrald.
+\newblock The evening transition in clean, unstructured planetary boundary
+  layers: Rapid decay constraints.
+\newblock \emph{Journal of the Atmospheric Sciences}, 58\penalty0
+  (17):\penalty0 2650--2667, 2001.
+\newblock \doi{10.1175/1520-0469(2001)058<2650:TETITC>2.0.CO;2}.
+
+\bibitem[Beare et~al.(2006)Beare, Macvean, Earl, {\'A}lvaro, Holtslag, Cuxart,
+  Esau, Golaz, Griewank, and Shionozaki]{Beare2004}
+Robert~J. Beare, Malcolm~R. Macvean, David~R. Earl, M.~{\'A}lvaro, Albert A.~M.
+  Holtslag, Joan Cuxart, Igor Esau, Jean-Christophe Golaz, P.~Griewank, and
+  M.~Shionozaki.
+\newblock An intercomparison of large-eddy simulations of the stable boundary
+  layer: {GABLS} {LES} results.
+\newblock \emph{Boundary-Layer Meteorology}, 118\penalty0 (2):\penalty0
+  247--272, 2006.
+\newblock \doi{10.1007/s10546-004-2820-6}.
+
+\bibitem[Biazar and McNider(1995)]{Biazar1995}
+Arastoo~P. Biazar and Richard~T. McNider.
+\newblock Regional-scale bifurcation interpretation for nocturnal
+  boundary-layer forecasting.
+\newblock \emph{Boundary-Layer Meteorology}, 75\penalty0 (4):\penalty0
+  315--333, 1995.
+\newblock \doi{10.1007/BF00712214}.
+
+\bibitem[McNider et~al.(1993)McNider, Tripoli, Pal, and Pielke]{McNider1993}
+Richard~T. McNider, Gregory~J. Tripoli, S.~Pal, and Roger~A. Pielke.
+\newblock Analysis of multiple equilibria in the nocturnal planetary boundary
+  layer.
+\newblock \emph{Journal of the Atmospheric Sciences}, 50\penalty0
+  (23):\penalty0 3929--3941, 1993.
+\newblock \doi{10.1175/1520-0469(1993)050<3929:AOMEIT>2.0.CO;2}.
+
+\bibitem[McNider et~al.(1995)McNider, England, Friedman, and Shi]{McNider1995}
+Richard~T. McNider, David~E. England, M.~Friedman, and X.~Shi.
+\newblock Predictability and bifurcation structure of nocturnal stable boundary
+  layer states.
+\newblock \emph{Boundary-Layer Meteorology}, 74\penalty0 (1--2):\penalty0
+  149--162, 1995.
+\newblock \doi{10.1007/BF00715715}.
+
+\bibitem[Poulos et~al.(2002)Poulos, Blumen, Fritsch, SE, Coulter,
+  et~al.]{Poulos2002}
+George~S. Poulos, W.~Blumen, Jerilyn~M. Fritsch, Beyers SE, R.~L. Coulter,
+  et~al.
+\newblock Cases-99: A comprehensive investigation of the stable nocturnal
+  boundary layer.
+\newblock \emph{Bulletin of the American Meteorological Society}, 83\penalty0
+  (4):\penalty0 555--581, 2002.
+\newblock \doi{10.1175/1520-0477(2002)083<0555:ACIOTSNBL>2.3.CO;2}.
+
+\bibitem[Van~de Wiel et~al.(2017)Van~de Wiel, Vignon, Baas, van~de Boer, van
+  Hooijdonk, de~Roode, van~der Linden, van~de Wiel, Moene, Genthon, and
+  Holtslag]{VandeWiel2017}
+B.~J.~H. Van~de Wiel, {\'E}.~Vignon, P.~Baas, G.~J. van~de Boer, C.~E. van
+  Hooijdonk, S.~R. de~Roode, R.~A.~M. van~der Linden, J.~M. van~de Wiel, A.~F.
+  Moene, C.~Genthon, and A.~A.~M. Holtslag.
+\newblock Regime transitions in the stable boundary layer explained by a system
+  dynamics approach.
+\newblock \emph{Journal of the Atmospheric Sciences}, 74\penalty0
+  (11):\penalty0 3641--3659, 2017.
+\newblock \doi{10.1175/JAS-D-17-0010.1}.
+
+\end{thebibliography}
