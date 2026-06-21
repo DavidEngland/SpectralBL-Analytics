@@ -93,8 +93,29 @@ function normalize_campaign_name(name)
         return "ARCTIC-AMPLIFICATION"
     elseif raw in ("FLOSS", "FLOSS_I", "FLOSS-II", "FLOSS_II", "FLOSS-I")
         return "FLOSS"
+    elseif raw == "BLLAST"
+        return "BLLAST"
     end
     return String(name)
+end
+
+function panel_ab_status(branch_df::DataFrame)
+    if nrow(branch_df) == 0
+        return "empty_branch_csv"
+    end
+
+    have_a = ("gamma" in names(branch_df)) && ("max_real_eig" in names(branch_df))
+    have_b = all(c -> c in names(branch_df), ["gamma", "z1", "z2", "z3"])
+
+    if !have_a && !have_b
+        return "missing_panel_a_and_panel_b_columns"
+    elseif !have_a
+        return "missing_panel_a_columns"
+    elseif !have_b
+        return "missing_panel_b_columns"
+    end
+
+    return "ok"
 end
 
 function load_campaign_trajectory(path::String, campaign::String)
@@ -404,6 +425,7 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
     panel_a = build_panel_a(branch_df)
     panel_b = build_panel_b(branch_df)
     panel_c = build_panel_c(traj_df)
+    ab_status = panel_ab_status(branch_df)
 
     panel_a_path = joinpath(output_dir, "transition_panel_a_$(slug).csv")
     panel_b_path = joinpath(output_dir, "transition_panel_b_$(slug).csv")
@@ -453,6 +475,7 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
         "panel_c_profile_height_count" => height_count,
         "panel_c_profile_height_min" => nrow(panel_c_profile) > 0 ? minimum(panel_c_profile.height_z) : nothing,
         "panel_c_profile_height_max" => nrow(panel_c_profile) > 0 ? maximum(panel_c_profile.height_z) : nothing,
+        "panel_ab_status" => ab_status,
         "source_branch_csv" => branch_csv,
         "source_summary_json" => summary_json,
         "source_trajectory_csv" => trajectory_csv,
@@ -465,6 +488,9 @@ function main(; campaign::String, slug::String, output_dir::String, trajectory_c
     println("  panel_b: $(panel_b_path) [$(nrow(panel_b)) rows]")
     println("  panel_c: $(panel_c_path) [$(nrow(panel_c)) rows]")
     println("  panel_c_profile: $(panel_c_profile_path) [$(nrow(panel_c_profile)) rows]")
+    if ab_status != "ok"
+        println("  note: Panel A/B source status = $(ab_status)")
+    end
     println("  meta:    $(meta_path)")
 end
 

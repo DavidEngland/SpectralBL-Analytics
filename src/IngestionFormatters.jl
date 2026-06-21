@@ -45,6 +45,10 @@ function get_campaign_geometry(campaign::Symbol)
         # Snow-surface tower stack used for FLOSS profile reconstruction.
         # Smooth snow roughness can be substantially lower than grassland.
         return CampaignConfig("FLOSS", [0.5, 1.0, 2.0, 4.0], 0.0003, 0.00003, 0.0)
+    elseif campaign == :BLLAST
+        # BLLAST late-afternoon/evening transition tower levels (readme metadata driven).
+        # Roughness values are provisional grassland defaults pending site-specific refinement.
+        return CampaignConfig("BLLAST", [2.0, 15.0, 30.0, 45.0, 60.0], 0.05, 0.005, 0.0)
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -95,6 +99,9 @@ function load_campaign_samples(campaign::Symbol, pfem_grid::Vector{Float64}; dat
         if !isempty(missing_dirs)
             @warn "One or more FLOSS directories were not found." missing_dirs
         end
+    elseif campaign == :BLLAST
+        bllast_root = joinpath(data_root, "bllast")
+        samples = read_bllast_ascii_profiles(bllast_root, config, pfem_grid)
     else
         error("Unknown campaign target configuration: ", campaign)
     end
@@ -111,6 +118,111 @@ function load_campaign_samples(campaign::Symbol, pfem_grid::Vector{Float64}; dat
     end
 
     return U_r, samples
+end
+
+function read_bllast_ascii_profiles(bllast_root::String, config::CampaignConfig, pfem_grid::Vector{Float64})
+    if !isdir(bllast_root)
+        error("Missing BLLAST data directory: $(bllast_root)")
+    end
+
+    # Prefer preprocessed 30-minute files; they contain multi-level means with FF15/FF30/FF45/FF60.
+    patterns = [
+        r"preprocessed_30_30L_.*\.res$",
+        r"preprocessed_30_30R_.*\.res$",
+        r"cr10X.*\.txt\.res$",
+        r"cr300030L.*\.txt\.res$",
+        r"cr300060L.*\.txt\.res$",
+    ]
+
+    files = String[]
+    for (root, _, fnames) in walkdir(bllast_root)
+        for fname in fnames
+            full = joinpath(root, fname)
+            for p in patterns
+                if occursin(p, fname)
+                    push!(files, full)
+                    break
+                end
+            end
+        end
+    end
+    sort!(files)
+
+    # Current repository snapshot includes readme files but may not include raw .res streams yet.
+    if isempty(files)
+        error("No BLLAST profile files found under $(bllast_root). Expected .txt.res or preprocessed_30_*.res files.")
+    end
+
+    out = CampaignSample[]
+    for path in files
+        append!(out, read_bllast_file(path, config, pfem_grid))
+    end
+    if isempty(out)
+        error("BLLAST files were found ($(length(files))) but no valid profile samples were parsed. Check .txt.res schema and column mapping in read_bllast_file().")
+    end
+    return out
+end
+
+function read_bllast_file(path::String, config::CampaignConfig, pfem_grid::Vector{Float64})
+    if !isfile(path)
+        return CampaignSample[]
+    end
+
+    base = lowercase(basename(path))
+    if !occursin("preprocessed_30_30", base)
+        return CampaignSample[]
+    end
+
+    # preprocessed_30_30L/R files are comma-separated with fixed column order (read_me_60m_mast.txt).
+    df = try
+        CSV.read(path, DataFrame; delim=',', header=false, missingstring=["NaN", "nan", "NA", ""])
+    catch
+        return CampaignSample[]
+    end
+
+    ncol(df) < 43 && return CampaignSample[]
+
+    out = CampaignSample[]
+    for row in eachrow(df)
+        year = tryparse(Int, string(row[1]))
+        month = tryparse(Int, string(row[2]))
+        day = tryparse(Int, string(row[3]))
+        hour = tryparse(Int, string(row[4]))
+        minute = tryparse(Int, string(row[5]))
+        if any(x -> x === nothing, (year, month, day, hour, minute))
+            continue
+        end
+
+        dt = try
+            DateTime(year, month, day, hour, minute, 0)
+        catch
+            continue
+        end
+
+        z = Float64[]
+        u = Float64[]
+        for (zz, uu_col) in zip((15.0, 30.0, 45.0, 60.0), (39, 40, 42, 43))
+            raw = row[uu_col]
+            val = raw isa Number ? Float64(raw) : tryparse(Float64, string(raw))
+            if val !== nothing && isfinite(val)
+                push!(z, zz)
+                push!(u, val)
+            end
+        end
+        length(z) < 2 && continue
+
+        z_sorted, u_sorted = sort_pairs(z, u)
+        tower_vector = interpolate_profile(z_sorted, u_sorted, config.tower_heights)
+        grid_vector = interpolate_profile(z_sorted, u_sorted, pfem_grid)
+        if !all(isfinite, tower_vector) || !all(isfinite, grid_vector)
+            continue
+        end
+
+        tval = normalize_time_value(dt)
+        push!(out, CampaignSample(path, tval, tower_vector, grid_vector))
+    end
+
+    return out
 end
 
 function read_gabls_netcdf(path::String, config::CampaignConfig, pfem_grid::Vector{Float64})

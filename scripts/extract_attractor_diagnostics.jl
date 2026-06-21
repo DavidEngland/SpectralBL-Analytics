@@ -23,7 +23,7 @@ function height_token(z::Float64)
 end
 
 function all_campaign_heights()
-    configs = [get_campaign_geometry(c) for c in (:CASES_99, :GABLS3, :ARCTIC_AMPLIFICATION, :FLOSS)]
+    configs = [get_campaign_geometry(c) for c in (:CASES_99, :GABLS3, :ARCTIC_AMPLIFICATION, :FLOSS, :BLLAST)]
     vals = sort(unique(vcat([cfg.tower_heights for cfg in configs]...)))
     return Float64.(vals)
 end
@@ -58,7 +58,7 @@ end
 function parse_campaign_arg(arg::String)
     normalized = uppercase(strip(arg))
     if normalized == "ALL"
-        return [:CASES_99, :GABLS3, :ARCTIC_AMPLIFICATION, :FLOSS]
+        return [:CASES_99, :GABLS3, :ARCTIC_AMPLIFICATION, :FLOSS, :BLLAST]
     elseif normalized in ("CASES-99", "CASES_99")
         return [:CASES_99]
     elseif normalized == "GABLS3"
@@ -67,8 +67,10 @@ function parse_campaign_arg(arg::String)
         return [:ARCTIC_AMPLIFICATION]
     elseif normalized in ("FLOSS", "FLOSS_I", "FLOSS-I", "FLOSS_II", "FLOSS-II")
         return [:FLOSS]
+    elseif normalized == "BLLAST"
+        return [:BLLAST]
     end
-    error("Unsupported campaign selector: $(arg). Use ALL, CASES-99, GABLS3, ARCTIC-AMPLIFICATION, or FLOSS.")
+    error("Unsupported campaign selector: $(arg). Use ALL, CASES-99, GABLS3, ARCTIC-AMPLIFICATION, FLOSS, or BLLAST.")
 end
 
 println("=================================================================")

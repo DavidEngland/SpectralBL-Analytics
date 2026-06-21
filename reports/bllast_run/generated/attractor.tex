@@ -1,0 +1,108 @@
+% templates/attractor_report.tex.mustache
+% AUTO-GENERATED Attractor Report Section
+% This file is rendered by Mustache template from trajectory data
+% DO NOT EDIT MANUALLY
+
+\section{Attractor Dynamics and Low-Dimensional Phase Space}
+
+\subsection{Overview}
+
+The boundary layer is analyzed as a low-dimensional dynamical system through projection onto dominant singular vectors. The following section presents the reconstructed phase space trajectory for campaign \texttt{ BLLAST } using the v0.1 baseline.
+
+\begin{description}
+    \item[Campaign:] BLLAST
+    \item[Baseline Version:] v0.1
+    \item[Total Samples:] 5600
+    \item[Mean Entropy:] $H_{\text{mean}} = 0.122$
+\end{description}
+
+\subsection{3D Phase Space Projection}
+
+Figure~\ref{fig:attractor_BLLAST} visualizes the three-dimensional trajectory $(\eta_1, \eta_2, \eta_3)$. To highlight the true multi-regime orbital evolution, timesteps are connected sequentially by a continuous historical path line. The trajectory is colored using a high-contrast colormap driven by the \textbf{Attractor Spin} diagnostic ($\Omega(t)$), explicitly isolating the directionality of regime transitions.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.9\textwidth,
+            height=0.55\textwidth,
+            view={45}{24},
+            grid=major,
+            xlabel={$\eta_1$},
+            ylabel={$\eta_2$},
+            zlabel={$\eta_3$},
+            title={Low-Rank Attractor Trajectory (\texttt{ BLLAST })},
+            colormap/jet,
+            colorbar,
+            point meta=explicit,
+            colorbar style={title={$\Omega(t)$}, title style={yshift=5pt}},
+            tick label style={font=\small},
+            label style={font=\small},
+            title style={font=\small}
+        ]
+            % 1. DRAW THE ORBIT LINES: Connects data sequentially to reveal the phase trajectory loops
+            \addplot3[
+                mesh,
+                line width=0.8pt,
+                mark=none,
+                scatter,
+                scatter src=explicit,
+                shader=interp
+            ] table[
+                col sep=comma,
+                x=eta_1,
+                y=eta_2,
+                z=eta_3,
+                meta=attractor_spin
+            ] {../../data/outputs/regime_scatterplots_bllast.csv};
+
+        \end{axis}
+    \end{tikzpicture}
+    \caption{3D attractor state orbit trajectory. Color variation tracks Attractor Spin ($\Omega$), separating shear breakout acceleration (cool blue) from radiative collapse configurations (warm red).}
+    \label{fig:attractor_BLLAST}
+\end{figure}
+
+\subsection{Physical Coordinate Interpretation}
+
+This phase-space view acts as the compressed state engine of the atmospheric boundary layer (ABL), projecting high-dimensional tower profiles into three dominant, orthogonal coordinates:
+
+\begin{itemize}
+    \item $\eta_1$ (\textbf{Bulk Background Mode}): Captures the mean inversion strength, nocturnal cooling depth, and overall boundary-layer depth evolution.
+    \item $\eta_2$ (\textbf{Shear \& LLJ Mode}): Captures shear production, alongside low-level jet (LLJ) speed and height modulation.
+    \item $\eta_3$ (\textbf{Vertical Structural Curvature Mode}): Captures submesoscale gravity-wave excitation and the precursor structural signatures of intermittent turbulence events.
+\end{itemize}
+
+\subsubsection{Geometric Reading Guide}
+\begin{itemize}
+    \item \textbf{Tight closed loops} indicate near-repeatable diurnal cycling (convective daytime mixing to stable nighttime recovery and back).
+    \item \textbf{Broad, tangled trajectories} indicate non-stationary forcing, intermittency, or mesoscale disruption.
+    \item \textbf{Color evolution by $\Omega(t)$} isolates transition directionality: positive spin values (warm tones) indicate stable collapse paths; negative values (cool tones) mark turbulent regeneration breakouts.
+\end{itemize}
+
+\subsection{Trajectory Metrics}
+
+The mean low-rank coefficients across all samples are:
+\begin{align}
+    \langle \eta_1 \rangle &= -11.240 \\
+    \langle \eta_2 \rangle &= -0.067 \\
+    \langle \eta_3 \rangle &= 0.129
+\end{align}
+
+The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
+
+Operationally, peaks in $\|\boldsymbol{\eta}\|$ often coincide with rapid boundary-layer reconfiguration, while spin excursions identify windows where similarity-based single-regime assumptions are least reliable.
+
+\subsection{Information-Theoretic Manifold Complexity Evaluation}
+
+To preserve algorithmic invariance across divergent energy scales, rank truncation is enforced with a machine-precision floor criterion ($s_i \ge \epsilon_{\text{mach}} s_1$). This execution yields:
+
+\begin{itemize}
+    \item \textbf{Constrained modes:} $N_c = 3$
+    \item \textbf{Unconstrained nullspace modes:} $N_0 = 0$
+    \item \textbf{Condition number:} $\kappa = 22.52$
+    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = 1.6010$
+\end{itemize}
+
+The entropy-derived $D_{\text{eff}} = 1.6010$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
+
+\label{sec:attractor_BLLAST}

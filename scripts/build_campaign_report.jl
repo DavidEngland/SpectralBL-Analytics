@@ -49,6 +49,8 @@ function report_dir_for_campaign(campaign::Union{Nothing,String})
         return "cases99_run"
     elseif campaign == "GABLS3"
         return "gabls3_run"
+    elseif campaign == "BLLAST"
+        return "bllast_run"
     elseif campaign == "ARCTIC-AMPLIFICATION"
         return "arctic_amplification_run"
     end
@@ -155,6 +157,15 @@ function infer_campaign_conclusions(campaign_id::String)
              body = "At the stability boundary the dominant eigenpair crosses the imaginary axis with a non-zero imaginary component corresponding to a characteristic period of approximately 31.5 minutes. This timescale falls within the range commonly associated with wave-mediated and shear-intermittency processes observed in strongly stable boundary layers. The period is substantially shorter than the oscillatory mode identified in CASES-99, suggesting that the instability emerging over snow is dynamically distinct rather than a delayed manifestation of the same mode."),
             (title = "Evidence for Manifold Reshaping",
              body = "The combination of a substantially reduced critical threshold and an altered oscillation frequency implies that snow-covered stable boundary layers occupy a fundamentally different region of low-dimensional state space. The threshold and frequency ratios between campaigns are inconsistent with a simple parameter rescaling of the grassland dynamics. These results suggest that surface conditions influence not only the location of stability boundaries but also the geometric structure of the underlying dynamical manifold reconstructed from observations.")
+        ]
+    elseif campaign_upper == "BLLAST"
+        return [
+            (title = "Evening Transition Capture",
+             body = "BLLAST resolves the late-afternoon to evening transition window where convective decay yields the first persistent stable-layer signatures. The reconstructed trajectory directly samples the pre-nocturnal manifold approach rather than only deep nighttime states."),
+            (title = "Fold-Approach Diagnostics",
+             body = "Transition-era profiles provide high leverage for identifying where projected S-curve signatures first emerge from continuous manifold deformation. This campaign is therefore a structural bridge between daytime mixed-layer dynamics and nocturnal multi-equilibria behavior."),
+            (title = "Cross-Context Invariance Test",
+             body = "When compared against CASES-99, FLOSS, and GABLS3, BLLAST offers a distinct forcing context focused on onset timing. Consistent fold topology across these datasets supports the interpretation that observed S-curve behavior is a projection of a campaign-invariant manifold structure.")
         ]
     elseif campaign_upper == "ALL"
         return [

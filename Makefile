@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report bllast-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit bllast-audit arctic-audit
 
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
@@ -26,6 +26,10 @@ ifeq ($(CAMPAIGN),CASES-99)
 	GAMMA_MIN_DEFAULT := 0.01
 	GAMMA_STEPS_DEFAULT := 200
 	FORCING_VALUES_DEFAULT := 0.10,0.04,0.0,0.02,0.0,0.0,0.0,0.0,0.0
+else ifeq ($(CAMPAIGN),BLLAST)
+	GAMMA_MIN_DEFAULT := 0.001
+	GAMMA_STEPS_DEFAULT := 300
+	FORCING_VALUES_DEFAULT := 0.06,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
 endif
 
 GAMMA_MIN ?= $(GAMMA_MIN_DEFAULT)
@@ -34,9 +38,9 @@ GAMMA_STEPS ?= $(GAMMA_STEPS_DEFAULT)
 FORCING_VALUES ?= $(FORCING_VALUES_DEFAULT)
 
 WORKSPACE_ROOT := $(shell pwd)
-OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS.pdf,main.pdf))))
-OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3-audit.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION-audit.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS-audit.pdf,audit.pdf))))
-REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,$(if $(filter FLOSS,$(CAMPAIGN)),floss_run,all_run))))
+OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS.pdf,$(if $(filter BLLAST,$(CAMPAIGN)),BLLAST.pdf,main.pdf)))))
+OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3-audit.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION-audit.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS-audit.pdf,$(if $(filter BLLAST,$(CAMPAIGN)),BLLAST-audit.pdf,audit.pdf)))))
+REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,$(if $(filter FLOSS,$(CAMPAIGN)),floss_run,$(if $(filter BLLAST,$(CAMPAIGN)),bllast_run,all_run)))))
 CAMPAIGN_SLUG = $(shell echo "$(CAMPAIGN)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$$//')
 
 # Default target
@@ -63,10 +67,12 @@ help:
 	@echo "  make cases99-audit     - Fast CASES-99 audit-only flow (outputs campaign_audit.md)"
 	@echo "  make gabls3-audit      - Fast GABLS3 audit-only flow (outputs campaign_audit.md)"
 	@echo "  make floss-audit       - Fast FLOSS audit-only flow (outputs campaign_audit.md)"
+	@echo "  make bllast-audit      - Fast BLLAST audit-only flow (outputs campaign_audit.md)"
 	@echo "  make arctic-audit      - Fast ARCTIC-AMPLIFICATION audit-only flow"
 	@echo "  make cases99-report    - Full CASES-99 flow (outputs CASES-99.pdf)"
 	@echo "  make gabls3-report     - Full GABLS3 flow (outputs GABLS3.pdf)"
 	@echo "  make floss-report      - Full FLOSS flow (outputs FLOSS.pdf)"
+	@echo "  make bllast-report     - Full BLLAST flow (outputs BLLAST.pdf)"
 	@echo "  make arctic-report     - Full ARCTIC-AMPLIFICATION flow"
 	@echo "  make arctic-hlbl-synthetic - Run synthetic Arctic HLBL suite + TeX snippets"
 	@echo "  make arctic-finalize   - Synthetic + native Arctic report + monitoring cards"
@@ -208,6 +214,10 @@ floss-audit: CAMPAIGN=FLOSS
 floss-audit: process audit compile-audit
 	@echo "Lean FLOSS snowpack audit generation complete: check reports/floss_run/campaign_audit.md and FLOSS-audit.pdf"
 
+bllast-audit: CAMPAIGN=BLLAST
+bllast-audit: process audit compile-audit
+	@echo "Lean BLLAST audit generation complete: check reports/bllast_run/campaign_audit.md and BLLAST-audit.pdf"
+
 arctic-audit: CAMPAIGN=ARCTIC-AMPLIFICATION
 arctic-audit: process audit compile-audit
 	@echo "Lean audit generation complete: check reports/arctic_amplification_run/campaign_audit.md and ARCTIC-AMPLIFICATION-audit.pdf"
@@ -229,6 +239,10 @@ arctic-report: process tex report audit compile-report
 floss-report: CAMPAIGN=FLOSS
 floss-report: process tex report audit compile-report
 	@echo "FLOSS snowpack report and lean audit pipeline complete."
+
+bllast-report: CAMPAIGN=BLLAST
+bllast-report: process tex report audit compile-report
+	@echo "BLLAST transition report and lean audit pipeline complete."
 
 arctic-hlbl-synthetic:
 	@echo "Running synthetic Arctic HLBL suite..."
