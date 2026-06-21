@@ -7,5 +7,153 @@
 
 Transition plots are the primary dynamical fingerprint for regime transitions in the stable boundary layer. This section provides a three-panel bridge between continuation stability signatures and reduced-state trajectory structure for campaign \texttt{ BLLAST }.
 
+\begin{figure}[htbp]
+    \centering
+    \usepgfplotslibrary{groupplots}
+    \tikzsetnextfilename{transition-panel-bllast}
+    \begin{tikzpicture}
+        \begin{groupplot}[
+            group style={group size=1 by 3, vertical sep=14pt},
+            width=0.85\textwidth,
+            height=5.2cm,
+            grid=both,
+            tick label style={font=\small},
+            label style={font=\small},
+            title style={font=\small\bfseries, align=center},
+            axis background/.style={fill=gray!2}
+        ]
 
-\noindent\textit{Transition assets were not available at render time. Expected files: \path{../../data/outputs/transition_panel_a_bllast.csv}, \path{../../data/outputs/transition_panel_b_bllast.csv}, and \path{../../data/outputs/transition_panel_c_bllast.csv}.}
+        \nextgroupplot[
+            title={Panel A: Stability Branch (S-Curve Proxy)},
+            xlabel={$\gamma$},
+            ylabel={$\alpha=\max\Re(\lambda)$}
+        ]
+            \addplot[
+                color=blue!70!black,
+                line width=1.2pt,
+                mark=* ,
+                mark size=1.4pt,
+                mark options={fill=blue!70!black}
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=max_real_eig
+            ] {../../data/outputs/transition_panel_a_bllast.csv};
+
+        \nextgroupplot[
+            title={Panel B: State-Space Projection},
+            xlabel={$z_1$},
+            ylabel={$z_2$}
+        ]
+            \addplot[
+                only marks,
+                scatter,
+                scatter src=explicit,
+                mark size=1.8pt
+            ] table[
+                col sep=comma,
+                x=z1,
+                y=z2,
+                meta=z3
+            ] {../../data/outputs/transition_panel_b_bllast.csv};
+
+        \nextgroupplot[
+            title={Panel C: Reconstructed $\mathrm{Ri}_g(z,\gamma)$ Structure},
+            xlabel={$\gamma$},
+            ylabel={Height $z$ [m]},
+            ymin=2.0, ymax=60.0,
+            axis lines=left,
+            point meta min=-0.5,
+            point meta max=2.5,
+            colormap/viridis,
+            colorbar,
+            colorbar style={title={$\mathrm{Ri}_g$}},
+            legend style={at={(0.98,0.05)}, anchor=south east, font=\footnotesize},
+            axis background/.style={fill=gray!2}
+        ]
+            \addplot[
+                matrix plot*,
+                mesh/cols=5,
+                point meta=explicit
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=height_z,
+                meta=ri_g
+            ] {../../data/outputs/transition_panel_c_profile_bllast.csv};
+
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=0.5pt,
+                color=red!80!black,
+                forget plot
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=height_z,
+                row predicate/.code={
+                    \pgfmathparse{abs(\thisrow{ri_g}-0.25) < 0.02 ? 1 : 0}
+                    \ifnum\pgfmathresult=1\relax\else\pgfplotstableuserowfalse\fi
+                }
+            ] {../../data/outputs/transition_panel_c_profile_bllast.csv};
+            \addlegendentry{$\mathrm{Ri}_c \approx 0.25$ band}
+
+            \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis description cs:0.03,0.94) {$\eta_3$ Curvature Inflexion};
+
+        \end{groupplot}
+    \end{tikzpicture}
+    \caption{Three-panel transition exhibit. Panel A tracks the stability branch and the Hopf-like crossing. Panel B projects the continuation branch in reduced manifold coordinates. Panel C shows the localized $\eta_3$ transition window from campaign trajectories.}
+    \label{fig:transition_exhibit_bllast}
+\end{figure}
+
+\paragraph{Transition Metrics}
+\begin{itemize}
+    \item Critical coupling estimate: n/a
+    \item Hopf period estimate: 6.20 min
+    \item Peak $|\eta_3|$ in transition window: 3.1604
+\end{itemize}
+
+\subsection{Structural Cross-Diagnostics: Curvature vs. Local Criticality}
+
+\begin{figure}[htbp]
+    \centering
+    	ikzsetnextfilename{structural-phase-portrait-bllast}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.74\textwidth,
+            height=0.52\textwidth,
+            grid=major,
+            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$ (lowest mast level)},
+            ylabel={Structural Curvature Amplitude $\eta_3$},
+            title={Manifold Phase Portrait: BLLAST},
+            extra x ticks=0.25,
+            extra x tick labels={$\mathrm{Ri}_c$},
+            extra x tick style={grid=major, tick label style={above, yshift=4pt}, line width=1.0pt, dashed, color=red},
+            legend style={at={(1.04,1.0)}, anchor=north west, draw=none, fill=none}
+        ]
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=1.2pt,
+                opacity=0.4,
+                color=blue!55!magenta
+            ] table[
+                col sep=comma,
+                x={ri_g_low},
+                y={eta_3}
+            ] {../../data/outputs/structural_correlations_bllast.csv};
+            \addlegendentry{$\eta_3$ vs $\mathrm{Ri}_g$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phase portrait mapping continuous column curvature ($\eta_3$) against local gradient stability. The dashed line at $\mathrm{Ri}_c = 0.25$ marks the classical local threshold while the manifold curvature remains dynamically active across the transition.}
+    \label{fig:curvature_vs_ri_bllast}
+\end{figure}
+
+\paragraph{Structural Metrics}
+\begin{itemize}
+    \item Low-level Richardson proxy column: \texttt{ ri\_g\_2\_0 }
+    \item Best lag correlation between $d\eta_3/dt$ and $d\mathrm{Ri}_g/dt$: $R_\tau=0.248$ at lag $\tau=0.00\,\mathrm{h}$ (0 samples)
+    \item Segmented mutual information (bits): $I(\eta_3;\mathrm{Ri}_g\leq \mathrm{Ri}_c)=1.453$, $I(\eta_3;\mathrm{Ri}_g>\mathrm{Ri}_c)=n/a$
+\end{itemize}
+

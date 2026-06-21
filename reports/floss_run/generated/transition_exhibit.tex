@@ -87,3 +87,46 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
     \item Peak $|\eta_3|$ in transition window: 106.9604
 \end{itemize}
 
+\subsection{Structural Cross-Diagnostics: Curvature vs. Local Criticality}
+
+\begin{figure}[htbp]
+    \centering
+    	ikzsetnextfilename{structural-phase-portrait-floss}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.74\textwidth,
+            height=0.52\textwidth,
+            grid=major,
+            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$ (lowest mast level)},
+            ylabel={Structural Curvature Amplitude $\eta_3$},
+            title={Manifold Phase Portrait: FLOSS},
+            extra x ticks=0.25,
+            extra x tick labels={$\mathrm{Ri}_c$},
+            extra x tick style={grid=major, tick label style={above, yshift=4pt}, line width=1.0pt, dashed, color=red},
+            legend style={at={(1.04,1.0)}, anchor=north west, draw=none, fill=none}
+        ]
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=1.2pt,
+                opacity=0.4,
+                color=blue!55!magenta
+            ] table[
+                col sep=comma,
+                x={ri_g_low},
+                y={eta_3}
+            ] {../../data/outputs/structural_correlations_floss.csv};
+            \addlegendentry{$\eta_3$ vs $\mathrm{Ri}_g$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phase portrait mapping continuous column curvature ($\eta_3$) against local gradient stability. The dashed line at $\mathrm{Ri}_c = 0.25$ marks the classical local threshold while the manifold curvature remains dynamically active across the transition.}
+    \label{fig:curvature_vs_ri_floss}
+\end{figure}
+
+\paragraph{Structural Metrics}
+\begin{itemize}
+    \item Low-level Richardson proxy column: \texttt{ ri\_g\_0\_5 }
+    \item Best lag correlation between $d\eta_3/dt$ and $d\mathrm{Ri}_g/dt$: $R_\tau=0.090$ at lag $\tau=-3600.00\,\mathrm{h}$ (-12 samples)
+    \item Segmented mutual information (bits): $I(\eta_3;\mathrm{Ri}_g\leq \mathrm{Ri}_c)=1.901$, $I(\eta_3;\mathrm{Ri}_g>\mathrm{Ri}_c)=1.452$
+\end{itemize}
+

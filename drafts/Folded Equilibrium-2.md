@@ -1,7 +1,7 @@
 # Folded Equilibrium Structure in the Nocturnal Stable Boundary Layer
 
 ## Subtitle
-A geometric interpretation of regime transitions and Richardson criticality across CASES-99, FLOSS, and GABLS3
+A geometric interpretation of regime transitions and Richardson criticality across CASES-99, FLOSS, GABLS3, and BLLAST
 
 ## Central Thesis
 The nocturnal stable boundary layer is organized by a low-dimensional folded equilibrium surface. Classical transition markers, including the apparent critical Richardson threshold, appear as geometric signatures of air-column evolution across this surface rather than as purely local closure triggers.
@@ -12,7 +12,7 @@ The nocturnal stable boundary layer is organized by a low-dimensional folded equ
 - Keep mathematics visible but subordinate: methods are the measurement instrument, physics is the claim.
 
 ## Draft Abstract (Writing-Ready)
-Stable boundary layers exhibit long-recognized multiple equilibria, hysteresis, and intermittency that remain difficult to unify under local closure perspectives. Across CASES-99, FLOSS, and GABLS3, we reconstruct a low-dimensional atmospheric state surface and find a consistent folded equilibrium geometry whose branch structure organizes observed regime transitions. The apparent critical Richardson threshold emerges as a local symptom of fold-proximal column evolution, reframing classical stability criteria within a physically testable geometric framework.
+Stable boundary layers exhibit long-recognized multiple equilibria, hysteresis, and intermittency that remain difficult to unify under local closure perspectives. Across CASES-99, FLOSS, GABLS3, and BLLAST, we reconstruct a low-dimensional atmospheric state surface and find a consistent folded equilibrium geometry whose branch structure organizes observed regime transitions. We further quantify campaign-specific relationships between curvature mode evolution ($\eta_3$) and local gradient stability proxies ($\mathrm{Ri}_g$) using lag-correlation and segmented mutual-information diagnostics. These results support a geometric interpretation in which classical Richardson thresholds are informative local signatures of global state-surface evolution, while keeping causal claims explicitly constrained to what is observed in each campaign.
 
 ## Section 1. Multiple Equilibria in the Stable Boundary Layer
 
@@ -28,7 +28,7 @@ The present study bridges this gap by testing whether the historically predicted
 
 Recovering a manifold structure from field observations requires two key steps: developing a dimensionality-reduction method that preserves physically meaningful structure, and cross-validating across diverse measurement contexts to ensure the recovered topology is intrinsic to boundary-layer dynamics rather than an artifact of measurement geometry.
 
-We employ three field campaigns selected for their physical and instrumental contrast. CASES-99 \citep{Poulos2002} provides dense nocturnal transition sampling over flat grassland in the southern Great Plains, with tower-based measurements at seven discrete heights spanning 1.5–50 m. FLOSS (Forcing Layer Over Snow Surface) offers high-altitude alpine terrain with snow cover and naturally low thermal inertia, fundamentally altering surface energy budgets and radiative feedbacks. GABLS3 \citep{Beare2004} contributes an idealized large-eddy simulation with model-level resolution, providing topology validation independent of instrument clustering biases. The physical diversity is maximal: grassland versus topography, rapid radiative response versus delayed thermal evolution, observations versus simulation. If a consistent folded manifold topology emerges across all three, artifact criticism cannot stand.
+We employ four campaigns selected for physical and instrumental contrast. CASES-99 \citep{Poulos2002} provides dense nocturnal transition sampling over flat grassland in the southern Great Plains, with tower-based measurements at seven discrete heights spanning 1.5–50 m. FLOSS (Forcing Layer Over Snow Surface) offers high-altitude alpine terrain with snow cover and naturally low thermal inertia, fundamentally altering surface energy budgets and radiative feedbacks. GABLS3 \citep{Beare2004} contributes an idealized large-eddy simulation with model-level resolution, providing topology validation independent of instrument clustering biases. BLLAST targets the late-afternoon and evening decay transition, supplying a complementary forcing context where rapid convective shutdown and early stable-layer formation can be resolved continuously. The physical diversity is maximal: grassland versus alpine snowpack, transition-focused observations versus idealized simulation, and nocturnal persistence versus approach-to-night dynamics. If a consistent folded manifold topology emerges across all four, artifact criticism becomes substantially harder to sustain.
 
 The manifold is reconstructed using p-FEM (projection finite-element method), mapping multi-level profiles into smooth, spatially continuous representations. Wind and temperature measurements are fitted to Chebyshev polynomial bases, yielding smooth reconstructions and analytic derivatives. SVD of the resulting coefficient matrices produces a compact coordinate system $\eta_1, \eta_2, \eta_3$ representing dominant variability modes. The critical innovation is performing SVD in a metric-consistent inner product defined by the p-FEM mass matrix, not standard Euclidean space.
 
@@ -46,10 +46,10 @@ $$
 
 This silences the loudest reviewer objection: *"This is just an SVD artifact."* No—the basis is metric-consistent, depending on physical overlap, not sensor placement. The recovered manifold is a grounded, reproducible measurement of column state, comparable across vastly different instrumentation.
 
-Figures 1 and 2 display multi-campaign phase portraits in shared coordinates. The striking result: CASES-99, FLOSS, and GABLS3 reveal identical topology—a folded surface with two stable sheets separated by a fold curve. Campaign offsets appear (different $\eta_1$–$\eta_2$ regions), reflecting background variations. But the *manifold shape*—fold geometry, branch structure, stability properties—is invariant. This cross-campaign persistence definitively refutes artifact claims. If the structure were an SVD byproduct, it would collapse under radically different forcing and measurement contexts. Instead, topology persists, proving an intrinsic property of the stable boundary layer.
+Figures 1 and 2 display multi-campaign phase portraits in shared coordinates. The striking result is topological consistency across disparate contexts: CASES-99, FLOSS, GABLS3, and BLLAST all exhibit folded-sheet behavior with branch structure and transition corridors. Campaign offsets appear (different $\eta_1$–$\eta_2$ regions), reflecting background forcing and roughness contrasts. But the *manifold shape*—fold geometry, branch structure, stability organization—remains persistent. If the structure were only a projection artifact, it would collapse under this level of forcing and instrumentation contrast.
 
 ### Formal equation block for Section 2 (mass-matrix inner product)
-Let phi_i(z) denote p-FEM basis functions and M the corresponding mass matrix with entries
+Let $\phi_i(z)$ denote p-FEM basis functions and \(\mathbf{M}\) the corresponding mass matrix with entries
 
 $$
 M_{ij} = \int_{z_{min}}^{z_{max}} \phi_i(z)\,\phi_j(z)\,dz.
@@ -101,12 +101,36 @@ Demonstrate that catastrophic transitions align with fold geometry and that Rich
 ### Causality precision sentence
 The crossing of Ri_c is interpreted as a localized symptom of global manifold collapse, not an isolated one-point trigger that independently causes the transition.
 
+### Evidence hierarchy (observed vs inferred)
+To keep reviewer-facing claims defensible, we separate direct observations from interpretation-level hypotheses.
+
+Observed in current runs:
+- A reproducible $\eta_3$-$\mathrm{Ri}_g$ relationship exists in campaign-scoped diagnostics.
+- Lag structure between $d\eta_3/dt$ and $d\mathrm{Ri}_g/dt$ is measurable objectively.
+- Subcritical mutual information is substantial in BLLAST for the chosen low-level proxy.
+- The same diagnostics can be computed consistently across campaigns.
+
+Inferred / hypothesis-level statements (to be tested across all campaigns):
+- Global manifold deformation systematically leads local threshold crossing.
+- Local Richardson thresholds are primarily downstream shadows of folded geometry.
+- Fold-edge transversality and lag structure map one-to-one to brittle versus rubbery transition classes.
+
 ### Brittle versus rubbery fold geometry (campaign comparison seed)
 Transversality, quantified by $d\alpha/d\gamma$ at the stability crossing, provides a campaign-level geometric descriptor of fold-edge sharpness. In CASES-99, steeper transversality indicates a brittle fold geometry, where small parametric displacement can trigger rapid branch departure and catastrophic transition. In FLOSS, shallower transversality indicates a rubbery fold geometry, where trajectories can linger near marginal stability with weak wave-shedding before full branch escape. This contrast reframes campaign differences as geometric material properties of the same folded state surface.
 
 ### Figure plan
 - Figure 3: Bifurcation branch map with transition markers and termination annotations.
 - Figure 4 (focal): Ri_g(z,gamma) matrix with explicit Ri_c = 0.25 reference contour/line, highlighting supercritical wedge emergence near the fold.
+
+### Structural cross-diagnostic table (for Section 3/4 bridge)
+| Campaign | Low-level proxy | Best lag ($\tau_{best}$) | Peak lag correlation $R_{\tau}$ | $I(\eta_3;\mathrm{Ri}_g\leq 0.25)$ (bits) | $I(\eta_3;\mathrm{Ri}_g>0.25)$ (bits) | Interpretation status |
+| --- | --- | --- | --- | --- | --- | --- |
+| BLLAST | $\mathrm{Ri}_g(2\,m)$ | $\approx 0.0\,h$ | $\approx 0.248$ | $\approx 1.453$ | n/a (for selected proxy) | synchronized transition response |
+| CASES-99 | tbd | tbd | tbd | tbd | tbd | pending ALL-campaign run |
+| FLOSS | tbd | tbd | tbd | tbd | tbd | pending ALL-campaign run |
+| GABLS3 | tbd | tbd | tbd | tbd | tbd | pending ALL-campaign run |
+
+Interpretation guidance for this table: BLLAST currently supports a synchronized-evolution statement (co-evolution of structure and local stability during rapid transition), but does not by itself establish causal ordering.
 
 ### Campaign transversality comparison table (place near Figure 4)
 | Campaign | Transversality ($d\alpha/d\gamma$) | Geometric classification | Physical boundary-layer behavior |
@@ -146,6 +170,17 @@ Intermittency can be framed as deterministic orbital motion on the folded attrac
 - Branch jump -> Rapid regime transition.
 - Hysteresis loop -> Path-dependent atmospheric evolution.
 - Curvature growth -> Approach to turbulence collapse and decoupling.
+
+### Conservative wording block for manuscript integration
+Recommended wording for campaign-level claims:
+
+- BLLAST: During rapid evening transition, structural deformation ($\eta_3$) and local Richardson evolution occur nearly simultaneously, consistent with coupled response to column-scale reorganization.
+- CASES-99/FLOSS/GABLS3 (target test): If $\tau_{best}>0$ with $\eta_3$ leading, this would strengthen a precursor interpretation; if $\tau_{best}\approx0$, this supports synchronized response under faster forcing.
+
+Recommended wording to avoid until cross-campaign confirmation:
+
+- "local Richardson thresholds are purely downstream symptoms"
+- "global manifold collapse always occurs before local threshold crossing"
 
 ## Section 5. Computational Framework as an Evidence Engine
 

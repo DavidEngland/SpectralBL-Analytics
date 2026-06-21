@@ -60,21 +60,48 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
             ] {../../data/outputs/transition_panel_b_gabls3.csv};
 
         \nextgroupplot[
-            title={Panel C: Transition Window},
-            xlabel={time},
-            ylabel={$\eta_3$}
+            title={Panel C: Reconstructed $\mathrm{Ri}_g(z,\gamma)$ Structure},
+            xlabel={$\gamma$},
+            ylabel={Height $z$ [m]},
+            ymin=10.0, ymax=180.0,
+            axis lines=left,
+            point meta min=-0.5,
+            point meta max=2.5,
+            colormap/viridis,
+            colorbar,
+            colorbar style={title={$\mathrm{Ri}_g$}},
+            legend style={at={(0.98,0.05)}, anchor=south east, font=\footnotesize},
+            axis background/.style={fill=gray!2}
         ]
             \addplot[
-                color=teal!80!black,
-                line width=1.2pt,
-                mark=* ,
-                mark size=1.4pt,
-                mark options={fill=teal!80!black}
+                matrix plot*,
+                mesh/cols=4,
+                point meta=explicit
             ] table[
                 col sep=comma,
-                x=time_value,
-                y=eta_3
-            ] {../../data/outputs/transition_panel_c_gabls3.csv};
+                x=gamma,
+                y=height_z,
+                meta=ri_g
+            ] {../../data/outputs/transition_panel_c_profile_gabls3.csv};
+
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=0.5pt,
+                color=red!80!black,
+                forget plot
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=height_z,
+                row predicate/.code={
+                    \pgfmathparse{abs(\thisrow{ri_g}-0.25) < 0.02 ? 1 : 0}
+                    \ifnum\pgfmathresult=1\relax\else\pgfplotstableuserowfalse\fi
+                }
+            ] {../../data/outputs/transition_panel_c_profile_gabls3.csv};
+            \addlegendentry{$\mathrm{Ri}_c \approx 0.25$ band}
+
+            \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis description cs:0.03,0.94) {$\eta_3$ Curvature Inflexion};
 
         \end{groupplot}
     \end{tikzpicture}
@@ -87,5 +114,48 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
     \item Critical coupling estimate: 0.5405
     \item Hopf period estimate: 0.59 min
     \item Peak $|\eta_3|$ in transition window: 0.2104
+\end{itemize}
+
+\subsection{Structural Cross-Diagnostics: Curvature vs. Local Criticality}
+
+\begin{figure}[htbp]
+    \centering
+    	ikzsetnextfilename{structural-phase-portrait-gabls3}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.74\textwidth,
+            height=0.52\textwidth,
+            grid=major,
+            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$ (lowest mast level)},
+            ylabel={Structural Curvature Amplitude $\eta_3$},
+            title={Manifold Phase Portrait: GABLS3},
+            extra x ticks=0.25,
+            extra x tick labels={$\mathrm{Ri}_c$},
+            extra x tick style={grid=major, tick label style={above, yshift=4pt}, line width=1.0pt, dashed, color=red},
+            legend style={at={(1.04,1.0)}, anchor=north west, draw=none, fill=none}
+        ]
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=1.2pt,
+                opacity=0.4,
+                color=blue!55!magenta
+            ] table[
+                col sep=comma,
+                x={ri_g_low},
+                y={eta_3}
+            ] {../../data/outputs/structural_correlations_gabls3.csv};
+            \addlegendentry{$\eta_3$ vs $\mathrm{Ri}_g$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phase portrait mapping continuous column curvature ($\eta_3$) against local gradient stability. The dashed line at $\mathrm{Ri}_c = 0.25$ marks the classical local threshold while the manifold curvature remains dynamically active across the transition.}
+    \label{fig:curvature_vs_ri_gabls3}
+\end{figure}
+
+\paragraph{Structural Metrics}
+\begin{itemize}
+    \item Low-level Richardson proxy column: \texttt{ ri\_g\_10\_0 }
+    \item Best lag correlation between $d\eta_3/dt$ and $d\mathrm{Ri}_g/dt$: $R_\tau=-0.366$ at lag $\tau=-12599.96\,\mathrm{h}$ (-21 samples)
+    \item Segmented mutual information (bits): $I(\eta_3;\mathrm{Ri}_g\leq \mathrm{Ri}_c)=1.111$, $I(\eta_3;\mathrm{Ri}_g>\mathrm{Ri}_c)=n/a$
 \end{itemize}
 

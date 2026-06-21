@@ -1,0 +1,4 @@
+tikz-cache/transition-panel-bllast.pdf: ../../data/outputs/transition_panel_a_bllast.csv
+tikz-cache/transition-panel-bllast.pdf: ../../data/outputs/transition_panel_b_bllast.csv
+tikz-cache/transition-panel-bllast.pdf: ../../data/outputs/transition_panel_c_profile_bllast.csv
+tikz-cache/transition-panel-bllast.pdf: ../../data/outputs/transition_panel_c_profile_bllast.csv

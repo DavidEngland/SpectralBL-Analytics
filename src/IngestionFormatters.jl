@@ -37,7 +37,7 @@ function get_campaign_geometry(campaign::Symbol)
         return CampaignConfig("CASES-99", [1.5, 5.0, 10.0, 20.0, 30.0, 40.0, 50.0], 0.03, 0.003, 0.0)
     elseif campaign == :GABLS3
         # Cabauw tower heights: 10m, 60m, 100m, 180m
-        return CampaignConfig("GABLS3", [10.0, 60.0, 100.0, 180.0], 0.15, 0.015, 0.0)
+        return CampaignConfig("GABLS3", [10.0, 60.0, 100.0, 180.0], 0.10, 0.010, 0.0)
     elseif campaign == :ARCTIC_AMPLIFICATION
         # Arctic stable-boundary layer surrogate heights (SHEBA-informed near-surface coverage)
         return CampaignConfig("ARCTIC-AMPLIFICATION", [2.5, 10.0, 20.0, 40.0, 80.0], 0.01, 0.001, 0.0)

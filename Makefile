@@ -3,7 +3,9 @@
 # Configuration parameters
 TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
-SWEEP_DIRECTION ?= descending
+SWEEP_DIRECTION_DEFAULT := descending
+SCALE_TARGET_DEFAULT := both
+LINEAR_INDICES_DEFAULT := 1,2,3
 GAMMA_MIN_DEFAULT := 0.07
 GAMMA_MAX_DEFAULT := 1.00
 GAMMA_STEPS_DEFAULT := 50
@@ -30,7 +32,13 @@ else ifeq ($(CAMPAIGN),BLLAST)
 	GAMMA_MIN_DEFAULT := 0.001
 	GAMMA_STEPS_DEFAULT := 300
 	FORCING_VALUES_DEFAULT := 0.06,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
+	SWEEP_DIRECTION_DEFAULT := ascending
+	SCALE_TARGET_DEFAULT := linear
 endif
+
+SWEEP_DIRECTION ?= $(SWEEP_DIRECTION_DEFAULT)
+SCALE_TARGET ?= $(SCALE_TARGET_DEFAULT)
+LINEAR_INDICES ?= $(LINEAR_INDICES_DEFAULT)
 
 GAMMA_MIN ?= $(GAMMA_MIN_DEFAULT)
 GAMMA_MAX ?= $(GAMMA_MAX_DEFAULT)
@@ -152,8 +160,8 @@ stage5-sweep:
 		--gamma-max $(GAMMA_MAX) \
 		--gamma-steps $(GAMMA_STEPS) \
 		--sweep-direction $(SWEEP_DIRECTION) \
-		--scale-target both \
-		--linear-indices 1,2,3 \
+		--scale-target $(SCALE_TARGET) \
+		--linear-indices $(LINEAR_INDICES) \
 		--forcing-values $(FORCING_VALUES)
 
 stage5-panels:

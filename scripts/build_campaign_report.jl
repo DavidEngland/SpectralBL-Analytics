@@ -652,6 +652,85 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
     return tokens
 end
 
+function extract_structural_tokens(data_out_dir::String, campaign_label::String, report_run_dir::String)
+    slug = campaign_slug_local(campaign_label)
+
+    corr_path = joinpath(data_out_dir, "structural_correlations_$(slug).csv")
+    lag_path = joinpath(data_out_dir, "structural_lagcorr_$(slug).csv")
+    summary_path = joinpath(data_out_dir, "structural_correlation_summary_$(slug).json")
+
+    corr_rel = relpath(corr_path, report_run_dir)
+    lag_rel = relpath(lag_path, report_run_dir)
+    summary_rel = relpath(summary_path, report_run_dir)
+
+    tokens = Dict{String,Any}(
+        "has_structural_correlations" => false,
+        "has_structural_lag_metric" => false,
+        "has_structural_mi_metrics" => false,
+        "structural_corr_path" => corr_rel,
+        "structural_corr_path_tex" => "{" * corr_rel * "}",
+        "structural_lag_path" => lag_rel,
+        "structural_lag_path_tex" => "{" * lag_rel * "}",
+        "structural_summary_path" => summary_rel,
+        "structural_ri_low_column" => "ri_g_low",
+        "structural_ri_low_column_tex" => "ri\\_g\\_low",
+        "structural_lag_best_samples" => "n/a",
+        "structural_lag_best_hours_fmt" => "n/a",
+        "structural_lag_best_corr_fmt" => "n/a",
+        "structural_mi_subcritical_fmt" => "n/a",
+        "structural_mi_supercritical_fmt" => "n/a",
+    )
+
+    if isfile(corr_path)
+        corr_df = CSV.read(corr_path, DataFrame)
+        if nrow(corr_df) > 0
+            tokens["has_structural_correlations"] = true
+        end
+    end
+
+    if isfile(summary_path)
+        summary = JSON3.read(read(summary_path, String))
+
+        if haskey(summary, "ri_low_column") && summary["ri_low_column"] !== nothing
+            col_name = String(summary["ri_low_column"])
+            tokens["structural_ri_low_column"] = col_name
+            tokens["structural_ri_low_column_tex"] = escape_latex_text(col_name)
+        end
+
+        if haskey(summary, "lag_best_samples") && haskey(summary, "lag_best_hours") && haskey(summary, "lag_best_corr")
+            lag_best_samples = tryparse(Int, string(summary["lag_best_samples"]))
+            lag_best_hours = tryparse(Float64, string(summary["lag_best_hours"]))
+            lag_best_corr = tryparse(Float64, string(summary["lag_best_corr"]))
+            if lag_best_samples !== nothing
+                tokens["structural_lag_best_samples"] = string(lag_best_samples)
+            end
+            if lag_best_hours !== nothing && isfinite(lag_best_hours)
+                tokens["structural_lag_best_hours_fmt"] = @sprintf("%.2f", lag_best_hours)
+                tokens["has_structural_lag_metric"] = true
+            end
+            if lag_best_corr !== nothing && isfinite(lag_best_corr)
+                tokens["structural_lag_best_corr_fmt"] = @sprintf("%.3f", lag_best_corr)
+                tokens["has_structural_lag_metric"] = true
+            end
+        end
+
+        if haskey(summary, "mi_subcritical_bits") && haskey(summary, "mi_supercritical_bits")
+            mi_sub = tryparse(Float64, string(summary["mi_subcritical_bits"]))
+            mi_sup = tryparse(Float64, string(summary["mi_supercritical_bits"]))
+            if mi_sub !== nothing && isfinite(mi_sub)
+                tokens["structural_mi_subcritical_fmt"] = @sprintf("%.3f", mi_sub)
+                tokens["has_structural_mi_metrics"] = true
+            end
+            if mi_sup !== nothing && isfinite(mi_sup)
+                tokens["structural_mi_supercritical_fmt"] = @sprintf("%.3f", mi_sup)
+                tokens["has_structural_mi_metrics"] = true
+            end
+        end
+    end
+
+    return tokens
+end
+
 function extract_domec_tokens(data_out_dir::String, report_run_dir::String)
     obs_path = joinpath(data_out_dir, "domec_observations_u_dt.csv")
     lmdz103_path = joinpath(data_out_dir, "domec_lmdz103_u_dt.csv")
@@ -990,9 +1069,11 @@ function execute_orchestration(
 
         stage5_tokens = extract_stage5_summary_tokens(data_out_dir, campaign_label, report_run_dir)
         transition_tokens = extract_transition_tokens(data_out_dir, campaign_label, report_run_dir)
+        structural_tokens = extract_structural_tokens(data_out_dir, campaign_label, report_run_dir)
         domec_tokens = extract_domec_tokens(data_out_dir, report_run_dir)
         merge!(tokens, stage5_tokens)
         merge!(tokens, transition_tokens)
+        merge!(tokens, structural_tokens)
         merge!(tokens, domec_tokens)
         merge!(tokens, cross_tokens)
         

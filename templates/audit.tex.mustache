@@ -59,13 +59,19 @@
     \tikzsetnextfilename{audit-trajectory}
     \begin{tikzpicture}
         \begin{axis}[
-            width=0.88\textwidth,
+            width=0.74\textwidth,
             height=0.52\textwidth,
             grid=major,
             xlabel={time value},
             ylabel={component amplitude},
             title={Audit Trajectory Components: {{campaign_display_name}}},
-            legend style={at={(0.03,0.97)}, anchor=north west, draw=none, fill=none},
+            legend style={
+                at={(1.04,1.0)},
+                anchor=north west,
+                draw=none,
+                fill=none,
+                cells={anchor=west}
+            },
             cycle list name=color list
         ]
             \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_1}] {{{csv_trajectory_path_tex}}};

@@ -138,6 +138,55 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
     \item Hopf period estimate: {{{transition_hopf_period_fmt}}}
     \item Peak $|\eta_3|$ in transition window: {{{transition_peak_eta3_fmt}}}
 \end{itemize}
+
+{{#has_structural_correlations}}
+\subsection{Structural Cross-Diagnostics: Curvature vs. Local Criticality}
+
+\begin{figure}[htbp]
+    \centering
+    	ikzsetnextfilename{structural-phase-portrait-{{campaign_slug}}}
+    \begin{tikzpicture}
+        \begin{axis}[
+            width=0.74\textwidth,
+            height=0.52\textwidth,
+            grid=major,
+            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$ (lowest mast level)},
+            ylabel={Structural Curvature Amplitude $\eta_3$},
+            title={Manifold Phase Portrait: {{campaign_display_name}}},
+            extra x ticks={{{transition_ri_c}}},
+            extra x tick labels={$\mathrm{Ri}_c$},
+            extra x tick style={grid=major, tick label style={above, yshift=4pt}, line width=1.0pt, dashed, color=red},
+            legend style={at={(1.04,1.0)}, anchor=north west, draw=none, fill=none}
+        ]
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=1.2pt,
+                opacity=0.4,
+                color=blue!55!magenta
+            ] table[
+                col sep=comma,
+                x={ri_g_low},
+                y={eta_3}
+            ] {{{structural_corr_path_tex}}};
+            \addlegendentry{$\eta_3$ vs $\mathrm{Ri}_g$}
+        \end{axis}
+    \end{tikzpicture}
+    \caption{Phase portrait mapping continuous column curvature ($\eta_3$) against local gradient stability. The dashed line at $\mathrm{Ri}_c = {{{transition_ri_c}}}$ marks the classical local threshold while the manifold curvature remains dynamically active across the transition.}
+    \label{fig:curvature_vs_ri_{{campaign_slug}}}
+\end{figure}
+
+\paragraph{Structural Metrics}
+\begin{itemize}
+    \item Low-level Richardson proxy column: \texttt{ {{{structural_ri_low_column_tex}}} }
+{{#has_structural_lag_metric}}
+    \item Best lag correlation between $d\eta_3/dt$ and $d\mathrm{Ri}_g/dt$: $R_\tau={{{structural_lag_best_corr_fmt}}}$ at lag $\tau={{{structural_lag_best_hours_fmt}}}\,\mathrm{h}$ ({{{structural_lag_best_samples}}} samples)
+{{/has_structural_lag_metric}}
+{{#has_structural_mi_metrics}}
+    \item Segmented mutual information (bits): $I(\eta_3;\mathrm{Ri}_g\leq \mathrm{Ri}_c)={{{structural_mi_subcritical_fmt}}}$, $I(\eta_3;\mathrm{Ri}_g>\mathrm{Ri}_c)={{{structural_mi_supercritical_fmt}}}$
+{{/has_structural_mi_metrics}}
+\end{itemize}
+{{/has_structural_correlations}}
 {{/has_transition_assets}}
 
 {{^has_transition_assets}}
