@@ -1,46 +1,47 @@
 This is BibTeX, Version 0.99e (TeX Live 2026)
 Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
 The top-level auxiliary file: main.aux
-The style file: plainnat.bst
+The style file: ametsoc2014.bst
 Database file #1: refs.bib
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
 You've used 7 entries,
-            2773 wiz_defined-function locations,
-            653 strings with 6779 characters,
-and the built_in function-call counts, 4617 in all, are:
-= -- 404
-> -- 371
+            3493 wiz_defined-function locations,
+            748 strings with 6971 characters,
+and the built_in function-call counts, 8884 in all, are:
+= -- 1108
+> -- 261
 < -- 2
-+ -- 124
-- -- 117
-* -- 454
-:= -- 738
-add.period$ -- 28
++ -- 170
+- -- 66
+* -- 455
+:= -- 853
+add.period$ -- 14
 call.type$ -- 7
-change.case$ -- 59
+change.case$ -- 54
 chr.to.int$ -- 7
-cite$ -- 14
-duplicate$ -- 145
-empty$ -- 292
-format.name$ -- 128
-if$ -- 924
+cite$ -- 7
+duplicate$ -- 939
+empty$ -- 448
+format.name$ -- 84
+if$ -- 1796
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 7
-newline$ -- 50
+missing$ -- 78
+newline$ -- 32
 num.names$ -- 28
-pop$ -- 97
+pop$ -- 368
 preamble$ -- 1
-purify$ -- 52
+purify$ -- 47
 quote$ -- 0
-skip$ -- 128
+skip$ -- 571
 stack$ -- 0
-substring$ -- 207
-swap$ -- 7
+substring$ -- 460
+swap$ -- 827
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 77
+type$ -- 63
 warning$ -- 0
-while$ -- 35
+while$ -- 42
 width$ -- 0
-write$ -- 112
+write$ -- 94
