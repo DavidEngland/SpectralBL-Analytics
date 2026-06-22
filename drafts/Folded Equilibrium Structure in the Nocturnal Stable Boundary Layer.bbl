@@ -1,4 +1,4 @@
-\begin{thebibliography}{20}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \renewcommand{\UrlFont}{\rmfamily}
@@ -45,13 +45,6 @@ McNider, R.~T., D.~E. England, M.~Friedman, and X.~Shi, 1995: Predictability
   \textit{Boundary-Layer Meteorology}, \textbf{74~(1--2)}, 149--162,
   \doi{10.1007/BF00715715}.
 
-\bibitem[{McNider et~al.(2012)McNider, Pour-Biazar, Walters, Shi,, and
-  Doty}]{mcnider2012}
-McNider, R.~T., A.~Pour-Biazar, C.~Walters, X.~Shi, and K.~Doty, 2012: Multiple
-  stable solutions and surface temperature feedbacks in nocturnal stable
-  boundary layer dynamics. \textit{Journal of the Atmospheric Sciences},
-  \textbf{69~(12)}, 3410--3426, \doi{10.1175/JAS-D-11-0305.1}.
-
 \bibitem[{McNider et~al.(1993)McNider, Tripoli, Pal,, and Pielke}]{mcnider1993}
 McNider, R.~T., G.~J. Tripoli, S.~Pal, and R.~A. Pielke, 1993: Analysis of
   multiple equilibria in the nocturnal planetary boundary layer.
@@ -86,15 +79,16 @@ Poveda-Jaramillo, G., and C.~E. Puente, 1993: Early low-dimensional attractor
   \textit{Water Resources Research}, \textbf{29~(11)}, 3645--3660,
   \doi{10.1029/93WR01878}.
 
-\bibitem[{Ruelle and Takens(1971)Ruelle, and Takens}]{ruelle1971}
-Ruelle, D.~L., and F.~Takens, 1971: On the nature of turbulence.
-  \textit{Communications in Mathematical Physics}, \textbf{20~(3)}, 167--192,
-  \doi{10.1007/BF01646553}.
-
 \bibitem[{Shimizu and Kawahara(2017)Shimizu, and Kawahara}]{shimizu2017}
 Shimizu, M., and G.~Kawahara, 2017: Low-dimensional turbulence-reproducing
   systems via machine learning. \textit{Physical Review Fluids},
   \textbf{2~(10)}, 104\,602, \doi{10.1103/PhysRevFluids.2.104602}.
+
+\bibitem[{Shirer(1980)}]{shirer1980}
+Shirer, H.~N., 1980: Bifurcation and hopf-related dynamics in sheared
+  convection contexts. \textit{Journal of the Atmospheric Sciences},
+  \textbf{37~(7)}, 1586--1598,
+  \doi{10.1175/1520-0469(1980)037<1586:BAHRDI>2.0.CO;2}.
 
 \bibitem[{Stull(1988)}]{stull1988}
 Stull, R.~B., 1988: \textit{An Introduction to Boundary Layer Meteorology},

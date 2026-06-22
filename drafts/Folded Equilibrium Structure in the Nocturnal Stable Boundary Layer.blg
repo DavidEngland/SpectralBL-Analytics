@@ -1,0 +1,47 @@
+This is BibTeX, Version 0.99e (TeX Live 2026)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: Folded Equilibrium Structure in the Nocturnal Stable Boundary Layer.aux
+The style file: ametsoc2014.bst
+Database file #1: refs.bib
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+You've used 19 entries,
+            3493 wiz_defined-function locations,
+            833 strings with 9619 characters,
+and the built_in function-call counts, 20722 in all, are:
+= -- 2502
+> -- 550
+< -- 14
++ -- 354
+- -- 140
+* -- 1061
+:= -- 2056
+add.period$ -- 38
+call.type$ -- 19
+change.case$ -- 137
+chr.to.int$ -- 19
+cite$ -- 19
+duplicate$ -- 2200
+empty$ -- 1156
+format.name$ -- 184
+if$ -- 4216
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 209
+newline$ -- 68
+num.names$ -- 78
+pop$ -- 873
+preamble$ -- 1
+purify$ -- 119
+quote$ -- 0
+skip$ -- 1293
+stack$ -- 0
+substring$ -- 1056
+swap$ -- 1858
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 159
+warning$ -- 0
+while$ -- 103
+width$ -- 0
+write$ -- 236
