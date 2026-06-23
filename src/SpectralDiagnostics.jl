@@ -1,3 +1,4 @@
+# src/SpectralDiagnostics.jl
 module SpectralDiagnostics
 
 using LinearAlgebra
@@ -35,9 +36,7 @@ function compute_arctic_record(ws, day::Int; rng::AbstractRNG=MersenneTwister(88
     wave_bias = aa_phase ? 1.22 : 0.95
     temp_jump = aa_phase ? 1.75 : 0.95
 
-    base = randn(rng, nlev) .* modal_scale
-    structured = [sin(0.08 * z + 0.2 * day) for z in ws.z_atm]
-    state = base .+ structured
+    state = [randn(rng) * modal_scale + sin(0.08 * z + 0.2 * day) for z in ws.z_atm]
 
     # Effective dimension from normalized singular-value-like energies.
     cols = min(8, nlev)
@@ -48,13 +47,16 @@ function compute_arctic_record(ws, day::Int; rng::AbstractRNG=MersenneTwister(88
         d_eff = 1.0
     else
         p = energy ./ sum(energy)
-        h = -sum(pi > 0.0 ? pi * log(pi) : 0.0 for pi in p)
+        h = -sum(p_i > 0.0 ? p_i * log(p_i) : 0.0 for p_i in p)
         d_eff = exp(h)
     end
 
     # Diagnostics aligned with low-rank/high-stability Arctic framing.
     f_w = wave_bias * mean(abs.(ws.psi_W .* state))
-    chi_n = temp_jump * mean(abs.(ws.psi_T .* diff(vcat(state[1], state)))) + (aa_phase ? 0.035 : 0.0)
+    state_grad = similar(state)
+    state_grad[1] = 0.0
+    @views state_grad[2:end] .= state[2:end] .- state[1:end-1]
+    chi_n = temp_jump * mean(abs.(ws.psi_T .* state_grad)) + (aa_phase ? 0.035 : 0.0)
     ri_g = 0.16 + 0.02 * day + (aa_phase ? 0.35 : 0.08) + 0.04 * randn(rng)
 
     if aa_phase

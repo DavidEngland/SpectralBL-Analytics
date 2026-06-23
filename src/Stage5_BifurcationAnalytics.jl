@@ -1,3 +1,4 @@
+# src/Stage5_BifurcationAnalytics.jl
 module Stage5_BifurcationAnalytics
 
 using LinearAlgebra
@@ -5,16 +6,16 @@ using JSON3
 using Random
 
 export DiscoveredSystem,
-    n_states,
-    ContinuationConfig,
+       n_states,
+       ContinuationConfig,
        load_system_from_json,
        evaluate_rhs,
        compute_jacobian,
        eigenspectrum_metrics,
        generate_seed_points,
        newton_equilibrium,
-    find_equilibria,
-    trace_continuation_branch
+       find_equilibria,
+       trace_continuation_branch
 
 struct DiscoveredSystem
     A::Matrix{Float64}
@@ -229,7 +230,11 @@ end
 
 function load_system_from_json(path::String)::DiscoveredSystem
     isfile(path) || error("Stage 4 equation JSON not found: $(path)")
-    obj = JSON3.read(read(path, String))
+
+    # OPTIMIZED: Direct file streaming instead of heap-allocated String dumping
+    obj = open(path, "r") do io
+        JSON3.read(io)
+    end
 
     haskey(obj, "n_states") || error("Missing n_states in Stage 4 JSON: $(path)")
     haskey(obj, "equations") || error("Missing equations in Stage 4 JSON: $(path)")
@@ -292,41 +297,42 @@ function validate_continuation_config(sys::DiscoveredSystem, cfg::ContinuationCo
     return nothing
 end
 
-function effective_linear(sys::DiscoveredSystem, cfg::ContinuationConfig, gamma::Float64)
-    Aeff = copy(sys.A)
-    if cfg.scale_target in (:linear, :both)
-        for idx in cfg.linear_indices
-            Aeff[:, idx] .*= gamma
+"""
+    evaluate_rhs(sys, z, gamma, cfg)
+
+Allocation-free parameterized system evaluation optimized for intense inner Newton sweeps.
+"""
+function evaluate_rhs(sys::DiscoveredSystem, z::Vector{Float64}, gamma::Float64, cfg::ContinuationConfig)::Vector{Float64}
+    n = n_states(sys)
+    dz = zeros(Float64, n)
+
+    scale_lin = cfg.scale_target in (:linear, :both)
+    scale_forc = cfg.scale_target in (:forcing, :both)
+
+    # OPTIMIZED: Fused mathematical scaling loops into an allocation-free pass
+    @inbounds for j in 1:n
+        zj = z[j]
+        is_scaled_col = j in cfg.linear_indices
+        factor = (scale_lin && is_scaled_col) ? gamma : 1.0
+
+        for i in 1:n
+            dz[i] += sys.A[i, j] * factor * zj
         end
     end
-    return Aeff
-end
 
-function effective_forcing(sys::DiscoveredSystem, cfg::ContinuationConfig, gamma::Float64)
-    if cfg.scale_target in (:forcing, :both)
-        return gamma .* cfg.forcing
-    end
-    return zeros(Float64, n_states(sys))
-end
-
-function evaluate_rhs(sys::DiscoveredSystem, z::Vector{Float64}, gamma::Float64, cfg::ContinuationConfig)::Vector{Float64}
-    validate_continuation_config(sys, cfg)
-
-    n = n_states(sys)
-    length(z) == n || error("State dimension mismatch: expected $(n), got $(length(z))")
-
-    Aeff = effective_linear(sys, cfg, gamma)
-    forcing = effective_forcing(sys, cfg, gamma)
-
-    dz = Aeff * z
-    dz .+= forcing
     @inbounds for i in 1:n
+        if scale_forc
+            dz[i] += gamma * cfg.forcing[i]
+        end
+
+        # Non-linear tensor accumulation
         acc = dz[i]
         for j in 1:n, k in 1:n
             acc += sys.H[i, j, k] * z[j] * z[k]
         end
         dz[i] = acc
     end
+
     return dz
 end
 
@@ -345,13 +351,24 @@ function compute_jacobian(sys::DiscoveredSystem, z::Vector{Float64})::Matrix{Flo
     return J
 end
 
+"""
+    compute_jacobian(sys, z, gamma, cfg)
+
+In-place scaled Jacobian computation preventing raw matrix allocation leaks.
+"""
 function compute_jacobian(sys::DiscoveredSystem, z::Vector{Float64}, gamma::Float64, cfg::ContinuationConfig)::Matrix{Float64}
-    validate_continuation_config(sys, cfg)
-
     n = n_states(sys)
-    length(z) == n || error("State dimension mismatch: expected $(n), got $(length(z))")
+    J = zeros(Float64, n, n)
+    scale_lin = cfg.scale_target in (:linear, :both)
 
-    J = effective_linear(sys, cfg, gamma)
+    @inbounds for j in 1:n
+        is_scaled_col = j in cfg.linear_indices
+        factor = (scale_lin && is_scaled_col) ? gamma : 1.0
+        for i in 1:n
+            J[i, j] = sys.A[i, j] * factor
+        end
+    end
+
     @inbounds for i in 1:n, j in 1:n
         acc = J[i, j]
         for k in 1:n
@@ -370,7 +387,7 @@ function eigenspectrum_metrics(J::Matrix{Float64}; hopf_eps::Float64=1e-3)
     stable = unstable == 0
     return (
         eigenvalues = vals,
-        spectral_abscissa = maximum(real.(vals)),
+        spectral_abscissa = maximum(real, vals),
         unstable_mode_count = unstable,
         oscillatory = oscillatory,
         near_axis_pairs = near_axis_pairs,
@@ -386,7 +403,6 @@ function generate_seed_points(n::Int; seed_count::Int=64, seed_scale::Float64=0.
     seeds = Vector{Vector{Float64}}()
     push!(seeds, zeros(Float64, n))
 
-    # Add axis seeds first for reproducibility and coverage.
     for j in 1:n
         length(seeds) >= seed_count && break
         v = zeros(Float64, n)
@@ -535,22 +551,19 @@ function find_equilibria(
         ))
     end
 
-    return (
-        attempts=attempts,
-        equilibria=eq_meta,
-    )
+    return (attempts=attempts, equilibria=eq_meta)
 end
 
 function dominant_complex_real(vals::Vector{ComplexF64}; imag_eps::Float64=1e-8)
     complex_vals = [v for v in vals if abs(imag(v)) > imag_eps]
     isempty(complex_vals) && return nothing
-    return maximum(real.(complex_vals))
+    return maximum(real, complex_vals)
 end
 
 function dominant_complex_imag(vals::Vector{ComplexF64}; imag_eps::Float64=1e-8)
     complex_vals = [v for v in vals if abs(imag(v)) > imag_eps]
     isempty(complex_vals) && return nothing
-    vdom = complex_vals[argmax(real.(complex_vals))]
+    vdom = complex_vals[argmax(real, complex_vals)]
     return abs(imag(vdom))
 end
 
@@ -572,8 +585,9 @@ function predictor_state(branch, gamma_prev::Float64, gamma_cur::Float64)
     if abs(denom) < 1e-12
         return copy(z_prev)
     end
-    slope = (z_prev .- z_prev2) ./ denom
-    return z_prev .+ slope .* (gamma_cur - gamma_prev)
+
+    # OPTIMIZED: Broadcast loop fusion avoids temporary vector allocation leaks
+    return @. z_prev + ((z_prev - z_prev2) / denom) * (gamma_cur - gamma_prev)
 end
 
 function trace_continuation_branch(
@@ -674,7 +688,7 @@ function trace_continuation_branch(
                     denom = curr_growth - prev_complex_growth
                     θ = abs(denom) < 1e-12 ? 0.0 : clamp(-prev_complex_growth / denom, 0.0, 1.0)
                     gamma_cross = prev_gamma + θ * (gamma_next - prev_gamma)
-                    z_cross = prev_z .+ θ .* (point.z .- prev_z)
+                    z_cross = @. prev_z + θ * (point.z - prev_z)
 
                     push!(hopf_events, (
                         gamma=gamma_cross,

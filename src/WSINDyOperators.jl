@@ -1,3 +1,4 @@
+# src/WSINDyOperators.jl
 module WSINDyOperators
 
 using LinearAlgebra
@@ -8,6 +9,11 @@ export finite_difference,
        compute_tikhonov_operator,
        verify_operators
 
+"""
+    finite_difference(Z, dt=1.0)
+
+Computes temporal derivative trajectories using 2nd-order central differences with 1st-order edge buffers.
+"""
 function finite_difference(Z::Matrix{Float64}, dt::Float64=1.0)
     n, p = size(Z)
     n < 3 && error("Need at least 3 rows to compute finite-difference derivatives.")
@@ -44,20 +50,19 @@ function compute_wsindy_operator(Z::Matrix{Float64}, dZ::Matrix{Float64}; lambda
     n, p = size(Z)
     t = range(0.0, 1.0; length=n)
     w = @. sin(pi * t)^2 + 1e-6
-    W = Diagonal(w)
 
-    # Weak projection pushes derivative sensitivity into smooth weights.
-    lhs = Z' * W * Z + lambda * I
-    rhs = Z' * W * dZ
-    Xi = lhs \ rhs
-    return Matrix{Float64}(Xi)
+    # OPTIMIZED: Avoid explicit full-matrix Diagonal allocation via broadcast-scaling
+    ZW = Z .* w
+    lhs = Z' * ZW + lambda * I
+    rhs = ZW' * dZ
+
+    return lhs \ rhs
 end
 
 """
     compute_tikhonov_operator(Z, dZ; lambda=1e-3)
 
-Weighted least-squares with first-order smoothing regularizer.
-Weights prioritize the middle 98% of normalized domain x in [0.1, 9.9].
+Weighted least-squares with a first-order smoothing regularizer penalizing row jumps.
 """
 function compute_tikhonov_operator(Z::Matrix{Float64}, dZ::Matrix{Float64}; lambda::Float64=1e-3)
     size(Z) == size(dZ) || error("Z and dZ must have matching dimensions.")
@@ -65,19 +70,21 @@ function compute_tikhonov_operator(Z::Matrix{Float64}, dZ::Matrix{Float64}; lamb
     n, p = size(Z)
     x = range(0.0, 10.0; length=n)
     weights = [0.2 <= xi <= 9.8 ? 1.0 : 0.2 for xi in x]
-    W = Diagonal(weights)
 
+    # OPTIMIZED: Avoid explicit full-matrix Diagonal allocation via broadcast-scaling
+    ZW = Z .* weights
     L = _first_order_regularizer(p)
-    lhs = Z' * W * Z + lambda * (L' * L) + 1e-8I
-    rhs = Z' * W * dZ
-    Xi = lhs \ rhs
-    return Matrix{Float64}(Xi)
+
+    lhs = Z' * ZW + lambda * (L' * L) + 1e-8 * I
+    rhs = ZW' * dZ
+
+    return lhs \ rhs
 end
 
 """
     verify_operators(Xi_wsindy, Xi_tikhonov; gamma_crit=0.5) -> Float64
 
-Returns Frobenius norm disagreement and emits warning when above threshold.
+Returns Frobenius norm disagreement and emits warning when above a structural threshold.
 """
 function verify_operators(
     Xi_wsindy::AbstractMatrix{<:Real},
@@ -86,7 +93,8 @@ function verify_operators(
 )::Float64
     size(Xi_wsindy) == size(Xi_tikhonov) || error("Operator matrices must have identical shape.")
 
-    delta = norm(Matrix{Float64}(Xi_wsindy) .- Matrix{Float64}(Xi_tikhonov))
+    # OPTIMIZED: Computed norm directly without copying structural matrices to the heap
+    delta = norm(Xi_wsindy .- Xi_tikhonov)
     if delta > gamma_crit
         @warn "Operator disagreement exceeds critical threshold." disagreement=delta gamma_crit=gamma_crit
     end

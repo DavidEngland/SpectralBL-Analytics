@@ -1,3 +1,4 @@
+# src/Stage4_SparseRegression.jl
 module Stage4_SparseRegression
 
 using LinearAlgebra
@@ -25,18 +26,15 @@ end
 """
     build_library(Z; mode=:contract90)
 
-Build function library matrix Theta(Z).
-- :contract90 => [Z, vec(Z*Z')] per row (matches current Stage 3 contract)
-- :unique_quad_with_const => [1, Z, unique quadratic terms]
+Build function library matrix Theta(Z) avoiding unnecessary heap duplicates via in-place broadcasting.
 """
 function build_library(Z::Matrix{Float64}; mode::Symbol=:contract90)
     n, d = size(Z)
     if mode == :contract90
         Theta = Matrix{Float64}(undef, n, d + d * d)
-        Theta[:, 1:d] = Z
+        Theta[:, 1:d] .= Z  # OPTIMIZED: In-place broadcast copy
 
         # Keep a 90-column contract for d=9, but only carry unique quadratic content.
-        # For cross terms, merge (za*zb, zb*za) into the canonical slot and zero the duplicate slot.
         quad = @view Theta[:, d + 1:end]
         quad .= 0.0
         for a in 1:d
@@ -44,9 +42,9 @@ function build_library(Z::Matrix{Float64}; mode::Symbol=:contract90)
                 canon_idx = (b - 1) * d + a
                 vals = (@view Z[:, a]) .* (@view Z[:, b])
                 if a == b
-                    quad[:, canon_idx] = vals
+                    quad[:, canon_idx] .= vals
                 else
-                    quad[:, canon_idx] = 2.0 .* vals
+                    quad[:, canon_idx] .= 2.0 .* vals
                     dup_idx = (a - 1) * d + b
                     quad[:, dup_idx] .= 0.0
                 end
@@ -69,14 +67,14 @@ function build_library(Z::Matrix{Float64}; mode::Symbol=:contract90)
         q = d * (d + 1) ÷ 2
         Theta = Matrix{Float64}(undef, n, 1 + d + q)
         Theta[:, 1] .= 1.0
-        Theta[:, 2:(1 + d)] = Z
+        Theta[:, 2:(1 + d)] .= Z  # OPTIMIZED: In-place broadcast copy
         idx = 1 + d
         names = ["1"]
         append!(names, ["z$(j)" for j in 1:d])
         for a in 1:d
             for b in a:d
                 idx += 1
-                Theta[:, idx] = Z[:, a] .* Z[:, b]
+                Theta[:, idx] .= (@view Z[:, a]) .* (@view Z[:, b])
                 push!(names, "z$(a)*z$(b)")
             end
         end
@@ -94,9 +92,14 @@ function residual_norm!(tmp::Matrix{Float64}, Theta::Matrix{Float64}, Xi::Matrix
     return norm(tmp)
 end
 
+"""
+    ridge_solve(Theta, rhs; alpha=1e-4)
+
+Accepts any AbstractMatrix or AbstractVector to seamlessly handle views without copying.
+"""
 function ridge_solve(
-    Theta::Matrix{Float64},
-    rhs::Union{Vector{Float64}, Matrix{Float64}};
+    Theta::AbstractMatrix{Float64},
+    rhs::AbstractVecOrMat{Float64};
     alpha::Float64=1e-4,
 )
     alpha >= 0.0 || error("alpha must be nonnegative")
@@ -110,7 +113,7 @@ end
 """
     stls_solve(Theta, dZ; lambda_threshold=1e-3, max_iter=20)
 
-Sequential Thresholded Least Squares sparse discovery.
+Sequential Thresholded Least Squares sparse discovery framework.
 """
 function stls_solve(
     Theta::Matrix{Float64},
@@ -141,7 +144,10 @@ function stls_solve(
             end
 
             Xi[:, j] .= 0.0
-            Xi[active, j] = ridge_solve(Theta[:, active], collect(@view(dZ[:, j])); alpha=alpha)
+            # FIXED/OPTIMIZED: Removed collect() and slicing allocations by utilizing views natively
+            Theta_view = @view Theta[:, active]
+            dZ_view = @view dZ[:, j]
+            Xi[active, j] .= ridge_solve(Theta_view, dZ_view; alpha=alpha)
         end
 
         if support == support_prev
@@ -211,7 +217,12 @@ function export_discovered_equations(
         equations["$(state_prefix)$(j)"] = terms
     end
 
-    mkpath(dirname(output_json))
+    # Ensure outpath safety
+    out_dir = dirname(output_json)
+    if !isempty(out_dir)
+        mkpath(out_dir)
+    end
+
     write(output_json, JSON3.write(Dict(
         "model" => "Stage4_STLS",
         "n_features" => m,

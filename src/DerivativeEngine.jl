@@ -16,7 +16,9 @@ function load_stage4_model(stage4_json_path::String)
     if !isfile(stage4_json_path)
         return nothing
     end
-    obj = JSON3.read(read(stage4_json_path, String))
+    obj = open(stage4_json_path, "r") do io
+        JSON3.read(io)
+    end
     n_states = haskey(obj, "n_states") ? Int(obj["n_states"]) : 0
     equations = haskey(obj, "equations") ? Dict{String,Any}(pairs(obj["equations"])) : Dict{String,Any}()
     return Stage4CoefficientModel(n_states, equations)
@@ -24,6 +26,10 @@ end
 
 function analytical_profile_available(stage4_json_path::String)
     model = load_stage4_model(stage4_json_path)
+    return analytical_profile_available(model)
+end
+
+function analytical_profile_available(model::Union{Nothing,Stage4CoefficientModel})
     return model !== nothing && model.n_states > 0 && !isempty(model.equations)
 end
 
