@@ -106,9 +106,15 @@ function load_campaign_samples(campaign::Symbol, pfem_grid::Vector{Float64}; dat
         error("Unknown campaign target configuration: ", campaign)
     end
 
-    isempty(samples) && error("No usable samples found for campaign $(campaign).")
+    n_samples = length(samples)
+    n_samples == 0 && error("No usable samples found for campaign $(campaign).")
 
-    Y = hcat([s.grid_vector for s in samples]...)
+    n_grid = length(pfem_grid)
+    Y = Matrix{Float64}(undef, n_grid, n_samples)
+    for j in 1:n_samples
+        @inbounds Y[:, j] .= samples[j].grid_vector
+    end
+
     centered_Y = Y .- mean(Y; dims=2)
     svd_result = svd(centered_Y; full=false)
     target_rank = min(rank, size(svd_result.U, 2))
@@ -183,6 +189,8 @@ function read_bllast_file(path::String, config::CampaignConfig, pfem_grid::Vecto
     ncol(df) < 43 && return CampaignSample[]
 
     out = CampaignSample[]
+    z_buf = Vector{Float64}(undef, 4)
+    u_buf = Vector{Float64}(undef, 4)
     for row in eachrow(df)
         year = tryparse(Int, string(row[1]))
         month = tryparse(Int, string(row[2]))
@@ -199,17 +207,20 @@ function read_bllast_file(path::String, config::CampaignConfig, pfem_grid::Vecto
             continue
         end
 
-        z = Float64[]
-        u = Float64[]
+        valid_idx = 0
         for (zz, uu_col) in zip((15.0, 30.0, 45.0, 60.0), (39, 40, 42, 43))
             raw = row[uu_col]
             val = raw isa Number ? Float64(raw) : tryparse(Float64, string(raw))
             if val !== nothing && isfinite(val)
-                push!(z, zz)
-                push!(u, val)
+                valid_idx += 1
+                z_buf[valid_idx] = zz
+                u_buf[valid_idx] = val
             end
         end
-        length(z) < 2 && continue
+        valid_idx < 2 && continue
+
+        z = @view z_buf[1:valid_idx]
+        u = @view u_buf[1:valid_idx]
 
         z_sorted, u_sorted = sort_pairs(z, u)
         tower_vector = interpolate_profile(z_sorted, u_sorted, config.tower_heights)
@@ -610,7 +621,7 @@ function to_level_time_matrix(values)
     end
 end
 
-function sort_pairs(z::Vector{Float64}, u::Vector{Float64})
+function sort_pairs(z::AbstractVector{<:Real}, u::AbstractVector{<:Real})
     order = sortperm(z)
     z_sorted = z[order]
     u_sorted = u[order]
