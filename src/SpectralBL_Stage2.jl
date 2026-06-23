@@ -5,12 +5,12 @@ using LinearAlgebra
 using Statistics
 
 include("RegimeClassifier.jl")
-include("DelayEstimator.jl")
 include("WSINDyOperators.jl")
+include("IngestionFormatters.jl")
 
 using .RegimeClassifier
-using .DelayEstimator
 using .WSINDyOperators
+using .IngestionFormatters
 
 export AttractorState,
        DelayDiagnostics,
@@ -23,7 +23,9 @@ export AttractorState,
        compute_tikhonov_operator,
        verify_operators,
        process_stage2_window,
-       build_takens_state
+       process_stage2_spatial,
+       build_takens_state,
+       build_spatial_manifold_state
 
 struct Stage2Packet
     campaign::String
@@ -140,6 +142,110 @@ function process_stage2_window(
         LinearAlgebra.norm(Xi_tikh),
     )
 
+    return packet
+end
+
+"""
+    build_spatial_manifold_state(samples::Vector, U_r::Matrix{Float64})
+
+Constructs the spatial coordinate trajectory matrix Z by projecting grid vectors onto SVD basis.
+Each row represents a time snapshot; each column j represents the η_j coordinate.
+
+Args:
+    samples: Vector of CampaignSample objects with grid_vector fields
+    U_r: Low-rank SVD basis matrix (grid_size × rank), typically rank=3
+
+Returns:
+    Z: Matrix of shape (n_samples, rank) where Z[i,j] = (U_r[:,j])' * samples[i].grid_vector
+"""
+function build_spatial_manifold_state(samples::Vector, U_r::Matrix{Float64})
+    n_samples = length(samples)
+    rank = size(U_r, 2)
+    
+    Z = Matrix{Float64}(undef, n_samples, rank)
+    
+    for i in 1:n_samples
+        # Project centered spatial profile directly onto SVD modes: η = U_r' * u_grid
+        Z[i, :] .= U_r' * samples[i].grid_vector
+    end
+    return Z
+end
+
+"""
+    process_stage2_spatial(
+        samples::Vector,
+        U_r::Matrix{Float64},
+        times::Vector{Float64},
+        campaign::String,
+        window_start::Int,
+        window_end::Int;
+        lambda_wsindy::Float64=1e-6,
+        lambda_tikh::Float64=1e-3
+    ) -> Stage2Packet
+
+Bypasses delay estimation completely. Directly constructs spatial manifold coordinates
+and computes smooth time derivatives for SINDy identification.
+"""
+function process_stage2_spatial(
+    samples::Vector,
+    U_r::Matrix{Float64},
+    times::Vector{Float64},
+    campaign::String,
+    window_start::Int,
+    window_end::Int;
+    lambda_wsindy::Float64=1e-6,
+    lambda_tikh::Float64=1e-3,
+)
+    n_samples = length(samples)
+    rank = size(U_r, 2)
+    
+    rank >= 2 || error("Spatial manifold requires at least rank 2.")
+    length(times) == n_samples || error("times length must match samples count.")
+    
+    # Build spatial state matrix directly from SVD projection
+    # Transpose to shape (rank, n_samples) to match SINDy's spatial/temporal orientation
+    # (coordinates occupy rows, time flows horizontally along columns)
+    Z_trajectories = build_spatial_manifold_state(samples, U_r)'
+    
+    # Compute smooth time derivatives using weighted finite differences
+    dZ = finite_difference(Z_trajectories)
+    
+    # Parallel system identification paths
+    Xi_wsindy = compute_wsindy_operator(Z_trajectories, dZ; lambda=lambda_wsindy)
+    Xi_tikh = compute_tikhonov_operator(Z_trajectories, dZ; lambda=lambda_tikh)
+    disagreement = verify_operators(Xi_wsindy, Xi_tikh; gamma_crit=0.5)
+    
+    is_valid = all(isfinite, Xi_wsindy) && all(isfinite, Xi_tikh)
+    failure_reason = is_valid ? "" : "non-finite operator entries"
+    
+    # Simplified regime classification using η_1, η_2 directly
+    # Note: Z_trajectories is (rank, n_samples), so rows are coordinates, columns are time
+    eta1_view = @view Z_trajectories[1, :]
+    eta2_view = @view Z_trajectories[2, :]
+    
+    var_eta1 = n_samples > 1 ? Statistics.var(eta1_view) : 0.0
+    var_eta2 = n_samples > 1 ? Statistics.var(eta2_view) : 0.0
+    
+    packet = Stage2Packet(
+        campaign,
+        window_start,
+        window_end,
+        times[1],
+        times[end],
+        var_eta1,
+        var_eta2,
+        "spatial_projection",  # route_class
+        0,                      # tau_linear (N/A for spatial)
+        missing,                # tau_ami (N/A for spatial)
+        0,                      # selected_tau (N/A for spatial)
+        "spatial_svd_basis",   # selection_reason
+        disagreement,
+        is_valid,
+        failure_reason,
+        LinearAlgebra.norm(Xi_wsindy),
+        LinearAlgebra.norm(Xi_tikh),
+    )
+    
     return packet
 end
 

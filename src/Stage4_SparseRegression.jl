@@ -26,7 +26,13 @@ end
 """
     build_library(Z; mode=:contract90)
 
-Build function library matrix Theta(Z) avoiding unnecessary heap duplicates via in-place broadcasting.
+Build function library matrix Theta(Z) for spatial coordinates (η_1, η_2, η_3).
+
+**Key Change:** Z now contains spatial manifold coordinates from SVD projection,
+not time-delay embeddings. Library terms represent polynomial combinations of
+structural modes: η_j, η_j², η_j*η_k, etc.
+
+The library construction automatically avoids heap duplicates via in-place broadcasting.
 """
 function build_library(Z::Matrix{Float64}; mode::Symbol=:contract90)
     n, d = size(Z)

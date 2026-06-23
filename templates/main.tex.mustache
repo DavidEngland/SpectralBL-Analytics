@@ -38,7 +38,7 @@
 }
 
 \title{\textbf{SpectralBL Boundary Layer Analysis Report:}\\
-       \large Reconstructing the Nocturnal Attractor Manifold}
+        \large Reconstructing the Nocturnal Attractor Manifold}
 \author{\textbf{Automated Analytics Pipeline Engine}\\
         \small SpectralBL-Analytics Framework}
 \date{\today}
@@ -55,11 +55,12 @@ Using singular value decomposition (SVD) on multi-level vertical profile sequenc
 Structural identifier optimization resolves the underlying vector fields, which are subsequently evaluated using Stage~5 parameter continuation.
 
 {{#has_stage5_summary}}
-Parameter continuation identifies a critical manifold bifurcation at $\gamma_c \approx {{{gamma_c_fmt}}}$, where the leading stability eigenvalue changes sign with transversality rate $\left.d\alpha/d\gamma\right|_{\gamma_c} \approx {{{transversality_fmt}}}$.{{#has_stage5_period}} The crossing is accompanied by an intrinsic oscillatory period of $T_H \approx {{{period_fmt}}}\,\mathrm{min}$, indicating the emergence of wave-mediated oscillatory dynamics consistent with observed low-level jet pulsations.{{/has_stage5_period}} These diagnostics suggest that nocturnal boundary-layer intermittency may be interpreted as a geometric transition of the reconstructed low-dimensional attractor, rather than being exclusively characterized by local Richardson-number criteria.
+Parameter continuation identifies a critical manifold bifurcation at $\gamma_c \approx {{{gamma_c_fmt}}}$, where the leading stability eigenvalue changes sign with transversality rate $\left. \frac{d\alpha}{d\gamma} \right|_{\gamma_c} \approx {{{transversality_fmt}}}$.{{#has_stage5_period}} The crossing is accompanied by an intrinsic oscillatory period of $T_H \approx {{{period_fmt}}}\,\mathrm{min}$, indicating the emergence of wave-mediated oscillatory dynamics consistent with observed low-level jet pulsations.{{/has_stage5_period}} These diagnostics suggest that nocturnal boundary-layer intermittency may be interpreted as a geometric transition of the reconstructed low-dimensional attractor, rather than being exclusively characterized by local Richardson-number criteria.
 {{/has_stage5_summary}}
 {{^has_stage5_summary}}
-By projecting high-dimensional physical profile measurements onto a low-rank, continuous phase space via a p-FEM operator, we reconstruct the underlying attractor manifold.
-This framework provides an information-theoretic approach to diagnosing boundary layer complexity and mapping regime transitions where traditional surface-flux similarity theories break down.
+By projecting high-dimensional vertical profile measurements directly onto empirical spatial basis vectors extracted via singular value decomposition (SVD), we reconstruct the underlying low-dimensional attractor manifold in the space $(\eta_1, \eta_2, \eta_3)$.
+This spatial-projection framework eliminates the need for delay-embedding preprocessing, instead capturing structural modes of the boundary layer column with direct physical interpretability.
+The result is a low-rank, continuous phase space for diagnosing boundary layer complexity and mapping regime transitions where traditional surface-flux similarity theories break down.
 {{/has_stage5_summary}}
 \end{abstract}
 
@@ -69,9 +70,9 @@ This framework provides an information-theoretic approach to diagnosing boundary
 
 Traditional boundary layer parameterizations rely heavily on local gradient profiles and standard Monin-Obukhov Similarity Theory (MOST). However, in the very stable boundary layer (vSBL), the coupling between the surface layer and the upper air column is frequently severed by the development of a strong thermal inversion. The atmosphere enters a regime dominated by radiative cooling, low-level jet (LLJ) development, global intermittency, and submesoscale internal gravity waves.
 
-In these conditions, local turbulence metrics such as $\mathrm{Ri}_g$ become unreliable diagnostics: once $\mathrm{Ri}_g$ exceeds the critical stability threshold of $0.25$, classical surface-layer similarity theory predicts the collapse of continuous turbulence. In practice, however, the boundary layer does not simply switch off. Intermittent bursting, wave-mode excitation, and the residual decay of turbulent kinetic energy continue in ways that local gradient metrics are fundamentally blind to.
+In these conditions, local turbulence metrics such as $\text{Ri}_g$ become unreliable diagnostics: once $\text{Ri}_g$ exceeds the critical stability threshold of $0.25$, classical surface-layer similarity theory predicts the collapse of continuous turbulence. In practice, however, the boundary layer does not simply switch off. Intermittent bursting, wave-mode excitation, and the residual decay of turbulent kinetic energy continue in ways that local gradient metrics are fundamentally blind to.
 
-To track these non-local structural reconfigurations, the SpectralBL pipeline extracts continuous spatial pattern modes of the boundary layer state. The resulting low-rank coordinates $(\eta_1, \eta_2, \eta_3)$ correspond directly to deep physical phenomena: bulk background layer evolution, shear-driven jet modulation, and vertical wave-like structural curvature. These coordinates remain dynamically active throughout stable and super-critical-$\mathrm{Ri}_g$ conditions, providing information about boundary layer behavior that gradient-based scalings cannot access.
+To track these non-local structural reconfigurations, the SpectralBL pipeline extracts continuous spatial pattern modes of the boundary layer state. The resulting low-rank coordinates $(\eta_1, \eta_2, \eta_3)$ correspond directly to deep physical phenomena: bulk background layer evolution, shear-driven jet modulation, and vertical wave-like structural curvature. These coordinates remain dynamically active throughout stable and super-critical-$\text{Ri}_g$ conditions, providing information about boundary layer behavior that gradient-based scalings cannot access.
 
 \section{Observational Transitions and Regime Geometries}
 
@@ -109,7 +110,7 @@ To track these non-local structural reconfigurations, the SpectralBL pipeline ex
     \item Build timestamp: \today{}
     \item Campaign: \textbf{ {{campaign_label}} }
     \item Mathematical basis: p-FEM spectral projection and scale-invariant rank truncation
-    \item Stability threshold for transition diagnostics: $\mathrm{Ri}_c = 0.25$
+    \item Stability threshold for transition diagnostics: $\text{Ri}_c = 0.25$
     \item p-FEM basis/geometry dimensions are recorded in campaign stage diagnostics and operator build logs.
     \item Institutional Provenance: Core boundary-layer telemetry and analytical hosting courtesy of the University of Alabama in Huntsville (UAH), managed via the National Space Science and Technology Center (\url{https://nsstc.uah.edu}).
     \item Templating: Mustache -- active

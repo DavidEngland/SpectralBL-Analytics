@@ -16,8 +16,8 @@
             name=main_scurve,
             width=0.75\textwidth,
             height=0.55\textwidth,
-            xlabel={9\,m Wind Speed $U_{9m}$ [m\,s$^{-1}$]},
-            ylabel={Near-Surface Inversion $\Delta T = T_{9m} - T_s$ [K]},
+            xlabel={9\,m Wind Speed $U_{\text{9m}}$ [m\,s$^{-1}$]},
+            ylabel={Near-Surface Inversion $\Delta T = T_{\text{9m}} - T_s$ [K]},
             xmin=0, xmax=14,
             ymin=0, ymax=30,
             grid=both,
@@ -35,7 +35,7 @@
                 col sep=comma,
                 x=u9,
                 y=dt9
-            ] {{{csv_domec_observations}}};
+            ] {\detokenize{{{{csv_domec_observations}}}}};
             \addlegendentry{Obs.}
 
             \addplot[
@@ -46,7 +46,7 @@
                 col sep=comma,
                 x=u9,
                 y=dt9
-            ] {{{csv_domec_lmdz103}}};
+            ] {\detokenize{{{{csv_domec_lmdz103}}}}};
             \addlegendentry{LMDZ (103-level)}
 
             \addplot[
@@ -59,7 +59,7 @@
                 col sep=comma,
                 x=u9,
                 y=dt9
-            ] {{{csv_domec_erai}}};
+            ] {\detokenize{{{{csv_domec_erai}}}}};
             \addlegendentry{ERA-Interim}
         \end{axis}
 
@@ -73,7 +73,8 @@
             ymin=0, ymax=30,
             xlabel={Prob. Density},
             xticklabels={},
-            axis y line*=right,
+            yticklabels={},
+            axis y line*=left,
             axis x line*=bottom,
             grid=both,
             grid style={line width=.1pt, draw=gray!15},
@@ -87,7 +88,7 @@
                 col sep=comma,
                 x=pdf_val,
                 y=dt_bin
-            ] {{{csv_domec_obs_dt_pdf}}};
+            ] {\detokenize{{{{csv_domec_obs_dt_pdf}}}}};
 
             \addplot[
                 color=blue!75!black,
@@ -96,7 +97,7 @@
                 col sep=comma,
                 x=pdf_val,
                 y=dt_bin
-            ] {{{csv_domec_model_dt_pdf}}};
+            ] {\detokenize{{{{csv_domec_model_dt_pdf}}}}};
         \end{axis}
 
         % Bottom inset: horizontal PDF of wind speed.
@@ -121,7 +122,7 @@
                 col sep=comma,
                 x=u_bin,
                 y=pdf_val
-            ] {{{csv_domec_obs_u_pdf}}};
+            ] {\detokenize{{{{csv_domec_obs_u_pdf}}}}};
 
             \addplot[
                 color=blue!75!black,
@@ -130,11 +131,11 @@
                 col sep=comma,
                 x=u_bin,
                 y=pdf_val
-            ] {{{csv_domec_model_u_pdf}}};
+            ] {\detokenize{{{{csv_domec_model_u_pdf}}}}};
         \end{axis}
 
     \end{tikzpicture}
-    \caption{Dome C regime blueprint in the Vignon-style layout. The main panel shows the reversed S-curve relation between 9 m wind speed and near-surface inversion. The left and bottom insets provide marginalized PDFs for inversion strength and wind speed, respectively, for direct observational/model regime-comparison diagnostics.}
+    \caption{Dome C regime blueprint in the Vignon-style layout. The main panel shows the reversed S-curve relation between 9\,m wind speed and near-surface inversion. The left and bottom insets provide marginalized PDFs for inversion strength and wind speed, respectively, for direct observational/model regime-comparison diagnostics.}
     \label{fig:vignon_domec_reproduction}
 \end{figure}
 {{/has_domec_assets}}

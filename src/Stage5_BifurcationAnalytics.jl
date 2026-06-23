@@ -8,6 +8,8 @@ using Random
 export DiscoveredSystem,
        n_states,
        ContinuationConfig,
+       ContinuationParam,
+       EnhancedContinuationConfig,
        load_system_from_json,
        evaluate_rhs,
        compute_jacobian,
@@ -31,6 +33,26 @@ struct ContinuationConfig
     linear_indices::Vector{Int}
     forcing::Vector{Float64}
     hopf_eps::Float64
+end
+
+struct ContinuationParam
+    name::String              # "geostrophic_wind" or "surface_cooling_rate"
+    symbol::String            # "G" or "Q"
+    min_value::Float64
+    max_value::Float64
+    n_steps::Int
+end
+
+struct EnhancedContinuationConfig
+    gamma_min::Float64
+    gamma_max::Float64
+    gamma_steps::Int
+    sweep_direction::Symbol
+    scale_target::Symbol
+    linear_indices::Vector{Int}
+    forcing::Vector{Float64}
+    hopf_eps::Float64
+    continuation_param::ContinuationParam  # NEW: explicit environmental parameter
 end
 
 function solve_branch_point(

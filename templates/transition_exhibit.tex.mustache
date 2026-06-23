@@ -39,7 +39,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 col sep=comma,
                 x=gamma,
                 y=max_real_eig
-            ] {{{transition_panel_a_path_tex}}};
+            ] {\detokenize{{{{transition_panel_a_path_tex}}}}};
 {{#has_transition_gamma_critical}}
             \addplot[color=red, dashed, line width=0.9pt] coordinates {({{{transition_gamma_critical}}}, -0.02) ({{{transition_gamma_critical}}}, 0.02)};
             \node[anchor=north west, text=red!70!black, font=\small] at (axis cs:{{{transition_gamma_critical}}}, 0.0) {$\gamma_c$};
@@ -47,8 +47,8 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
 
         \nextgroupplot[
             title={Panel B: State-Space Projection},
-            xlabel={$z_1$},
-            ylabel={$z_2$}
+            xlabel={$\eta_1$},
+            ylabel={$\eta_2$}
         ]
             \addplot[
                 only marks,
@@ -60,11 +60,11 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 x=z1,
                 y=z2,
                 meta=z3
-            ] {{{transition_panel_b_path_tex}}};
+            ] {\detokenize{{{{transition_panel_b_path_tex}}}}};
 
 {{#has_transition_panel_c_profile}}
         \nextgroupplot[
-            title={Panel C: Reconstructed $\mathrm{Ri}_g(z,\gamma)$ Structure},
+            title={Panel C: Reconstructed $\text{Ri}_g(z,\gamma)$ Structure},
             xlabel={$\gamma$},
             ylabel={Height $z$ [m]},
             ymin={{{transition_panel_c_profile_height_min}}}, ymax={{{transition_panel_c_profile_height_max}}},
@@ -73,7 +73,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
             point meta max=2.5,
             colormap/viridis,
             colorbar,
-            colorbar style={title={$\mathrm{Ri}_g$}},
+            colorbar style={title={$\text{Ri}_g$}},
             legend style={at={(0.98,0.05)}, anchor=south east, font=\footnotesize},
             axis background/.style={fill=gray!2}
         ]
@@ -86,7 +86,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 x=gamma,
                 y=height_z,
                 meta=ri_g
-            ] {{{transition_panel_c_profile_path_tex}}};
+            ] {\detokenize{{{{transition_panel_c_profile_path_tex}}}}};
 
             \addplot[
                 only marks,
@@ -102,15 +102,15 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                     \pgfmathparse{abs(\thisrow{ri_g}-{{{transition_ri_c}}}) < 0.02 ? 1 : 0}
                     \ifnum\pgfmathresult=1\relax\else\pgfplotstableuserowfalse\fi
                 }
-            ] {{{transition_panel_c_profile_path_tex}}};
-            \addlegendentry{$\mathrm{Ri}_c \approx {{{transition_ri_c}}}$ band}
+            ] {\detokenize{{{{transition_panel_c_profile_path_tex}}}}};
+            \addlegendentry{$\text{Ri}_c \approx {{{transition_ri_c}}}$ band}
 
             \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis description cs:0.03,0.94) {$\eta_3$ Curvature Inflexion};
 {{/has_transition_panel_c_profile}}
 {{^has_transition_panel_c_profile}}
         \nextgroupplot[
             title={Panel C: Transition Window},
-            xlabel={time},
+            xlabel={Time},
             ylabel={$\eta_3$}
         ]
             \addplot[
@@ -123,7 +123,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 col sep=comma,
                 x=time_value,
                 y=eta_3
-            ] {{{transition_panel_c_path_tex}}};
+            ] {\detokenize{{{{transition_panel_c_path_tex}}}}};
 {{/has_transition_panel_c_profile}}
 
         \end{groupplot}
@@ -140,21 +140,21 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
 \end{itemize}
 
 {{#has_structural_correlations}}
-\subsection{Structural Cross-Diagnostics: Curvature vs. Local Criticality}
+\subsection{Structural Manifold Diagnostics: Spatial Coordinate vs. Local Criticality}
 
 \begin{figure}[htbp]
     \centering
-    	ikzsetnextfilename{structural-phase-portrait-{{campaign_slug}}}
+    \tikzsetnextfilename{structural-phase-portrait-{{campaign_slug}}}
     \begin{tikzpicture}
         \begin{axis}[
             width=0.74\textwidth,
             height=0.52\textwidth,
             grid=major,
-            xlabel={Gradient Richardson Number $\mathrm{Ri}_g$ (lowest mast level)},
-            ylabel={Structural Curvature Amplitude $\eta_3$},
-            title={Manifold Phase Portrait: {{campaign_display_name}}},
+            xlabel={Gradient Richardson Number $\text{Ri}_g$ (lowest mast level)},
+            ylabel={Structural Curvature Mode $\eta_3$},
+            title={Spatial-Manifold Phase Portrait: {{campaign_display_name}}},
             extra x ticks={{{transition_ri_c}}},
-            extra x tick labels={$\mathrm{Ri}_c$},
+            extra x tick labels={$\text{Ri}_c$},
             extra x tick style={grid=major, tick label style={above, yshift=4pt}, line width=1.0pt, dashed, color=red},
             legend style={at={(1.04,1.0)}, anchor=north west, draw=none, fill=none}
         ]
@@ -168,22 +168,22 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 col sep=comma,
                 x={ri_g_low},
                 y={eta_3}
-            ] {{{structural_corr_path_tex}}};
-            \addlegendentry{$\eta_3$ vs $\mathrm{Ri}_g$}
+            ] {\detokenize{{{{structural_corr_path_tex}}}}};
+            \addlegendentry{$\eta_3$ vs $\text{Ri}_g$}
         \end{axis}
     \end{tikzpicture}
-    \caption{Phase portrait mapping continuous column curvature ($\eta_3$) against local gradient stability. The dashed line at $\mathrm{Ri}_c = {{{transition_ri_c}}}$ marks the classical local threshold while the manifold curvature remains dynamically active across the transition.}
+    \caption{Spatial-manifold phase portrait: vertical structural curvature mode ($\eta_3$) tracks local gradient stability even beyond the classical Richardson collapse threshold. The dashed line at $\text{Ri}_c = {{{transition_ri_c}}}$ marks the critical value where MOST-based continuous turbulence is predicted to cease, yet the manifold coordinate $\eta_3$ remains dynamically active, capturing intermittent bursting and wave-dominated structures that Richardson number alone cannot resolve.}
     \label{fig:curvature_vs_ri_{{campaign_slug}}}
 \end{figure}
 
-\paragraph{Structural Metrics}
+\paragraph{Structural Manifold Diagnostics}
 \begin{itemize}
-    \item Low-level Richardson proxy column: \texttt{ {{{structural_ri_low_column_tex}}} }
+    \item Low-level Richardson proxy column: \texttt{\detokenize{{{{structural_ri_low_column_tex}}}}}
 {{#has_structural_lag_metric}}
-    \item Best lag correlation between $d\eta_3/dt$ and $d\mathrm{Ri}_g/dt$: $R_\tau={{{structural_lag_best_corr_fmt}}}$ at lag $\tau={{{structural_lag_best_hours_fmt}}}\,\mathrm{h}$ ({{{structural_lag_best_samples}}} samples)
+    \item Synchronous correlation between $d\eta_3/dt$ and $d\text{Ri}_g/dt$: $R_{\text{sync}}={{{structural_lag_best_corr_fmt}}}$ (direct structural coupling, no delay assumed)
 {{/has_structural_lag_metric}}
 {{#has_structural_mi_metrics}}
-    \item Segmented mutual information (bits): $I(\eta_3;\mathrm{Ri}_g\leq \mathrm{Ri}_c)={{{structural_mi_subcritical_fmt}}}$, $I(\eta_3;\mathrm{Ri}_g>\mathrm{Ri}_c)={{{structural_mi_supercritical_fmt}}}$
+    \item Modal variance distribution of $\eta_3$ across stability regimes: subcritical ($\text{Ri}_g \leq \text{Ri}_c$) exhibits $\sigma_{\eta_3,\text{sub}}^2={{{structural_mi_subcritical_fmt}}}$; supercritical ($\text{Ri}_g>\text{Ri}_c$) exhibits $\sigma_{\eta_3,\text{super}}^2={{{structural_mi_supercritical_fmt}}}$
 {{/has_structural_mi_metrics}}
 \end{itemize}
 {{/has_structural_correlations}}

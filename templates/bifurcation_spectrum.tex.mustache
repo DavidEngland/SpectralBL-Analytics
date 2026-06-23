@@ -21,7 +21,7 @@ This panel summarizes the continuation branch spectral abscissa $\alpha(\gamma)$
 \begin{figure}[htbp]
     \centering
     \usepgfplotslibrary{groupplots}
-    	tikzsetnextfilename{bifurcation-panel-{{campaign_slug}}}
+    \tikzsetnextfilename{bifurcation-panel-{{campaign_slug}}}
     \begin{tikzpicture}
         \begin{groupplot}[
             group style={
@@ -56,7 +56,7 @@ This panel summarizes the continuation branch spectral abscissa $\alpha(\gamma)$
                 col sep=comma,
                 x=gamma,
                 y=max_real_eig
-            ] {{{csv_stage5_branch_path_tex}}};
+            ] {\detokenize{{{{csv_stage5_branch_path_tex}}}}};
             \addlegendentry{$\alpha(\gamma)$}
 
 {{#has_stage5_hopf_marker}}
@@ -98,7 +98,7 @@ This panel summarizes the continuation branch spectral abscissa $\alpha(\gamma)$
                 col sep=comma,
                 x=gamma,
                 y=max_imag_eig
-            ] {{{csv_stage5_branch_path_tex}}};
+            ] {\detokenize{{{{csv_stage5_branch_path_tex}}}}};
             \addlegendentry{$\beta(\gamma)$ frequency branch}
 {{/has_stage5_beta_series}}
 {{^has_stage5_beta_series}}
@@ -145,7 +145,7 @@ Below the threshold, turbulent transport maintains communication between the sur
 Near $\gamma_c$, the attractor develops a loss of structural stability, indicated by the sign change of the leading eigenvalue, making the boundary layer increasingly susceptible to intermittent turbulence bursts and gravity-wave excitation.
 Beyond the threshold, the manifold evolves toward oscillatory dynamics consistent with observed low-level jet pulsations, wave-modulated transport, and the periodic recovery cycles characteristic of very stable conditions.
 
-This geometric framework complements local Richardson-number diagnostics by providing a globally consistent indicator of the boundary-layer stability state that remains valid through and beyond the classical collapse threshold of $\mathrm{Ri}_g = 0.25$.
+This geometric framework complements local Richardson-number diagnostics by providing a globally consistent indicator of the boundary-layer stability state that remains valid through and beyond the classical collapse threshold of $\text{Ri}_g = 0.25$.
 {{/has_stage5_hopf_marker}}
 
 {{#has_cross_comparison}}
@@ -156,7 +156,7 @@ This geometric framework complements local Richardson-number diagnostics by prov
 \caption{Discovered low-rank boundary layer structural fingerprints from automated Stage 5 summaries.}
 \label{tab:cross_campaign_stability}
 \begin{tabular}{lcccc}
-	oprule
+    \toprule
     \textbf{Campaign Regime} & $\gamma_c$ & $\beta_c\,(\mathrm{rad\,s^{-1}})$ & $T_H\,(\mathrm{min})$ & $\left.\frac{d\alpha}{d\gamma}\right|_{\gamma_c}$ \\
 \midrule
     \textbf{CASES-99} (Grassland) & {{cases_gc}} & {{cases_beta}} & {{cases_th}} & {{cases_trans}} \\

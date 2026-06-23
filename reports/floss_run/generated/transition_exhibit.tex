@@ -58,21 +58,48 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
             ] {../../data/outputs/transition_panel_b_floss.csv};
 
         \nextgroupplot[
-            title={Panel C: Transition Window},
-            xlabel={time},
-            ylabel={$\eta_3$}
+            title={Panel C: Reconstructed $\mathrm{Ri}_g(z,\gamma)$ Structure},
+            xlabel={$\gamma$},
+            ylabel={Height $z$ [m]},
+            ymin=0.5, ymax=4.0,
+            axis lines=left,
+            point meta min=-0.5,
+            point meta max=2.5,
+            colormap/viridis,
+            colorbar,
+            colorbar style={title={$\mathrm{Ri}_g$}},
+            legend style={at={(0.98,0.05)}, anchor=south east, font=\footnotesize},
+            axis background/.style={fill=gray!2}
         ]
             \addplot[
-                color=teal!80!black,
-                line width=1.2pt,
-                mark=* ,
-                mark size=1.4pt,
-                mark options={fill=teal!80!black}
+                matrix plot*,
+                mesh/cols=4,
+                point meta=explicit
             ] table[
                 col sep=comma,
-                x=time_value,
-                y=eta_3
-            ] {../../data/outputs/transition_panel_c_floss.csv};
+                x=gamma,
+                y=height_z,
+                meta=ri_g
+            ] {../../data/outputs/transition_panel_c_profile_floss.csv};
+
+            \addplot[
+                only marks,
+                mark=* ,
+                mark size=0.5pt,
+                color=red!80!black,
+                forget plot
+            ] table[
+                col sep=comma,
+                x=gamma,
+                y=height_z,
+                row predicate/.code={
+                    \pgfmathparse{abs(\thisrow{ri_g}-0.25) < 0.02 ? 1 : 0}
+                    \ifnum\pgfmathresult=1\relax\else\pgfplotstableuserowfalse\fi
+                }
+            ] {../../data/outputs/transition_panel_c_profile_floss.csv};
+            \addlegendentry{$\mathrm{Ri}_c \approx 0.25$ band}
+
+            \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis description cs:0.03,0.94) {$\eta_3$ Curvature Inflexion};
 
         \end{groupplot}
     \end{tikzpicture}

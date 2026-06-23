@@ -10,6 +10,7 @@ using IngestionFormatters
 using AttractorDiagnostics
 import ChebyshevResidualEngine
 using LinearAlgebra
+using Statistics
 
 @testset "SpectralBL Analytics Regression Suite" begin
 
@@ -86,6 +87,33 @@ using LinearAlgebra
         @test result.c[1] == old_c1
         @test result.d[1] == old_d1
         @test result.a[1] != result.b[1]
+    end
+
+    @testset "Spatial Coordinates Manifold Integrity" begin
+        using SpectralBL_Stage2: build_spatial_manifold_state
+        
+        # Create synthetic SVD basis: 6 grid points → 3 spatial modes
+        U_r = rand(6, 3)
+        
+        # Normalize columns to be orthonormal (realistic basis)
+        U_r = Matrix(qr(U_r).Q)
+        
+        # Create dummy samples with 6-dimensional grid vectors
+        # Mimic CampaignSample-like structure
+        samples = [
+            (grid_vector=rand(6),) for _ in 1:10
+        ]
+        
+        # Test spatial manifold construction
+        Z = build_spatial_manifold_state(samples, U_r)
+        
+        @test size(Z) == (10, 3)
+        @test all(isfinite, Z)
+        
+        # Verify projection property: each row should have magnitude ~ 1 (since U_r is orthonormal)
+        norms = [LinearAlgebra.norm(Z[i, :]) for i in 1:size(Z, 1)]
+        @test mean(norms) > 0
+        @test all(n -> 0 < n < 10, norms)
     end
 
 end

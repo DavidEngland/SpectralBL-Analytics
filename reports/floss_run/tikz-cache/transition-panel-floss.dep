@@ -1,3 +1,4 @@
 tikz-cache/transition-panel-floss.pdf: ../../data/outputs/transition_panel_a_floss.csv
 tikz-cache/transition-panel-floss.pdf: ../../data/outputs/transition_panel_b_floss.csv
-tikz-cache/transition-panel-floss.pdf: ../../data/outputs/transition_panel_c_floss.csv
+tikz-cache/transition-panel-floss.pdf: ../../data/outputs/transition_panel_c_profile_floss.csv
+tikz-cache/transition-panel-floss.pdf: ../../data/outputs/transition_panel_c_profile_floss.csv

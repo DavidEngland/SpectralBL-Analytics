@@ -5,7 +5,7 @@
 
 \section{Intrinsic Richardson Topology of the Manifold}
 
-By leveraging the analytical derivatives of the $p$-FEM basis functions, the Gradient Richardson number $\mathrm{Ri}_g(z, \gamma)$ is mapped directly as a continuous field across the equilibrium manifold parameter space. This eliminates finite-difference grid noise and exposes how the critical threshold $\mathrm{Ri}_c = 0.25$ emerges from the state space geometry.
+By leveraging the analytical derivatives of the $p$-FEM basis functions, the Gradient Richardson number $\text{Ri}_g(z, \gamma)$ is mapped directly as a continuous field across the equilibrium manifold parameter space. This eliminates finite-difference grid noise and exposes how the critical threshold $\text{Ri}_c = 0.25$ emerges from the state space geometry.
 
 {{#has_richardson_manifold_assets}}
 \begin{figure}[htbp]
@@ -19,13 +19,14 @@ By leveraging the analytical derivatives of the $p$-FEM basis functions, the Gra
             ylabel={Atmospheric Height $z$ [m]},
             colorbar,
             colorbar style={
-                title={$\mathrm{Ri}_g$},
+                title={$\text{Ri}_g$},
                 ytick={0, 0.25, 0.5, 1.0, 1.5, 2.0},
-                yticklabels={0, $\mathrm{Ri}_c{=}0.25$, 0.5, 1.0, 1.5, 2.0}
+                yticklabels={0, $\text{Ri}_c{=}0.25$, 0.5, 1.0, 1.5, 2.0}
             },
             view={0}{90}, % Flat 2D heat-map orientation
             colormap/viridis,
-            encodable/.style={mesh/ordering=y varies, mesh/cols={{matrix_gamma_steps}}}
+            mesh/ordering=y varies,
+            mesh/cols={{matrix_gamma_steps}}
         ]
 
             % Plot the smooth continuous Ri_g field
@@ -34,11 +35,11 @@ By leveraging the analytical derivatives of the $p$-FEM basis functions, the Gra
                 x=gamma,
                 y=height_z,
                 point meta=ri_g
-            ] {{{richardson_matrix_path_tex}}};
+            ] {\detokenize{{{{richardson_matrix_path_tex}}}}};
 
         \end{axis}
     \end{tikzpicture}
-    \caption{Continuous $\mathrm{Ri}_g(z, \gamma)$ topology for campaign \texttt{ {{campaign_display_name}} }. The color boundary at $0.25$ tracks the exact spatial horizon where the low-level jet shear fails to balance the intense nocturnal radiative inversion.}
+    \caption{Continuous $\text{Ri}_g(z, \gamma)$ topology for campaign \texttt{ {{campaign_display_name}} }. The color boundary at $0.25$ tracks the exact spatial horizon where the low-level jet shear fails to balance the intense nocturnal radiative inversion.}
     \label{fig:richardson_manifold_{{campaign_slug}}}
 \end{figure}
 {{/has_richardson_manifold_assets}}

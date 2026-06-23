@@ -22,6 +22,7 @@ Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional traject
 
 \begin{figure}[htbp]
     \centering
+    \tikzsetnextfilename{attractor-trajectory-{{campaign}}}
     \begin{tikzpicture}
         \begin{axis}[
             width=0.9\textwidth,
@@ -54,7 +55,7 @@ Figure~\ref{fig:attractor_{{campaign}}} visualizes the three-dimensional traject
                 y=eta_2,
                 z=eta_3,
                 meta=attractor_spin
-            ] {{{csv_scatter_path_tex}}};
+            ] {\detokenize{{{{csv_scatter_path_tex}}}}};
 
         \end{axis}
     \end{tikzpicture}
