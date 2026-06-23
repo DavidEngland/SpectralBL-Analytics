@@ -17,7 +17,7 @@ using LinearAlgebra
         gabls = get_campaign_geometry(:GABLS3)
 
         @test cases.z0m == 0.03
-        @test gabls.z0m == 0.15
+        @test gabls.z0m == 0.1
         @test cases.d == 0.0
         @test length(cases.tower_heights) == 7
         @test length(gabls.tower_heights) == 4

@@ -2,6 +2,7 @@
 module AttractorDiagnostics
 
 using LinearAlgebra
+using IngestionFormatters: CampaignConfig
 
 include("ChebyshevResidualEngine.jl")
 
@@ -16,7 +17,7 @@ export ChebyshevResidualResult, chebyshev_basis, fit_chebyshev_residuals
 Builds matrix A (m x n) mapping p-FEM structural nodes down to tower observation heights.
 Enforces an inner-layer log-law weighting rule for any heights close to the surface boundary.
 """
-function build_observation_operator(p_fem_grid::Vector{Float64}, config; von_karman::Float64=0.4)
+function build_observation_operator(p_fem_grid::Vector{Float64}, config::CampaignConfig; von_karman::Float64=0.4)
     m = length(config.tower_heights)
     n = length(p_fem_grid)
     A = zeros(m, n)
@@ -78,9 +79,14 @@ Extremely fast r x r low-rank trajectory inversion.
 Solves: η̂ = (RᵀR + λI)⁻¹ Rᵀb where R = A * U_r
 """
 function ridge_fit(A::Matrix{Float64}, U_r::Matrix{Float64}, b::Vector{Float64}, lambda::Float64)
+    if lambda < 0.0
+        throw(DomainError(lambda, "ridge_fit requires lambda >= 0.0"))
+    end
+    lambda_eff = lambda == 0.0 ? eps(Float64) : lambda
+
     R = A * U_r
     # Rᵀ * R forms a tiny matrix scaling exclusively with target rank (e.g. 3x3)
-    return (R' * R + lambda * I) \ (R' * b)
+    return (R' * R + lambda_eff * I) \ (R' * b)
 end
 
 """
@@ -90,13 +96,12 @@ Computes Singular Value Entropy (H). Sudden collapses in H indicate
 the physical boundary layer shifting from multi-scale turbulence down to a stratified SBL sheet.
 """
 function calculate_sv_entropy(S::Vector{Float64})
-    energy = S .^ 2
-    total_energy = sum(energy)
+    total_energy = sum(s -> s * s, S)
     if total_energy == 0.0; return 0.0; end
 
-    p = energy ./ total_energy
     entropy = 0.0
-    for pi in p
+    for s in S
+        pi = (s * s) / total_energy
         if pi > 0.0
             entropy -= pi * log(pi)
         end

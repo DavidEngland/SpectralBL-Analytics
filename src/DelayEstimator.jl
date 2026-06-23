@@ -1,3 +1,4 @@
+# src/DelayEstimator.jl
 module DelayEstimator
 
 using Statistics
@@ -19,7 +20,7 @@ struct DelayDiagnostics
     selection_reason::String
 end
 
-function _first_zero_crossing(eta1::Vector{Float64}, maxlag::Int)::Int
+function _first_zero_crossing(eta1::AbstractVector{<:Real}, maxlag::Int)::Int
     n = length(eta1)
     n < 3 && return 1
 
@@ -40,9 +41,9 @@ function _first_zero_crossing(eta1::Vector{Float64}, maxlag::Int)::Int
     return max(1, lag_max)
 end
 
-function _mutual_information(x::Vector{Float64}, y::Vector{Float64}; bins::Int=16)::Float64
+function _mutual_information(x::AbstractVector{<:Real}, y::AbstractVector{<:Real}; bins::Int=16)::Float64
     n = min(length(x), length(y))
-    n == 0 && return 0.0
+    (n == 0 || bins < 2) && return 0.0
 
     xv = @view x[1:n]
     yv = @view y[1:n]
@@ -67,22 +68,20 @@ function _mutual_information(x::Vector{Float64}, y::Vector{Float64}; bins::Int=1
         hxy[bx, by] += 1
     end
 
-    px = hx ./ n
-    py = hy ./ n
-    pxy = hxy ./ n
-
     mi = 0.0
+    inv_n = 1.0 / n
     for i in 1:bins, j in 1:bins
-        pij = pxy[i, j]
-        if pij > 0.0 && px[i] > 0.0 && py[j] > 0.0
-            mi += pij * log(pij / (px[i] * py[j]))
+        cij = hxy[i, j]
+        if cij > 0 && hx[i] > 0 && hy[j] > 0
+            pij = cij * inv_n
+            mi += pij * log((cij * n) / (hx[i] * hy[j]))
         end
     end
 
     return mi
 end
 
-function _optimize_local_ami(eta1::Vector{Float64}, tau_min::Int, tau_max::Int)::Union{Missing, Int}
+function _optimize_local_ami(eta1::AbstractVector{<:Real}, tau_min::Int, tau_max::Int)::Union{Missing, Int}
     n = length(eta1)
     n < 5 && return missing
 
@@ -93,8 +92,8 @@ function _optimize_local_ami(eta1::Vector{Float64}, tau_min::Int, tau_max::Int):
         if tau < 1 || tau >= n - 1
             continue
         end
-        x1 = collect(@view eta1[1:(n - tau)])
-        x2 = collect(@view eta1[(1 + tau):n])
+        x1 = @view eta1[1:(n - tau)]
+        x2 = @view eta1[(1 + tau):n]
         mi = _mutual_information(x1, x2)
         if mi < best_mi
             best_mi = mi
@@ -113,7 +112,7 @@ Tiered delay routing:
 2) Intermittent windows use first linear zero crossing to define local AMI search.
 """
 function estimate_delay_details(
-    eta1::Vector{Float64},
+    eta1::AbstractVector{<:Real},
     state::AttractorState;
     maxlag::Int=min(200, max(length(eta1) - 2, 1)),
 )::DelayDiagnostics
@@ -143,7 +142,7 @@ end
 
 Compatibility helper returning only selected delay.
 """
-function estimate_delay(eta1::Vector{Float64}, state::AttractorState)::Int
+function estimate_delay(eta1::AbstractVector{<:Real}, state::AttractorState)::Int
     return estimate_delay_details(eta1, state).selected_tau
 end
 
