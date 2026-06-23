@@ -45,7 +45,7 @@
                 x={eta_1},
                 y={eta_2},
                 meta={eta_3}
-            ] {\detokenize{{{{csv_scatter_path_tex}}}}};
+            ] {{{csv_scatter_path_tex}}};
         \end{axis}
     \end{tikzpicture}
     \caption{Audit scatter projection with $\eta_3$ encoded as the color channel.}
@@ -74,13 +74,13 @@
             },
             cycle list name=color list
         ]
-            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_1}] {\detokenize{{{{csv_trajectory_path_tex}}}}};
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_1}] {{{csv_trajectory_path_tex}}};
             \addlegendentry{$\eta_1$}
 
-            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_2}] {\detokenize{{{{csv_trajectory_path_tex}}}}};
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_2}] {{{csv_trajectory_path_tex}}};
             \addlegendentry{$\eta_2$}
 
-            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_3}] {\detokenize{{{{csv_trajectory_path_tex}}}}};
+            \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_3}] {{{csv_trajectory_path_tex}}};
             \addlegendentry{$\eta_3$}
         \end{axis}
     \end{tikzpicture}

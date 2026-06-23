@@ -35,7 +35,7 @@
                 col sep=comma,
                 x=u9,
                 y=dt9
-            ] {\detokenize{{{{csv_domec_observations}}}}};
+            ] {{{csv_domec_observations}}};
             \addlegendentry{Obs.}
 
             \addplot[
@@ -46,7 +46,7 @@
                 col sep=comma,
                 x=u9,
                 y=dt9
-            ] {\detokenize{{{{csv_domec_lmdz103}}}}};
+            ] {{{csv_domec_lmdz103}}};
             \addlegendentry{LMDZ (103-level)}
 
             \addplot[
@@ -59,7 +59,7 @@
                 col sep=comma,
                 x=u9,
                 y=dt9
-            ] {\detokenize{{{{csv_domec_erai}}}}};
+            ] {{{csv_domec_erai}}};
             \addlegendentry{ERA-Interim}
         \end{axis}
 
@@ -88,7 +88,7 @@
                 col sep=comma,
                 x=pdf_val,
                 y=dt_bin
-            ] {\detokenize{{{{csv_domec_obs_dt_pdf}}}}};
+            ] {{{csv_domec_obs_dt_pdf}}};
 
             \addplot[
                 color=blue!75!black,
@@ -97,7 +97,7 @@
                 col sep=comma,
                 x=pdf_val,
                 y=dt_bin
-            ] {\detokenize{{{{csv_domec_model_dt_pdf}}}}};
+            ] {{{csv_domec_model_dt_pdf}}};
         \end{axis}
 
         % Bottom inset: horizontal PDF of wind speed.
@@ -122,7 +122,7 @@
                 col sep=comma,
                 x=u_bin,
                 y=pdf_val
-            ] {\detokenize{{{{csv_domec_obs_u_pdf}}}}};
+            ] {{{csv_domec_obs_u_pdf}}};
 
             \addplot[
                 color=blue!75!black,
@@ -131,7 +131,7 @@
                 col sep=comma,
                 x=u_bin,
                 y=pdf_val
-            ] {\detokenize{{{{csv_domec_model_u_pdf}}}}};
+            ] {{{csv_domec_model_u_pdf}}};
         \end{axis}
 
     \end{tikzpicture}

@@ -39,7 +39,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 col sep=comma,
                 x=gamma,
                 y=max_real_eig
-            ] {\detokenize{{{{transition_panel_a_path_tex}}}}};
+            ] {{{transition_panel_a_path_tex}}};
 {{#has_transition_gamma_critical}}
             \addplot[color=red, dashed, line width=0.9pt] coordinates {({{{transition_gamma_critical}}}, -0.02) ({{{transition_gamma_critical}}}, 0.02)};
             \node[anchor=north west, text=red!70!black, font=\small] at (axis cs:{{{transition_gamma_critical}}}, 0.0) {$\gamma_c$};
@@ -60,7 +60,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 x=z1,
                 y=z2,
                 meta=z3
-            ] {\detokenize{{{{transition_panel_b_path_tex}}}}};
+            ] {{{transition_panel_b_path_tex}}};
 
 {{#has_transition_panel_c_profile}}
         \nextgroupplot[
@@ -86,7 +86,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 x=gamma,
                 y=height_z,
                 meta=ri_g
-            ] {\detokenize{{{{transition_panel_c_profile_path_tex}}}}};
+            ] {{{transition_panel_c_profile_path_tex}}};
 
             \addplot[
                 only marks,
@@ -102,7 +102,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                     \pgfmathparse{abs(\thisrow{ri_g}-{{{transition_ri_c}}}) < 0.02 ? 1 : 0}
                     \ifnum\pgfmathresult=1\relax\else\pgfplotstableuserowfalse\fi
                 }
-            ] {\detokenize{{{{transition_panel_c_profile_path_tex}}}}};
+            ] {{{transition_panel_c_profile_path_tex}}};
             \addlegendentry{$\text{Ri}_c \approx {{{transition_ri_c}}}$ band}
 
             \node[anchor=west, text=teal!90!black, font=\scriptsize\bfseries] at (axis description cs:0.03,0.94) {$\eta_3$ Curvature Inflexion};
@@ -123,7 +123,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 col sep=comma,
                 x=time_value,
                 y=eta_3
-            ] {\detokenize{{{{transition_panel_c_path_tex}}}}};
+            ] {{{transition_panel_c_path_tex}}};
 {{/has_transition_panel_c_profile}}
 
         \end{groupplot}
@@ -168,7 +168,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
                 col sep=comma,
                 x={ri_g_low},
                 y={eta_3}
-            ] {\detokenize{{{{structural_corr_path_tex}}}}};
+            ] {{{structural_corr_path_tex}}};
             \addlegendentry{$\eta_3$ vs $\text{Ri}_g$}
         \end{axis}
     \end{tikzpicture}
@@ -178,7 +178,7 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
 
 \paragraph{Structural Manifold Diagnostics}
 \begin{itemize}
-    \item Low-level Richardson proxy column: \texttt{\detokenize{{{{structural_ri_low_column_tex}}}}}
+    \item Low-level Richardson proxy column: {\ttfamily {{{structural_ri_low_column_tex}}}}
 {{#has_structural_lag_metric}}
     \item Synchronous correlation between $d\eta_3/dt$ and $d\text{Ri}_g/dt$: $R_{\text{sync}}={{{structural_lag_best_corr_fmt}}}$ (direct structural coupling, no delay assumed)
 {{/has_structural_lag_metric}}
