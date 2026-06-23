@@ -1,6 +1,6 @@
 # Campaign Performance Audit: GABLS3
 
-Date: 2026-06-23T10:59:55.078 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-23T12:15:39.689 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -79,21 +79,25 @@ Source data: ../../data/outputs/regime_trajectories_gabls3.csv
 
 # Appendix: Methodology & Technical Notes
 
-### A. Spectral Diagnostic Definitions
+### A. Spectral Diagnostic Definitions: SVD-Based Spatial Projection Framework
 
-The reduced-order coordinates are obtained by projecting observed vertical profiles onto the empirical low-rank basis:
+The reduced-order spatial coordinates are obtained by direct projection of observed vertical profiles onto an empirical orthonormal basis derived from singular value decomposition (SVD):
 
 $$\eta_i(t) = \mathbf{\Phi}_i^T \mathbf{z}(t)$$
 
-where $\mathbf{\Phi}_i$ is the $i$-th empirical basis vector and $\mathbf{z}(t)$ is the state vector assembled from wind speed and temperature profiles at observation time $t$.
+where $\mathbf{\Phi}_i$ is the $i$-th SVD basis vector and $\mathbf{z}(t)$ is the state vector assembled from wind speed and temperature profiles at observation time $t$. **Importantly:** This framework bypasses temporal delay embeddings entirely, instead capturing spatial structure directly through empirical basis functions. Each coordinate $\eta_i$ represents a distinct structural mode of the boundary layer column, with clear physical interpretation:
 
-The local Jacobian evaluated at a candidate equilibrium $\mathbf{z}^*$ is:
+- $\eta_1$: Bulk background mode (mean inversion strength, column depth)
+- $\eta_2$: Shear and low-level jet modulation (vertical wind profile deformation)
+- $\eta_3$: Vertical structural curvature (gravity-wave content, intermittent turbulence precursors)
 
-$$J_{ij} = \frac{\partial f_i}{\partial x_j}\Bigg|_{\mathbf{z}^*}$$
+The local Jacobian of the discovered dynamical equations is evaluated at candidate equilibria $\mathbf{\eta}^*$ in this spatial coordinate system:
 
-Stability is assessed from the eigenspectrum $\lambda = \alpha \pm i\beta$. A Hopf instability is identified when a complex conjugate pair crosses the imaginary axis ($\alpha = 0$, $\beta \neq 0$) as the continuation parameter $\gamma$ varies.
+$$J_{ij} = \frac{\partial f_i}{\partial \eta_j}\Bigg|_{\mathbf{\eta}^*}$$
 
-The primary scalar diagnostics derived from the singular value decomposition of the trajectory matrix are:
+Stability is assessed from the eigenspectrum $\lambda = \alpha \pm i\beta$. A Hopf instability is identified when a complex conjugate pair crosses the imaginary axis ($\alpha = 0$, $\beta \neq 0$) as the continuation parameter $\gamma$ varies, indicating the onset of oscillatory manifold dynamics.
+
+The primary scalar diagnostics derived from the singular value distribution are:
 
 $$H = -\sum_{i=1}^{r} p_i \log p_i$$
 
@@ -106,9 +110,9 @@ $$R_{\mathrm{exceed}} = \frac{1}{W} \sum_{w=1}^{W} \mathbf{1}\{\mathrm{disagreem
 
 ### B. Threshold and Exceedance Criteria
 
-Stage 2 routing disagreement is flagged when the operator-selection norm $\|\delta\|$ exceeds a fixed tolerance $\tau$. The exceedance rate $R_{\mathrm{exceed}}$ measures the fraction of analysis windows where this threshold is crossed. An elevated $R_{\mathrm{exceed}}$ indicates that the campaign trajectory does not resolve cleanly into a single dominant routing class, consistent with multi-scale or intermittently stable conditions.
+Stage 2 operator-selection disagreement is flagged when the weak-form (WSINDy) and Tikhonov identification paths produce operators whose norms differ by more than a fixed tolerance. The exceedance rate $R_{\mathrm{exceed}}$ measures the fraction of analysis windows where this threshold is crossed. An elevated $R_{\mathrm{exceed}}$ indicates that the spatial coordinate dynamics do not resolve cleanly into a single dominant identification path, consistent with multi-scale or intermittently transitional conditions requiring careful model selection.
 
-Outliers in the raw profile time series are identified as observations deviating more than $\pm3\sigma$ from the local running median, computed within a sub-hourly smoothing window prior to ingestion.
+Outliers in the raw profile time series are identified as observations deviating more than $\pm3\sigma$ from the local running median, computed within a sub-hourly smoothing window prior to ingestion into the SVD basis construction.
 
 ### C. Projection Method
 
