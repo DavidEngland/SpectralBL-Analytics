@@ -32,3 +32,23 @@ Under highly stable or convective conditions, Yamada's parameterization evaluate
 ### Applications and Limitations
 - **Used extensively** in mesoscale modeling (e.g., in atmospheric models like **LMDZ** and various WRF boundary layer parameterizations like **MYNN**) to simulate diurnal atmospheric boundary layer cycles.
 - **Limitation**: Like many local K-gradient schemes, it can artificially suppress mixing in heavily convective boundary layers where large eddies drive non-local, counter-gradient transport.
+
+---
+
+\subsection{Geometric regularization of local turbulence closures}
+
+The structural limitations of classical 1.5-order closures—such as the \citet{yamada1983} scheme—stem from their strict dependence on the local gradient Richardson number $\Rig$. Once stratification becomes supercritical ($\Rig > \Ric$), the traditional algebraic stability functions $S_m(\Rig)$ and $S_h(\Rig)$ collapse monotonically toward an artificial zero or a negligible residual value. This diagnostic blindness forces the prognostic transport equation for Turbulent Kinetic Energy (TKE) into a permanent, premature decay state, as local shear production $\mathcal{P}_s$ is decoupled from the column's macroscale evolution.
+
+To overcome this localized breakdown without discarding the underlying $K$-theory architecture, we introduce a non-local geometric scaling operator $\Phi$ constructed from the continuous manifold coordinates. Because the higher-order vertical structural curvature mode $\eta_3$ remains dynamically active past local saturation thresholds—registering the non-local profile warping and low-level jet acceleration that act as the structural shadow of the imminent fold—we regularize Yamada's local stability functions via a composite scaling formulation:
+\begin{equation}
+\widetilde{S}_{m,h} = S_{m,h}(\Rig) \cdot \Phi(\eta_3, \kappa_f),
+\end{equation}
+where the geometric supervisor function $\Phi$ is defined as:
+\begin{equation}
+\Phi(\eta_3, \kappa_f) = 1 + \beta_1 \cdot \exp\left( -\frac{\eta_3^2}{\sigma_\eta^2} \right) \cdot \left[ 1 - \tanh\left( \beta_2 \, \kappa_f \right) \right]^{-1}.
+\end{equation}
+Here, $\beta_1$ and $\beta_2$ are campaign-specific empirical constants, $\sigma_\eta$ represents a characteristic modal variance scale, and $\kappa_f = |d^2\eta_3/d\eta_1^2|$ is the fold-proximal curvature indicator.
+
+Physically, when the boundary layer resides on the flat, resilient portions of the coupled sheet, $\kappa_f \to 0$ and $\eta_3$ variations remain small, reducing $\Phi \to 1$ and returning control to Yamada's local gradient physics. However, as the trajectory approaches a critical topological cliff, the rapid inflation of global curvature $\eta_3$ and the sharp spikes in fold proximity $\kappa_f$ mathematically scale the stability functions upward. This non-local regularization dynamically sustains a baseline level of turbulent exchange proportional to the integrated stress accumulation of the entire column. By using the unfolded manifold coordinates to supervise the local closure, the parameterized ABL is prevented from undergoing numerical flickering or premature collapse, preserving the continuous, intermittent orbital dynamics observed across the field campaigns.
+
+

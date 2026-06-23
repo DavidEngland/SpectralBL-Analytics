@@ -1,4 +1,4 @@
-\begin{thebibliography}{19}
+\begin{thebibliography}{20}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \renewcommand{\UrlFont}{\rmfamily}
@@ -119,6 +119,12 @@ Vignon, {\'E}., B.~J. H.~V. de~Wiel, G.~J. van~de Boer, C.~Genthon, R.~A.~M.
   nocturnal boundary-layer regime over the antarctic plateau. \textit{Quarterly
   Journal of the Royal Meteorological Society}, \textbf{143~(706)}, 2049--2059,
   \doi{10.1002/qj.3066}.
+
+\bibitem[{Yamada(1983)}]{yamada1983}
+Yamada, T., 1983: Simulations of nocturnal drainage flows by a $q^2\ell$
+  turbulence closure model. \textit{Journal of the Atmospheric Sciences},
+  \textbf{40~(1)}, 91--106,
+  \doi{10.1175/1520-0469(1983)040<0091:SONDFB>2.0.CO;2}.
 
 \bibitem[{Zeeman(1977)}]{zeeman1977}
 Zeeman, E.~C., 1977: \textit{Catastrophe Theory: Selected Papers 1972--1977}.

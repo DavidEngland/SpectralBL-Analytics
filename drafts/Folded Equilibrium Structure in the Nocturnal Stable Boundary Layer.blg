@@ -4,44 +4,44 @@ The top-level auxiliary file: Folded Equilibrium Structure in the Nocturnal Stab
 The style file: ametsoc2014.bst
 Database file #1: refs.bib
 Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
-You've used 19 entries,
+You've used 20 entries,
             3493 wiz_defined-function locations,
-            833 strings with 9619 characters,
-and the built_in function-call counts, 20722 in all, are:
-= -- 2502
-> -- 550
-< -- 14
-+ -- 354
-- -- 140
-* -- 1061
-:= -- 2056
-add.period$ -- 38
-call.type$ -- 19
-change.case$ -- 137
-chr.to.int$ -- 19
-cite$ -- 19
-duplicate$ -- 2200
-empty$ -- 1156
-format.name$ -- 184
-if$ -- 4216
+            840 strings with 9783 characters,
+and the built_in function-call counts, 21679 in all, are:
+= -- 2624
+> -- 561
+< -- 15
++ -- 363
+- -- 143
+* -- 1106
+:= -- 2150
+add.period$ -- 40
+call.type$ -- 20
+change.case$ -- 143
+chr.to.int$ -- 20
+cite$ -- 20
+duplicate$ -- 2310
+empty$ -- 1214
+format.name$ -- 188
+if$ -- 4409
 int.to.chr$ -- 1
 int.to.str$ -- 1
-missing$ -- 209
-newline$ -- 68
-num.names$ -- 78
-pop$ -- 873
+missing$ -- 218
+newline$ -- 71
+num.names$ -- 82
+pop$ -- 903
 preamble$ -- 1
-purify$ -- 119
+purify$ -- 124
 quote$ -- 0
-skip$ -- 1293
+skip$ -- 1362
 stack$ -- 0
-substring$ -- 1056
-swap$ -- 1858
+substring$ -- 1110
+swap$ -- 1953
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 159
+type$ -- 168
 warning$ -- 0
-while$ -- 103
+while$ -- 109
 width$ -- 0
-write$ -- 236
+write$ -- 248
