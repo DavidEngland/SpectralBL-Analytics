@@ -1,6 +1,8 @@
+# src/ChebyshevResidualEngine.jl
 module ChebyshevResidualEngine
 
 using LinearAlgebra
+using Statistics
 
 export ChebyshevResidualResult, chebyshev_basis, fit_chebyshev_residuals
 
@@ -25,7 +27,7 @@ function chebyshev_basis(x::AbstractVector{<:Real}, order::Int)
 
     basis[:, 1] .= 1.0
     if order >= 1
-        basis[:, 2] .= collect(Float64.(x))
+        basis[:, 2] .= x
     end
     for k in 2:order
         basis[:, k + 1] .= 2.0 .* basis[:, 2] .* basis[:, k] .- basis[:, k - 1]
@@ -54,17 +56,8 @@ end
 
 function safe_groups(coefficients::Vector{Float64})
     groups = fill(0.0, 4)
-    if !isempty(coefficients)
-        groups[1] = coefficients[1]
-    end
-    if length(coefficients) >= 2
-        groups[2] = coefficients[2]
-    end
-    if length(coefficients) >= 3
-        groups[3] = coefficients[3]
-    end
-    if length(coefficients) >= 4
-        groups[4] = coefficients[4]
+    for i in 1:min(4, length(coefficients))
+        groups[i] = coefficients[i]
     end
     return groups
 end
@@ -116,7 +109,17 @@ function fit_chebyshev_residuals(
     end
 
     groups = safe_groups(coeffs)
-    return ChebyshevResidualResult(coeffs, residual_norm, fit_quality, theta_star, L_obukhov, groups, groups, groups, groups)
+    return ChebyshevResidualResult(
+        coeffs,
+        residual_norm,
+        fit_quality,
+        theta_star,
+        L_obukhov,
+        copy(groups),
+        copy(groups),
+        copy(groups),
+        copy(groups),
+    )
 end
 
 end # module

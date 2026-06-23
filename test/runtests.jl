@@ -7,6 +7,7 @@ push!(LOAD_PATH, joinpath(pwd(), "src"))
 
 using IngestionFormatters
 using AttractorDiagnostics
+import ChebyshevResidualEngine
 using LinearAlgebra
 
 @testset "SpectralBL Analytics Regression Suite" begin
@@ -69,6 +70,21 @@ using LinearAlgebra
 
         @test H_flat > H_stratified
         @test H_stratified ≈ 0.0 atol=1e-6
+    end
+
+    @testset "Chebyshev Group Aliasing Regression" begin
+        result = ChebyshevResidualEngine.fit_chebyshev_residuals([1.0, 2.0, 3.0, 4.0])
+
+        old_b1 = result.b[1]
+        old_c1 = result.c[1]
+        old_d1 = result.d[1]
+
+        result.a[1] = old_b1 + 123.456
+
+        @test result.b[1] == old_b1
+        @test result.c[1] == old_c1
+        @test result.d[1] == old_d1
+        @test result.a[1] != result.b[1]
     end
 
 end
