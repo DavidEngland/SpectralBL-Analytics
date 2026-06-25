@@ -22,41 +22,29 @@ We introduce trajectory curvature $\kappa(t) = \|\boldsymbol{\eta}' \times \bold
     \item Trajectory curvature: $\kappa(t)$ (regularized where $v > \epsilon$)
 \end{itemize}
 
-\subsection{ {{campaign_name}} Precursor Diagnostics}
+\subsection{ ALL Precursor Diagnostics}
 
 Campaign characteristics:
 \begin{itemize}
-    \item Duration: {{{duration_hours}}} hours ({{{duration_days}}} days)
-    \item Samples: {{{n_samples}}} profiles at {{{timestep_minutes}}}-minute intervals
-    \item State-space range: $\eta_3 \in [{{{eta3_min}}}, {{{eta3_max}}}]$
-    \item Mean trajectory speed: $\bar{v} = {{{mean_speed}}}$
+    \item Duration: 1463.5 hours (60.98 days)
+    \item Samples: 5600 profiles at 15.7-minute intervals
+    \item State-space range: $\eta_3 \in [-3.16, 2.45]$
+    \item Mean trajectory speed: $\bar{v} = n/a$
 \end{itemize}
 
 \begin{figure}[htbp]
     \centering
-    \includegraphics[width=\textwidth]{ {{{precursor_plot_path}}} }
-    \caption{Multi-panel geometric precursor time series for {{{campaign_name}}}. 
+    \includegraphics[width=\textwidth]{ figures/placeholder.png }
+    \caption{Multi-panel geometric precursor time series for ALL. 
     Panels show (top to bottom): Category A variance indicators, Category A autocorrelation, 
     Category B speed \& acceleration, Category B trajectory curvature (coordinate-independent), 
     and classical Richardson number. Vertical markers indicate identified transition events.}
-    \label{fig:precursor_{{{campaign_slug}}}}
+    \label{fig:precursor_all}
 \end{figure}
 
 \subsubsection{Key Observations}
 
-{{#has_curvature_spikes}}
-\textbf{Trajectory curvature exhibits sharp, isolated spikes} marking discrete transition events:
-\begin{itemize}
-    \item Peak curvature: $\kappa_{\text{max}} \approx {{{peak_curvature}}}$
-    \item {{#spike_interpretation}}{{{spike_interpretation}}}{{/spike_interpretation}}
-    {{^spike_interpretation}}Spike structure suggests fold navigation in manifold space{{/spike_interpretation}}
-\end{itemize}
-{{/has_curvature_spikes}}
 
-{{#richardson_comparison}}
-\textbf{Comparison with classical metrics}: Richardson number shows {{{richardson_behavior}}}, 
-demonstrating that geometric indicators encode information orthogonal to classical stability metrics.
-{{/richardson_comparison}}
 
 \subsection{Physical Interpretation}
 
@@ -68,25 +56,3 @@ High curvature $\kappa \gg \bar{\kappa}$ indicates trajectory \emph{sharply turn
     \item Possible precursor to bifurcation (approaching/departing critical manifold regions)
 \end{itemize}
 
-{{#lead_time_results}}
-\subsection{Lead-Time Analysis}
-
-Comparison of precursor lead times relative to identified physical events:
-
-\begin{table}[htbp]
-\centering
-\begin{tabular}{lcc}
-\hline
-Indicator & Category & Lead Time (min) \\
-\hline
-{{#lead_time_table}}
-{{indicator}} & {{category}} & {{lead_time}} \\
-{{/lead_time_table}}
-\hline
-\end{tabular}
-\caption{Precursor lead times for {{campaign_name}}. Geometric indicators (Category B) 
-compared with classical variance/autocorrelation (Category A) and Richardson number.}
-\label{tab:leadtime_{{campaign_slug}}}
-\end{table}
-
-{{/lead_time_results}}

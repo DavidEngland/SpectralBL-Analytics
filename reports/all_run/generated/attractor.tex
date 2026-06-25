@@ -12,8 +12,8 @@ The boundary layer is analyzed as a low-dimensional dynamical system through pro
 \begin{description}
     \item[Campaign:] ALL
     \item[Baseline Version:] v0.1
-    \item[Total Samples:] 79751
-    \item[Mean Entropy:] $H_{\text{mean}} = 0.407$
+    \item[Total Samples:] 5600
+    \item[Mean Entropy:] $H_{\text{mean}} = 0.122$
 \end{description}
 
 \subsection{3D Phase Space Projection}
@@ -22,6 +22,7 @@ Figure~\ref{fig:attractor_ALL} visualizes the three-dimensional trajectory $(\et
 
 \begin{figure}[htbp]
     \centering
+    \tikzsetnextfilename{attractor-trajectory-ALL}
     \begin{tikzpicture}
         \begin{axis}[
             width=0.9\textwidth,
@@ -83,9 +84,9 @@ This phase-space view acts as the compressed state engine of the atmospheric bou
 
 The mean low-rank coefficients across all samples are:
 \begin{align}
-    \langle \eta_1 \rangle &= -5.738 \\
-    \langle \eta_2 \rangle &= -0.971 \\
-    \langle \eta_3 \rangle &= -0.074
+    \langle \eta_1 \rangle &= -11.240 \\
+    \langle \eta_2 \rangle &= -0.067 \\
+    \langle \eta_3 \rangle &= 0.129
 \end{align}
 
 The magnitude of the attractor vector $\|\boldsymbol{\eta}\|$ evolves continuously throughout the campaign, reflecting the transient structural adjustments driven by diurnal heating and nocturnal radiative cooling cycles.
@@ -99,10 +100,10 @@ To preserve algorithmic invariance across divergent energy scales, rank truncati
 \begin{itemize}
     \item \textbf{Constrained modes:} $N_c = 3$
     \item \textbf{Unconstrained nullspace modes:} $N_0 = 0$
-    \item \textbf{Condition number:} $\kappa = 39.89$
-    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = 1.5650$
+    \item \textbf{Condition number:} $\kappa = 22.52$
+    \item \textbf{Shannon effective dimension:} $D_{\text{eff}} = 1.6010$
 \end{itemize}
 
-The entropy-derived $D_{\text{eff}} = 1.5650$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
+The entropy-derived $D_{\text{eff}} = 1.6010$ quantifies how many modes are actively carrying structure in practice, rather than only counting nominal basis size. Larger values indicate broader modal participation and lower compressibility of the observed boundary-layer state.
 
 \label{sec:attractor_ALL}

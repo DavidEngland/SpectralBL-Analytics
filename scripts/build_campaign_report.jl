@@ -843,10 +843,26 @@ function extract_precursor_tokens(trajectory_path::String, campaign_label::Strin
         end
     end
     
-    # Check if precursor plot exists
+    # Check if precursor plot exists - try multiple possible locations
     plot_name = "precursor_diagnostic_$(slug).png"
-    plot_path = joinpath(report_run_dir, plot_name)
-    if !isfile(plot_path)
+    plot_candidates = [
+        joinpath(report_run_dir, plot_name),  # Same directory as report
+        joinpath("reports", report_dir_for_campaign(campaign_label), plot_name),  # Official report dir
+        joinpath("reports", "$(slug)_run", plot_name),  # Slug-based dir
+        joinpath("reports", "cases_99_run", plot_name),  # Legacy CASES-99 location
+    ]
+    
+    plot_found = false
+    for candidate in plot_candidates
+        if isfile(candidate)
+            # Make path relative to report_run_dir for LaTeX
+            tokens["precursor_plot_path"] = relpath(candidate, report_run_dir)
+            plot_found = true
+            break
+        end
+    end
+    
+    if !plot_found
         tokens["precursor_plot_path"] = "figures/placeholder.png"
     end
     

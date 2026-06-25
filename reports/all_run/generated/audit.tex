@@ -10,11 +10,11 @@
 \begin{itemize}
     \item \textbf{Campaign:} ALL
     \item \textbf{Baseline:} v0.1 (spectralbl-attractor)
-    \item \textbf{Samples:} 79751
-    \item \textbf{Temporal Coverage:} 319955.7 h
-    \item \textbf{Mean Entropy:} $H_{\mathrm{mean}} = 0.407$
-    \item \textbf{Effective Dimension:} $D_{\mathrm{eff}} = 1.5650$
-    \item \textbf{Condition Number:} $\kappa = 39.89$
+    \item \textbf{Samples:} 5600
+    \item \textbf{Temporal Coverage:} 1463.5 h
+    \item \textbf{Mean Entropy:} $H_{\text{mean}} = 0.122$
+    \item \textbf{Effective Dimension:} $D_{\text{eff}} = 1.6010$
+    \item \textbf{Condition Number:} $\kappa = 22.52$
 \end{itemize}
 
 \subsection{Audit Figure A: Spectral Scatter Map}
@@ -59,13 +59,19 @@
     \tikzsetnextfilename{audit-trajectory}
     \begin{tikzpicture}
         \begin{axis}[
-            width=0.88\textwidth,
+            width=0.74\textwidth,
             height=0.52\textwidth,
             grid=major,
-            xlabel={time value},
-            ylabel={component amplitude},
+            xlabel={Time Value},
+            ylabel={Component Amplitude},
             title={Audit Trajectory Components: ALL},
-            legend style={at={(0.03,0.97)}, anchor=north west, draw=none, fill=none},
+            legend style={
+                at={(1.04,1.0)},
+                anchor=north west,
+                draw=none,
+                fill=none,
+                cells={anchor=west}
+            },
             cycle list name=color list
         ]
             \addplot+[mark=none, line width=0.9pt] table[col sep=comma, x={time_value}, y={eta_1}] {../../data/outputs/regime_trajectories_all.csv};
@@ -85,7 +91,7 @@
 \subsection{Audit Notes}
 
 \begin{itemize}
-    \item Low-rank modal partition: constrained $N_c = 3$, nullspace $N_0 = 0$.
+    \item Low-rank modal partition: constrained $N_c = 3$, nullspace $N_0 = 0.$
     \item Interaction proxy: $\mathcal{I}_{ij} = 0.000000$
-    \item Surface roughness context: $z_{0m} = 0.004 m$
+    \item Surface roughness context: $z_{0m} = 0.050 m$
 \end{itemize}

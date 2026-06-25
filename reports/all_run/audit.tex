@@ -1,4 +1,8 @@
 % templates/audit_main.tex.mustache
+% MAIN CAMPAIGN REPORT DRIVER WRAPPER
+% Rendered by scripts/build_campaign_report.jl
+% DO NOT EDIT MANUALLY
+
 \documentclass[11pt,a4paper]{article}
 
 \usepackage{amsmath}
@@ -9,12 +13,14 @@
 \usepackage{pgfplots}
 \usepackage{tikz}
 
+% Standardized plot system defaults
 \pgfplotsset{
     unbounded coords=discard,
     filter discard warning=false,
     compat=1.18
 }
 
+% Isolate high-overhead TikZ matrix calculations into dedicated build cache
 \usepgfplotslibrary{external}
 \tikzexternalize[prefix=tikz-cache/]
 
@@ -28,6 +34,7 @@
 
 \maketitle
 
+% Structural core elements populated via sub-template inputs
 \input{generated/audit.tex}
 
 \end{document}
