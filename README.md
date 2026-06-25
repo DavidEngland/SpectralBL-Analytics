@@ -1,5 +1,27 @@
 # SpectralBL-Analytics
 
+---
+## 🎯 **NEW: Phase 1 Geometric Precursor Analysis - VALIDATED ✅**
+
+**Status**: Multi-campaign validation SUCCESSFUL (June 2026)
+
+We've implemented **trajectory curvature κ(t) as a coordinate-independent early-warning signal** for SBL regime transitions:
+
+- ✅ **GABLS3** (24h diurnal): Sharp curvature spikes at transition periods
+- ✅ **CASES-99** (686h multi-month): Isolated spikes every ~2-3 days matching synoptic timescales  
+- ✅ **Scale-invariant**: Peak κ ~ 1000-2000 despite 240× difference in state-space excursions
+- ✅ **Orthogonal to classical metrics**: Independent of Richardson number
+
+**Quick Start**: [`QUICKSTART_PHASE1.md`](QUICKSTART_PHASE1.md) | **Results**: [`reports/PHASE1_MULTICAMPAIGN_RESULTS.md`](reports/PHASE1_MULTICAMPAIGN_RESULTS.md)
+
+```bash
+julia --project=. scripts/precursor_diagnostic.jl gabls3
+julia --project=. scripts/precursor_diagnostic.jl cases_99
+```
+---
+
+## Overview
+
 SpectralBL-Analytics is a Julia-based atmospheric boundary layer (ABL) diagnostics and reporting pipeline. It ingests campaign observations, projects profiles into a reduced attractor space, computes physically interpretable metrics, and renders publication-ready TeX/PDF outputs.
 
 Production workflows support CASES-99 (tower data), GABLS3 (Cabauw observations), and FLOSS (Fluxes Over Snow Surfaces). Experimental support for SMEAR-I, NEON, ICOS, and SHEBA campaigns is available via the SmearPipeline adapter ecosystem. All workflows include automated report generation with PGFPlots externalized figures.

@@ -1,7 +1,6 @@
 .PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report bllast-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit bllast-audit arctic-audit
 
 # Configuration parameters
-TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
 CAMPAIGN ?= ALL
 SWEEP_DIRECTION_DEFAULT := descending
 SCALE_TARGET_DEFAULT := both
@@ -10,6 +9,21 @@ GAMMA_MIN_DEFAULT := 0.07
 GAMMA_MAX_DEFAULT := 1.00
 GAMMA_STEPS_DEFAULT := 50
 FORCING_VALUES_DEFAULT := 0.05,0.02,0.0,0.01,0.0,0.0,0.0,0.0,0.0
+
+# Set campaign-specific trajectory file
+ifeq ($(CAMPAIGN),CASES-99)
+	TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_cases_99.csv
+else ifeq ($(CAMPAIGN),GABLS3)
+	TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_gabls3.csv
+else ifeq ($(CAMPAIGN),FLOSS)
+	TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_floss.csv
+else ifeq ($(CAMPAIGN),BLLAST)
+	TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_bllast.csv
+else ifeq ($(CAMPAIGN),ARCTIC-AMPLIFICATION)
+	TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_arctic_amplification.csv
+else
+	TRAJECTORY_CSV ?= data/drafts/trajectories/trajectory_master.csv
+endif
 
 # Set dynamic defaults based on Campaign choice
 ifeq ($(CAMPAIGN),DOMEC)
@@ -231,24 +245,29 @@ arctic-audit: process audit compile-audit
 	@echo "Lean audit generation complete: check reports/arctic_amplification_run/campaign_audit.md and ARCTIC-AMPLIFICATION-audit.pdf"
 
 cases99-report: CAMPAIGN=CASES-99
+cases99-report: TRAJECTORY_CSV=data/drafts/trajectories/trajectory_cases_99.csv
 cases99-report: process tex report audit compile-report
 	@echo "CASES-99 report and lean audit pipeline complete."
 
 gabls3-report: cabauw-report
 
 cabauw-report: CAMPAIGN=GABLS3
+cabauw-report: TRAJECTORY_CSV=data/drafts/trajectories/trajectory_gabls3.csv
 cabauw-report: process tex report audit compile-report
 	@echo "Cabauw/GABLS3 report and lean audit pipeline complete."
 
 arctic-report: CAMPAIGN=ARCTIC-AMPLIFICATION
+arctic-report: TRAJECTORY_CSV=data/drafts/trajectories/trajectory_arctic_amplification.csv
 arctic-report: process tex report audit compile-report
 	@echo "Arctic amplification report and lean audit pipeline complete."
 
 floss-report: CAMPAIGN=FLOSS
+floss-report: TRAJECTORY_CSV=data/drafts/trajectories/trajectory_floss.csv
 floss-report: process tex report audit compile-report
 	@echo "FLOSS snowpack report and lean audit pipeline complete."
 
 bllast-report: CAMPAIGN=BLLAST
+bllast-report: TRAJECTORY_CSV=data/drafts/trajectories/trajectory_bllast.csv
 bllast-report: process tex report audit compile-report
 	@echo "BLLAST transition report and lean audit pipeline complete."
 
@@ -272,3 +291,29 @@ purge: clean
 	rm -rf data/outputs/*
 	cd reports/cases99_run && latexmk -C
 	if [ -d reports/floss_run ]; then cd reports/floss_run && latexmk -C; fi
+# ============================================================================
+# Phase 1: Geometric Precursor Analysis
+# ============================================================================
+
+.PHONY: phase1-all phase1-gabls3 phase1-cases_99 phase1-floss phase1-bllast
+
+phase1-all: phase1-gabls3 phase1-cases_99 phase1-floss phase1-bllast
+	@echo "✅ Phase 1 analysis complete for all campaigns"
+	@echo "Results in reports/*_run/precursor_diagnostic_*.png"
+	@echo "Summary: reports/PHASE1_ALL_CAMPAIGNS.md"
+
+phase1-gabls3:
+	@echo "Running Phase 1 geometric precursor analysis on GABLS3..."
+	julia --project="." scripts/precursor_diagnostic.jl gabls3
+
+phase1-cases_99:
+	@echo "Running Phase 1 geometric precursor analysis on CASES-99..."
+	julia --project="." scripts/precursor_diagnostic.jl cases_99
+
+phase1-floss:
+	@echo "Running Phase 1 geometric precursor analysis on FLOSS..."
+	julia --project="." scripts/precursor_diagnostic.jl floss
+
+phase1-bllast:
+	@echo "Running Phase 1 geometric precursor analysis on BLLAST..."
+	julia --project="." scripts/precursor_diagnostic.jl bllast

@@ -28,6 +28,7 @@ const REGISTRY = [
     ReportDefinition("domec_transition", "templates/domec_transition.tex.mustache", "generated/domec_transition.tex"),
     ReportDefinition("attractor", "templates/attractor_report.tex.mustache", "generated/attractor.tex"),
     ReportDefinition("regime", "templates/regime_decomposition.tex.mustache", "generated/regime.tex"),
+    ReportDefinition("geometric_precursors", "templates/geometric_precursors.tex.mustache", "generated/geometric_precursors.tex"),
     ReportDefinition("bifurcation", "templates/bifurcation_spectrum.tex.mustache", "generated/bifurcation_spectrum.tex"),
     ReportDefinition("transitions", "templates/transition_exhibit.tex.mustache", "generated/transition_exhibit.tex"),
     ReportDefinition("conclusions", "templates/conclusions_and_diagnostics.tex.mustache", "generated/conclusions_and_diagnostics.tex"),
@@ -788,6 +789,70 @@ function build_visual_exhibits(rel_traj::String, rel_scatter::String)
     ]
 end
 
+function extract_precursor_tokens(trajectory_path::String, campaign_label::String, report_run_dir::String)
+    slug = campaign_slug_local(campaign_label)
+    
+    # Default tokens
+    tokens = Dict{String,Any}(
+        "duration_hours" => "n/a",
+        "duration_days" => "n/a",
+        "n_samples" => "n/a",
+        "timestep_minutes" => "n/a",
+        "eta3_min" => "n/a",
+        "eta3_max" => "n/a",
+        "mean_speed" => "n/a",
+        "precursor_plot_path" => "precursor_diagnostic_$(slug).png",
+        "has_curvature_spikes" => false,
+        "peak_curvature" => "n/a",
+        "spike_interpretation" => "",
+        "richardson_comparison" => false,
+        "richardson_behavior" => "similar patterns"
+    )
+    
+    # Try to read trajectory data and compute basic stats
+    if isfile(trajectory_path)
+        try
+            df = CSV.read(trajectory_path, DataFrame)
+            if nrow(df) > 0
+                tokens["n_samples"] = string(nrow(df))
+                
+                # Compute duration if time_value exists
+                if hasproperty(df, :time_value)
+                    time_vals = df.time_value
+                    duration_sec = maximum(time_vals) - minimum(time_vals)
+                    duration_hours = duration_sec / 3600.0
+                    tokens["duration_hours"] = @sprintf("%.1f", duration_hours)
+                    tokens["duration_days"] = @sprintf("%.2f", duration_hours / 24.0)
+                    
+                    # Estimate timestep
+                    if nrow(df) > 1
+                        timestep_sec = duration_sec / (nrow(df) - 1)
+                        tokens["timestep_minutes"] = @sprintf("%.1f", timestep_sec / 60.0)
+                    end
+                end
+                
+                # Compute eta3 range
+                if hasproperty(df, :eta_3)
+                    eta3_vals = df.eta_3
+                    tokens["eta3_min"] = @sprintf("%.2f", minimum(eta3_vals))
+                    tokens["eta3_max"] = @sprintf("%.2f", maximum(eta3_vals))
+                end
+            end
+        catch e
+            @warn "Could not extract precursor stats from trajectory: $e"
+        end
+    end
+    
+    # Check if precursor plot exists
+    plot_name = "precursor_diagnostic_$(slug).png"
+    plot_path = joinpath(report_run_dir, plot_name)
+    if !isfile(plot_path)
+        tokens["precursor_plot_path"] = "figures/placeholder.png"
+    end
+    
+    return tokens
+end
+
 function render_audit_entrypoint(report_run_dir::String, campaign_label::String)
     audit_main_template = joinpath("templates", "audit_main.tex.mustache")
     if !isfile(audit_main_template)
@@ -1071,10 +1136,12 @@ function execute_orchestration(
         transition_tokens = extract_transition_tokens(data_out_dir, campaign_label, report_run_dir)
         structural_tokens = extract_structural_tokens(data_out_dir, campaign_label, report_run_dir)
         domec_tokens = extract_domec_tokens(data_out_dir, report_run_dir)
+        precursor_tokens = extract_precursor_tokens(export_result.trajectory_csv, campaign_label, report_run_dir)
         merge!(tokens, stage5_tokens)
         merge!(tokens, transition_tokens)
         merge!(tokens, structural_tokens)
         merge!(tokens, domec_tokens)
+        merge!(tokens, precursor_tokens)
         merge!(tokens, cross_tokens)
         
         @info "Rendering template: $(report.name) -> $(full_tex_target)"

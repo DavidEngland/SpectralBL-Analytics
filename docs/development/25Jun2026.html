@@ -1,0 +1,1642 @@
+<div class="markdown prose dark:prose-invert wrap-break-word w-full light markdown-new-styling">
+    <p data-start="0" data-end="65">I think the answer depends on what you want SpectralBL to become.</p>
+    <p data-start="67" data-end="202">
+        Right now, your scientific bottleneck is
+        <strong data-start="108" data-end="123">not storage</strong>
+        . It is
+        <strong data-start="131" data-end="201">establishing that η-space contains physically meaningful structure</strong>
+        .
+    </p>
+    <p data-start="204" data-end="272">Because of that, I would not start by implementing all seven layers.</p>
+    <h2 data-section-id="viis6r" data-start="274" data-end="301">Phase 1: Layers 1–4 Only</h2>
+    <p data-start="303" data-end="309">Build:</p>
+    <pre class="overflow-visible! px-0!" data-start="311" data-end="403">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>CASES99</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Canonical Profile</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Derived State</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>SpectralBL Coordinates</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="405" data-end="430">and stop there initially.</p>
+    <p data-start="432" data-end="451">In practical terms:</p>
+    <pre class="overflow-visible! px-0!" data-start="453" data-end="514">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>NetCDF</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Profile</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Parquet</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>η1,η2,η3</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="516" data-end="538">The goal is answering:</p>
+    <blockquote data-start="540" data-end="618">
+        <p data-start="542" data-end="618">Do stable boundary layers actually organize onto a low-dimensional manifold?</p>
+    </blockquote>
+    <p data-start="620" data-end="681">Everything else is secondary until that question is resolved.</p>
+    <hr data-start="683" data-end="686">
+    <h2 data-section-id="11ml861" data-start="688" data-end="724">Why I Would Delay TransitionEvent</h2>
+    <p data-start="726" data-end="765">The temptation is to immediately build:</p>
+    <pre class="overflow-visible! px-0!" data-start="767" data-end="794">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>TransitionEvent</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="796" data-end="803">tables.</p>
+    <p data-start="805" data-end="844">But a transition is defined in η-space.</p>
+    <p data-start="846" data-end="930">Until η-space itself is stable and validated, every event definition is provisional.</p>
+    <p data-start="932" data-end="944">For example:</p>
+    <pre class="overflow-visible! px-0!" data-start="946" data-end="1056">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>Version 1:</span>
+                                                                    <br>
+                                                                    <span>η = PCA coordinates</span>
+                                                                    <br>
+                                                                    <br>
+                                                                    <span>Version 2:</span>
+                                                                    <br>
+                                                                    <span>η = Diffusion Maps</span>
+                                                                    <br>
+                                                                    <br>
+                                                                    <span>Version 3:</span>
+                                                                    <br>
+                                                                    <span>η = Spectral coordinates</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1058" data-end="1100">The same physical episode could move from:</p>
+    <pre class="overflow-visible! px-0!" data-start="1102" data-end="1122">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>collapse</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1124" data-end="1126">to</p>
+    <pre class="overflow-visible! px-0!" data-start="1128" data-end="1151">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>oscillation</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1153" data-end="1176">depending on embedding.</p>
+    <p data-start="1178" data-end="1217">I would therefore treat transitions as:</p>
+    <pre class="overflow-visible! px-0!" data-start="1219" data-end="1247">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>derived products</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1249" data-end="1309">rather than core database entities during early development.</p>
+    <hr data-start="1311" data-end="1314">
+    <h2 data-section-id="1v1ktof" data-start="1316" data-end="1341">Layer 6 Before Layer 5</h2>
+    <p data-start="1343" data-end="1377">This is slightly counterintuitive.</p>
+    <p data-start="1379" data-end="1397">I would implement:</p>
+    <pre class="overflow-visible! px-0!" data-start="1399" data-end="1429">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>Layer 6 (Spectral)</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1431" data-end="1437">before</p>
+    <pre class="overflow-visible! px-0!" data-start="1439" data-end="1472">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>Layer 5 (Transitions)</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1474" data-end="1526">because your scientific hypothesis is fundamentally:</p>
+    <pre class="overflow-visible! px-0!" data-start="1528" data-end="1609">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>Profile</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Spectral Representation</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Low-Dimensional Structure</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1611" data-end="1614">not</p>
+    <pre class="overflow-visible! px-0!" data-start="1616" data-end="1659">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>Profile</span>
+                                                                    <br>
+                                                                    <span>    ↓</span>
+                                                                    <br>
+                                                                    <span>Transition Labels</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1661" data-end="1713">The coefficients are the actual information content.</p>
+    <p data-start="1715" data-end="1773">The regime labels are interpretations of that information.</p>
+    <hr data-start="1775" data-end="1778">
+    <h2 data-section-id="z30mxs" data-start="1780" data-end="1812">Coefficients vs η Coordinates</h2>
+    <p data-start="1814" data-end="1869">I would absolutely archive the full coefficient vector.</p>
+    <p data-start="1871" data-end="1877">Store:</p>
+    <pre class="overflow-visible! px-0!" data-start="1879" data-end="1958">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                        <div class="relative h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                            <div class="select-none sticky z-2 top-(--sticky-padding-top)">
+                                <div class="flex w-full items-center justify-between py-1.5 ps-4 pe-1.5 font-sans md:ps-5 bg-token-bg-elevated-secondary">
+                                    <div class="flex max-w-[75%] min-w-0 cursor-default items-center text-sm font-medium justify-self-start text-token-text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-sm me-2.5 shrink-0">
+                                            <use href="/cdn/assets/sprites-core-c74d0474.svg#e45ab3" fill="currentColor"></use>
+                                        </svg>
+                                        YAML
+                                    </div>
+                                    <div class="flex flex-row items-center gap-0.5 justify-self-end">
+                                        <button type="button" class="flex gap-1 items-center select-none py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pointer-events-none absolute inset-x-4 top-12 bottom-4">
+                                <div class="pointer-events-none sticky z-40 shrink-0 z-1!" style="top: calc(calc(var(--sticky-padding-top) + 48px) - 1px * 3); margin-bottom: calc(-4px); height: calc(4px); mask-image: linear-gradient(transparent 25%, white 75%);">
+                                    <div class="sticky bg-token-border-light" style="top: calc(var(--sticky-padding-top) + 48px); height: 1px;"></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <div class="h-full min-h-0 min-w-0">
+                                    <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                        <div class="">
+                                            <div class="relative">
+                                                <div class="" style="transform: none;">
+                                                    <div class="relative z-0 flex max-w-full">
+                                                        <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                            <div class="cm-scroller">
+                                                                <pre class="cm-content q9tKkq_readonly m-0">
+                                                                    <code>
+                                                                        <span>profile_id</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>coefficients:</span>
+                                                                        <br>
+                                                                        <span>  c0</span>
+                                                                        <br>
+                                                                        <span>  c1</span>
+                                                                        <br>
+                                                                        <span>  c2</span>
+                                                                        <br>
+                                                                        <span>  ...</span>
+                                                                        <br>
+                                                                        <span>  cN</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>eta1</span>
+                                                                        <br>
+                                                                        <span>eta2</span>
+                                                                        <br>
+                                                                        <span>eta3</span>
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="" style="width: 100%; transform: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="1960" data-end="1978">for every profile.</p>
+    <p data-start="1980" data-end="1987">Reason:</p>
+    <p data-start="1989" data-end="2013">Tomorrow you may decide:</p>
+    <pre class="overflow-visible! px-0!" data-start="2015" data-end="2037">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>η = PCA(c)</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="2039" data-end="2045">Today:</p>
+    <pre class="overflow-visible! px-0!" data-start="2047" data-end="2078">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>η = DiffusionMap(c)</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="2080" data-end="2090">Next year:</p>
+    <pre class="overflow-visible! px-0!" data-start="2092" data-end="2122">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>η = Autoencoder(c)</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="2124" data-end="2175">If only η is stored, you must recompute everything.</p>
+    <p data-start="2177" data-end="2241">If coefficients are archived, η can be regenerated indefinitely.</p>
+    <p data-start="2243" data-end="2303">Think of coefficients as the raw observations of SpectralBL.</p>
+    <p data-start="2305" data-end="2353">η is merely a coordinate system imposed on them.</p>
+    <hr data-start="2355" data-end="2358">
+    <h2 data-section-id="elex89" data-start="2360" data-end="2379">Separate Storage</h2>
+    <p data-start="2381" data-end="2414">I would physically separate them:</p>
+    <h3 data-section-id="1hbq64p" data-start="2416" data-end="2449">spectral_coefficients.parquet</h3>
+    <pre class="overflow-visible! px-0!" data-start="2451" data-end="2486">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>profile_id</span>
+                                                                    <br>
+                                                                    <span>c0</span>
+                                                                    <br>
+                                                                    <span>c1</span>
+                                                                    <br>
+                                                                    <span>...</span>
+                                                                    <br>
+                                                                    <span>cN</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <h3 data-section-id="yr7npe" data-start="2488" data-end="2510">embeddings.parquet</h3>
+    <pre class="overflow-visible! px-0!" data-start="2512" data-end="2566">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>profile_id</span>
+                                                                    <br>
+                                                                    <br>
+                                                                    <span>embedding_name</span>
+                                                                    <br>
+                                                                    <br>
+                                                                    <span>eta1</span>
+                                                                    <br>
+                                                                    <span>eta2</span>
+                                                                    <br>
+                                                                    <span>eta3</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="2568" data-end="2601">Then multiple embeddings coexist:</p>
+    <pre class="overflow-visible! px-0!" data-start="2603" data-end="2648">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>PCA</span>
+                                                                    <br>
+                                                                    <span>DiffusionMap</span>
+                                                                    <br>
+                                                                    <span>UMAP</span>
+                                                                    <br>
+                                                                    <span>Autoencoder</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="2650" data-end="2670">without duplication.</p>
+    <hr data-start="2672" data-end="2675">
+    <h2 data-section-id="10dpaox" data-start="2677" data-end="2695">DuckDB Strategy</h2>
+    <p data-start="2697" data-end="2731">I would choose DuckDB immediately.</p>
+    <p data-start="2733" data-end="2758">Not because you need SQL.</p>
+    <p data-start="2760" data-end="2777">Because you need:</p>
+    <pre class="overflow-visible! px-0!" data-start="2779" data-end="2842">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                        <div class="relative h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                            <div class="select-none sticky z-2 top-(--sticky-padding-top)">
+                                <div class="flex w-full items-center justify-between py-1.5 ps-4 pe-1.5 font-sans md:ps-5 bg-token-bg-elevated-secondary">
+                                    <div class="flex max-w-[75%] min-w-0 cursor-default items-center text-sm font-medium justify-self-start text-token-text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-sm me-2.5 shrink-0">
+                                            <use href="/cdn/assets/sprites-core-c74d0474.svg#e45ab3" fill="currentColor"></use>
+                                        </svg>
+                                        SQL
+                                    </div>
+                                    <div class="flex flex-row items-center gap-0.5 justify-self-end">
+                                        <button type="button" class="flex gap-1 items-center select-none py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pointer-events-none absolute inset-x-4 top-12 bottom-4">
+                                <div class="pointer-events-none sticky z-40 shrink-0 z-1!" style="top: calc(calc(var(--sticky-padding-top) + 48px) - 1px * 3); margin-bottom: calc(-4px); height: calc(4px); mask-image: linear-gradient(transparent 25%, white 75%);">
+                                    <div class="sticky bg-token-border-light" style="top: calc(var(--sticky-padding-top) + 48px); height: 1px;"></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <div class="h-full min-h-0 min-w-0">
+                                    <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                        <div class="">
+                                            <div class="relative">
+                                                <div class="" style="transform: none;">
+                                                    <div class="relative z-0 flex max-w-full">
+                                                        <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                            <div class="cm-scroller">
+                                                                <pre class="cm-content q9tKkq_readonly m-0">
+                                                                    <code>
+                                                                        <span class="ͼg">SELECT</span>
+                                                                        <span></span>
+                                                                        <span class="ͼg">*</span>
+                                                                        <br>
+                                                                        <span class="ͼg">FROM</span>
+                                                                        <span> embeddings</span>
+                                                                        <br>
+                                                                        <span class="ͼg">WHERE</span>
+                                                                        <span> regime</span>
+                                                                        <span class="ͼg">=</span>
+                                                                        <span class="ͼk">'intermittent'</span>
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="" style="width: 100%; transform: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="2844" data-end="2889">next year when you have millions of profiles.</p>
+    <p data-start="2891" data-end="2904">DuckDB gives:</p>
+    <ul data-start="2906" data-end="2986">
+        <li data-section-id="1o4qo6" data-start="2906" data-end="2911">
+            <p data-start="2908" data-end="2911">SQL</p>
+        </li>
+        <li data-section-id="19mf3gr" data-start="2912" data-end="2936">
+            <p data-start="2914" data-end="2936">Parquet-native storage</p>
+        </li>
+        <li data-section-id="y5drpo" data-start="2937" data-end="2948">
+            <p data-start="2939" data-end="2948">No server</p>
+        </li>
+        <li data-section-id="1pizep9" data-start="2949" data-end="2968">
+            <p data-start="2951" data-end="2968">Julia integration</p>
+        </li>
+        <li data-section-id="13dk6y2" data-start="2969" data-end="2986">
+            <p data-start="2971" data-end="2986">Reproducibility</p>
+        </li>
+    </ul>
+    <p data-start="2988" data-end="3022">without PostgreSQL administration.</p>
+    <p data-start="3024" data-end="3067">For a research codebase it is almost ideal.</p>
+    <hr data-start="3069" data-end="3072">
+    <h2 data-section-id="u1f6mo" data-start="3074" data-end="3105">One Additional Layer I'd Add</h2>
+    <p data-start="3107" data-end="3198">I think the current hierarchy is missing the most important object in the entire framework:</p>
+    <pre class="overflow-visible! px-0!" data-start="3200" data-end="3481">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                        <div class="relative h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                            <div class="select-none sticky z-2 top-(--sticky-padding-top)">
+                                <div class="flex w-full items-center justify-between py-1.5 ps-4 pe-1.5 font-sans md:ps-5 bg-token-bg-elevated-secondary">
+                                    <div class="flex max-w-[75%] min-w-0 cursor-default items-center text-sm font-medium justify-self-start text-token-text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-sm me-2.5 shrink-0">
+                                            <use href="/cdn/assets/sprites-core-c74d0474.svg#e45ab3" fill="currentColor"></use>
+                                        </svg>
+                                        YAML
+                                    </div>
+                                    <div class="flex flex-row items-center gap-0.5 justify-self-end">
+                                        <button type="button" class="flex gap-1 items-center select-none py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pointer-events-none absolute inset-x-4 top-12 bottom-4">
+                                <div class="pointer-events-none sticky z-40 shrink-0 z-1!" style="top: calc(calc(var(--sticky-padding-top) + 48px) - 1px * 3); margin-bottom: calc(-4px); height: calc(4px); mask-image: linear-gradient(transparent 25%, white 75%);">
+                                    <div class="sticky bg-token-border-light" style="top: calc(var(--sticky-padding-top) + 48px); height: 1px;"></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <div class="h-full min-h-0 min-w-0">
+                                    <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                        <div class="">
+                                            <div class="relative">
+                                                <div class="" style="transform: none;">
+                                                    <div class="relative z-0 flex max-w-full">
+                                                        <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                            <div class="cm-scroller">
+                                                                <pre class="cm-content q9tKkq_readonly m-0">
+                                                                    <code>
+                                                                        <span>EmbeddingDefinition:</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  embedding_id</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  source_coefficients:</span>
+                                                                        <br>
+                                                                        <span>      theta</span>
+                                                                        <br>
+                                                                        <span>      wind</span>
+                                                                        <br>
+                                                                        <span>      shear</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  spectral_basis:</span>
+                                                                        <br>
+                                                                        <span>      chebyshev</span>
+                                                                        <br>
+                                                                        <span>      gegenbauer</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  truncation_order:</span>
+                                                                        <br>
+                                                                        <span>      12</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  normalization:</span>
+                                                                        <br>
+                                                                        <span>      zscore</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  embedding_method:</span>
+                                                                        <br>
+                                                                        <span>      PCA</span>
+                                                                        <br>
+                                                                        <br>
+                                                                        <span>  hyperparameters:</span>
+                                                                        <br>
+                                                                        <span>      ...</span>
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="" style="width: 100%; transform: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="3483" data-end="3487">Why?</p>
+    <p data-start="3489" data-end="3517">Because η-space is not data.</p>
+    <p data-start="3519" data-end="3538">η-space is a model.</p>
+    <p data-start="3540" data-end="3570">Reviewers will eventually ask:</p>
+    <blockquote data-start="3572" data-end="3588">
+        <p data-start="3574" data-end="3588">Which η-space?</p>
+    </blockquote>
+    <p data-start="3590" data-end="3631">This table answers that question exactly.</p>
+    <hr data-start="3633" data-end="3636">
+    <h2 data-section-id="19r1y1s" data-start="3638" data-end="3663">My Recommended Roadmap</h2>
+    <h3 data-section-id="x17vyx" data-start="3665" data-end="3680">Milestone 1</h3>
+    <p data-start="3682" data-end="3692">Implement:</p>
+    <pre class="overflow-visible! px-0!" data-start="3694" data-end="3734">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>Dataset</span>
+                                                                    <br>
+                                                                    <span>Profile</span>
+                                                                    <br>
+                                                                    <span>DerivedState</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="3736" data-end="3756">and ingest CASES-99.</p>
+    <hr data-start="3758" data-end="3761">
+    <h3 data-section-id="x17vyy" data-start="3763" data-end="3778">Milestone 2</h3>
+    <p data-start="3780" data-end="3790">Implement:</p>
+    <pre class="overflow-visible! px-0!" data-start="3792" data-end="3824">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>SpectralCoefficients</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="3826" data-end="3844">for every profile.</p>
+    <p data-start="3846" data-end="3860">No clustering.</p>
+    <p data-start="3862" data-end="3877">No transitions.</p>
+    <p data-start="3879" data-end="3897">Just coefficients.</p>
+    <hr data-start="3899" data-end="3902">
+    <h3 data-section-id="x17vyz" data-start="3904" data-end="3919">Milestone 3</h3>
+    <p data-start="3921" data-end="3931">Implement:</p>
+    <pre class="overflow-visible! px-0!" data-start="3933" data-end="3981">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>EmbeddingDefinition</span>
+                                                                    <br>
+                                                                    <span>EmbeddingResults</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="3983" data-end="3996">and generate:</p>
+    <pre class="overflow-visible! px-0!" data-start="3998" data-end="4018">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>η1</span>
+                                                                    <br>
+                                                                    <span>η2</span>
+                                                                    <br>
+                                                                    <span>η3</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4020" data-end="4043">for several embeddings.</p>
+    <p data-start="4045" data-end="4055">PCA first.</p>
+    <p data-start="4057" data-end="4079">Diffusion Maps second.</p>
+    <hr data-start="4081" data-end="4084">
+    <h3 data-section-id="x17vz0" data-start="4086" data-end="4101">Milestone 4</h3>
+    <p data-start="4103" data-end="4150">Only after η-space appears physically coherent:</p>
+    <pre class="overflow-visible! px-0!" data-start="4152" data-end="4180">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>TransitionEvents</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4182" data-end="4202">with fields such as:</p>
+    <pre class="overflow-visible! px-0!" data-start="4204" data-end="4251">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                        <div class="relative h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                            <div class="select-none sticky z-2 top-(--sticky-padding-top)">
+                                <div class="flex w-full items-center justify-between py-1.5 ps-4 pe-1.5 font-sans md:ps-5 bg-token-bg-elevated-secondary">
+                                    <div class="flex max-w-[75%] min-w-0 cursor-default items-center text-sm font-medium justify-self-start text-token-text-primary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-sm me-2.5 shrink-0">
+                                            <use href="/cdn/assets/sprites-core-c74d0474.svg#e45ab3" fill="currentColor"></use>
+                                        </svg>
+                                        YAML
+                                    </div>
+                                    <div class="flex flex-row items-center gap-0.5 justify-self-end">
+                                        <button type="button" class="flex gap-1 items-center select-none py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pointer-events-none absolute inset-x-4 top-12 bottom-4">
+                                <div class="pointer-events-none sticky z-40 shrink-0 z-1!" style="top: calc(calc(var(--sticky-padding-top) + 48px) - 1px * 3); margin-bottom: calc(-4px); height: calc(4px); mask-image: linear-gradient(transparent 25%, white 75%);">
+                                    <div class="sticky bg-token-border-light" style="top: calc(var(--sticky-padding-top) + 48px); height: 1px;"></div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <div class="h-full min-h-0 min-w-0">
+                                    <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                        <div class="">
+                                            <div class="relative">
+                                                <div class="" style="transform: none;">
+                                                    <div class="relative z-0 flex max-w-full">
+                                                        <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                            <div class="cm-scroller">
+                                                                <pre class="cm-content q9tKkq_readonly m-0">
+                                                                    <code>
+                                                                        <span>deta_dt</span>
+                                                                        <br>
+                                                                        <span>speed</span>
+                                                                        <br>
+                                                                        <span>curvature</span>
+                                                                        <br>
+                                                                        <span>persistence</span>
+                                                                    </code>
+                                                                </pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="">
+                                    <div class="" style="width: 100%; transform: none;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4253" data-end="4375">because then the transitions become properties of a validated state space rather than assumptions baked into the database.</p>
+    <p data-start="4377" data-end="4418">Viewed this way, SpectralBL evolves from:</p>
+    <pre class="overflow-visible! px-0!" data-start="4420" data-end="4448">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>ABL observations</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4450" data-end="4452">to</p>
+    <pre class="overflow-visible! px-0!" data-start="4454" data-end="4490">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>spectral representations</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4492" data-end="4494">to</p>
+    <pre class="overflow-visible! px-0!" data-start="4496" data-end="4530">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>candidate state spaces</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4532" data-end="4534">to</p>
+    <pre class="overflow-visible! px-0!" data-start="4536" data-end="4568">
+        <div class="relative w-full mt-4 mb-1">
+            <div class="">
+                <div class="contents">
+                    <div class="relative">
+                        <div class="h-full min-h-0 min-w-0">
+                            <div class="h-full min-h-0 min-w-0" style="width: 100%; transform: none;">
+                                <div class="border border-token-border-light border-radius-3xl corner-superellipse/1.1 rounded-3xl">
+                                    <div class="h-full w-full border-radius-3xl bg-token-bg-elevated-secondary corner-superellipse/1.1 overflow-clip rounded-3xl lxnfua_clipPathFallback">
+                                        <div class="pointer-events-none absolute end-1.5 top-1 z-2 md:end-2 md:top-1">
+                                            <button type="button" class="flex gap-1 items-center select-none pointer-events-auto py-2 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/10 size-9 rounded-full px-2" aria-label="Copy" data-state="closed">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" aria-hidden="true" class="icon-md">
+                                                    <use href="/cdn/assets/sprites-core-c74d0474.svg#ce3544" fill="currentColor"></use>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="pe-11 pt-3" style="transform: none;">
+                                                <div class="relative z-0 flex max-w-full">
+                                                    <div id="code-block-viewer" dir="ltr" class="q9tKkq_viewer cm-editor z-10 light:cm-light dark:cm-light flex h-full w-full flex-col items-stretch ͼd ͼr">
+                                                        <div class="cm-scroller">
+                                                            <pre class="cm-content q9tKkq_readonly m-0">
+                                                                <code>
+                                                                    <span>bifurcation dynamics</span>
+                                                                </code>
+                                                            </pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="" style="width: 100%; transform: none;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </pre>
+    <p data-start="4570" data-end="4801" data-is-last-node="" data-is-only-node="">which mirrors the scientific risk hierarchy of the project. The highest-risk claim is that a meaningful low-dimensional state space exists; everything downstream should be built only after that claim survives contact with the data.</p>
+</div>
