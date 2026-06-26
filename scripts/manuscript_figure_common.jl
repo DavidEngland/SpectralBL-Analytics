@@ -209,6 +209,283 @@ function cusp_fit_scales(
     return (μ1 = μ1, μ2 = μ2, s1 = best_s1, s2 = best_s2, inside_frac = best_inside)
 end
 
+function cusp_fit_rotated_scales(
+    eta1::Vector{Float64},
+    eta2::Vector{Float64},
+    ri_log::Vector{Float64};
+    lo::Float64 = -1.0,
+    hi::Float64 = 1.0,
+    s1_range::Tuple{Float64, Float64} = (0.5, 12.0),
+    s2_range::Tuple{Float64, Float64} = (0.5, 50.0),
+    theta_range::Tuple{Float64, Float64} = (-pi / 4, pi / 4),
+    s1_steps::Int = 24,
+    s2_steps::Int = 24,
+    theta_steps::Int = 21,
+    max_points::Int = 6000,
+)
+    mask = isfinite.(eta1) .& isfinite.(eta2) .& isfinite.(ri_log) .& (ri_log .>= lo) .& (ri_log .<= hi)
+    if count(mask) < 40
+        return (μ1 = 0.0, μ2 = 0.0, s1 = 1.0, s2 = 1.0, theta = 0.0, inside_frac = NaN, n = 0)
+    end
+
+    a = eta1[mask]
+    b = eta2[mask]
+    n_all = length(a)
+    if n_all > max_points
+        stride = ceil(Int, n_all / max_points)
+        idx = 1:stride:n_all
+        a = a[idx]
+        b = b[idx]
+    end
+
+    best_frac = -Inf
+    best_s1 = 1.0
+    best_s2 = 1.0
+    best_theta = 0.0
+
+    s1_grid = range(s1_range[1], s1_range[2], length = s1_steps)
+    s2_grid = range(s2_range[1], s2_range[2], length = s2_steps)
+    theta_grid = range(theta_range[1], theta_range[2], length = theta_steps)
+
+    for s1 in s1_grid, s2 in s2_grid, θ in theta_grid
+        cs = cos(θ)
+        sn = sin(θ)
+        α = (a ./ s1) .* cs .+ (b ./ s2) .* sn
+        β = -((a ./ s1) .* sn) .+ (b ./ s2) .* cs
+        Δ = 4.0 .* (α .^ 3) .+ 27.0 .* (β .^ 2)
+        frac = mean(Δ .<= 0.0)
+        if isfinite(frac) && frac > best_frac
+            best_frac = frac
+            best_s1 = s1
+            best_s2 = s2
+            best_theta = θ
+        end
+    end
+
+    return (
+        μ1 = 0.0,
+        μ2 = 0.0,
+        s1 = best_s1,
+        s2 = best_s2,
+        theta = best_theta,
+        inside_frac = best_frac,
+        n = length(a),
+    )
+end
+
+function cusp_fit_affine_rotated_scales(
+    eta1::Vector{Float64},
+    eta2::Vector{Float64},
+    ri_log::Vector{Float64};
+    lo::Float64 = -1.0,
+    hi::Float64 = 1.0,
+    s1_range::Tuple{Float64, Float64} = (0.5, 12.0),
+    s2_range::Tuple{Float64, Float64} = (0.5, 50.0),
+    theta_range::Tuple{Float64, Float64} = (-pi / 4, pi / 4),
+    s1_steps::Int = 12,
+    s2_steps::Int = 12,
+    theta_steps::Int = 13,
+    mu_steps::Int = 7,
+    max_points::Int = 5000,
+)
+    mask = isfinite.(eta1) .& isfinite.(eta2) .& isfinite.(ri_log) .& (ri_log .>= lo) .& (ri_log .<= hi)
+    if count(mask) < 40
+        return (μ1 = 0.0, μ2 = 0.0, s1 = 1.0, s2 = 1.0, theta = 0.0, inside_frac = NaN, n = 0)
+    end
+
+    a = eta1[mask]
+    b = eta2[mask]
+    n_all = length(a)
+    if n_all > max_points
+        stride = ceil(Int, n_all / max_points)
+        idx = 1:stride:n_all
+        a = a[idx]
+        b = b[idx]
+    end
+
+    mu1_grid = range(quantile(a, 0.10), quantile(a, 0.90), length = mu_steps)
+    mu2_grid = range(quantile(b, 0.10), quantile(b, 0.90), length = mu_steps)
+    s1_grid = range(s1_range[1], s1_range[2], length = s1_steps)
+    s2_grid = range(s2_range[1], s2_range[2], length = s2_steps)
+    theta_grid = range(theta_range[1], theta_range[2], length = theta_steps)
+
+    best_frac = -Inf
+    best_mu1 = 0.0
+    best_mu2 = 0.0
+    best_s1 = 1.0
+    best_s2 = 1.0
+    best_theta = 0.0
+
+    for μ1 in mu1_grid, μ2 in mu2_grid, s1 in s1_grid, s2 in s2_grid, θ in theta_grid
+        cs = cos(θ)
+        sn = sin(θ)
+        α0 = (a .- μ1) ./ s1
+        β0 = (b .- μ2) ./ s2
+        α = α0 .* cs .+ β0 .* sn
+        β = -(α0 .* sn) .+ β0 .* cs
+        Δ = 4.0 .* (α .^ 3) .+ 27.0 .* (β .^ 2)
+        frac = mean(Δ .<= 0.0)
+        if isfinite(frac) && frac > best_frac
+            best_frac = frac
+            best_mu1 = μ1
+            best_mu2 = μ2
+            best_s1 = s1
+            best_s2 = s2
+            best_theta = θ
+        end
+    end
+
+    return (
+        μ1 = best_mu1,
+        μ2 = best_mu2,
+        s1 = best_s1,
+        s2 = best_s2,
+        theta = best_theta,
+        inside_frac = best_frac,
+        n = length(a),
+    )
+end
+
+function estimate_neutral_translation_bounds(
+    eta1::Vector{Float64},
+    eta2::Vector{Float64},
+    ri_log::Vector{Float64};
+    neutral_band::Float64 = 0.15,
+    q::Float64 = 0.95,
+    min_eps::Float64 = 0.02,
+    max_eps_frac::Float64 = 0.20,
+)
+    finite_mask0 = isfinite.(eta1) .& isfinite.(eta2)
+    n_finite = count(finite_mask0)
+    if n_finite == 0
+        return (eps1 = min_eps, eps2 = min_eps, n = 0)
+    end
+
+    mask = finite_mask0 .& isfinite.(ri_log) .& (abs.(ri_log) .<= neutral_band)
+    a = eta1[mask]
+    b = eta2[mask]
+
+    if length(a) < 20
+        # Fallback: use the near-origin cloud (lowest radius in control plane)
+        ia = eta1[finite_mask0]
+        ib = eta2[finite_mask0]
+        r2 = ia .^ 2 .+ ib .^ 2
+        ord = sortperm(r2)
+        k = min(length(ord), max(20, round(Int, 0.15 * length(ord))))
+        idx = ord[1:k]
+        a = ia[idx]
+        b = ib[idx]
+    end
+
+    all_a = abs.(eta1[finite_mask0])
+    all_b = abs.(eta2[finite_mask0])
+    cap1 = max(min_eps, max_eps_frac * quantile(all_a, 0.90))
+    cap2 = max(min_eps, max_eps_frac * quantile(all_b, 0.90))
+
+    eps1 = min(max(quantile(abs.(a), q), min_eps), cap1)
+    eps2 = min(max(quantile(abs.(b), q), min_eps), cap2)
+    return (eps1 = eps1, eps2 = eps2, n = length(a))
+end
+
+function cusp_fit_bounded_affine_rotated_scales(
+    eta1::Vector{Float64},
+    eta2::Vector{Float64},
+    ri_log::Vector{Float64};
+    lo::Float64 = -1.0,
+    hi::Float64 = 1.0,
+    neutral_band::Float64 = 0.15,
+    neutral_q::Float64 = 0.95,
+    min_eps::Float64 = 0.05,
+    s1_range::Tuple{Float64, Float64} = (0.5, 12.0),
+    s2_range::Tuple{Float64, Float64} = (0.5, 50.0),
+    theta_range::Tuple{Float64, Float64} = (-pi / 4, pi / 4),
+    s1_steps::Int = 12,
+    s2_steps::Int = 12,
+    theta_steps::Int = 13,
+    mu_steps::Int = 7,
+    max_points::Int = 5000,
+)
+    bounds = estimate_neutral_translation_bounds(
+        eta1,
+        eta2,
+        ri_log;
+        neutral_band = neutral_band,
+        q = neutral_q,
+        min_eps = min_eps,
+    )
+
+    mask = isfinite.(eta1) .& isfinite.(eta2) .& isfinite.(ri_log) .& (ri_log .>= lo) .& (ri_log .<= hi)
+    if count(mask) < 40
+        return (
+            μ1 = 0.0,
+            μ2 = 0.0,
+            s1 = 1.0,
+            s2 = 1.0,
+            theta = 0.0,
+            inside_frac = NaN,
+            n = 0,
+            eps1 = bounds.eps1,
+            eps2 = bounds.eps2,
+            neutral_n = bounds.n,
+        )
+    end
+
+    a = eta1[mask]
+    b = eta2[mask]
+    n_all = length(a)
+    if n_all > max_points
+        stride = ceil(Int, n_all / max_points)
+        idx = 1:stride:n_all
+        a = a[idx]
+        b = b[idx]
+    end
+
+    mu1_grid = range(-bounds.eps1, bounds.eps1, length = mu_steps)
+    mu2_grid = range(-bounds.eps2, bounds.eps2, length = mu_steps)
+    s1_grid = range(s1_range[1], s1_range[2], length = s1_steps)
+    s2_grid = range(s2_range[1], s2_range[2], length = s2_steps)
+    theta_grid = range(theta_range[1], theta_range[2], length = theta_steps)
+
+    best_frac = -Inf
+    best_mu1 = 0.0
+    best_mu2 = 0.0
+    best_s1 = 1.0
+    best_s2 = 1.0
+    best_theta = 0.0
+
+    for μ1 in mu1_grid, μ2 in mu2_grid, s1 in s1_grid, s2 in s2_grid, θ in theta_grid
+        cs = cos(θ)
+        sn = sin(θ)
+        α0 = (a .- μ1) ./ s1
+        β0 = (b .- μ2) ./ s2
+        α = α0 .* cs .+ β0 .* sn
+        β = -(α0 .* sn) .+ β0 .* cs
+        Δ = 4.0 .* (α .^ 3) .+ 27.0 .* (β .^ 2)
+        frac = mean(Δ .<= 0.0)
+        if isfinite(frac) && frac > best_frac
+            best_frac = frac
+            best_mu1 = μ1
+            best_mu2 = μ2
+            best_s1 = s1
+            best_s2 = s2
+            best_theta = θ
+        end
+    end
+
+    return (
+        μ1 = best_mu1,
+        μ2 = best_mu2,
+        s1 = best_s1,
+        s2 = best_s2,
+        theta = best_theta,
+        inside_frac = best_frac,
+        n = length(a),
+        eps1 = bounds.eps1,
+        eps2 = bounds.eps2,
+        neutral_n = bounds.n,
+    )
+end
+
 function ri_mean_series(df::DataFrame)
     ri_cols = [c for c in names(df) if startswith(String(c), "ri_g_")]
     if isempty(ri_cols)

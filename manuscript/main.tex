@@ -9,8 +9,10 @@
 \usepackage{color}
 \usepackage{natbib}
 \usepackage{geometry}
+\usepackage{placeins}
 \usepackage{titling}
 \geometry{margin=1in}
+\graphicspath{{figures/}}
 
 \title{Folded Equilibrium Structure in the Nocturnal Stable Boundary Layer\\\large A geometric interpretation of regime transitions and Richardson criticality across CASES-99, FLOSS, GABLS3, and BLLAST}
 \author{}
@@ -54,12 +56,12 @@ For reconstructed profiles $f(z)$ and $g(z)$ represented by coefficient vectors 
 \begin{equation}
 \int_{z_{\text{min}}}^{z_{\text{max}}} f(z)g(z)\,dz = \vect{a}^\top \mat{M} \vect{b}
 \end{equation}
-is exactly what the p-FEM mass matrix $\mat{M}$ preserves, so the decomposition is performed in the $\mat{M}$-weighted Hilbert-space inner product $\langle u,v\rangle_M$. This makes coordinates $\eta_k$ invariant to sensor clustering and height spacing, depending only on physical structure overlap. The SVD basis $\{\vect{v}_k\}$ is $\mat{M}$-orthonormal:
+is exactly what the p-FEM mass matrix $\mat{M}$ preserves, so the decomposition is performed in the $\mat{M}$-weighted Hilbert-space inner product $\langle u,v\rangle_M$. In this Hilbert-space formulation, the leading coordinates $\eta_k$ are mesh-invariant coordinates of the atmospheric column: they are invariant to sensor clustering and height spacing and depend only on physical structure overlap. The SVD basis $\{\vect{v}_k\}$ is $\mat{M}$-orthonormal:
 \begin{equation}
 \vect{v}_i^\top \mat{M} \vect{v}_j = \delta_{ij}.
 \end{equation}
 
-This distinguishes the present approach from standard PCA. Ordinary PCA uses the Euclidean inner product $\langle \vect{x}, \vect{y}\rangle = \vect{x}^\top \vect{y}$, which is sensitive to sensor clustering and measurement geometry: changing instrument heights or spacing changes the covariance matrix and therefore the eigenvectors. The $\mat{M}$-weighted formulation instead approximates $\int f(z)g(z)\,dz$, so the eigenvectors correspond to physical profile structures rather than instrument placement. Whether a campaign uses seven tower levels (CASES-99) or hundreds of model levels (GABLS3), the p-FEM interpolation maps both into the same functional space before projection. The resulting coordinates are invariant properties of the atmospheric column itself, not of the experimental discretization, which directly addresses the common artifact-defense critique for SVD-based atmospheric analyses.
+This distinguishes the present approach from standard PCA. Ordinary PCA uses the Euclidean inner product $\langle \vect{x}, \vect{y}\rangle = \vect{x}^\top \vect{y}$, which is sensitive to sensor clustering and measurement geometry: changing instrument heights or spacing changes the covariance matrix and therefore the eigenvectors. The $\mat{M}$-weighted Hilbert-space inner product instead approximates $\int f(z)g(z)\,dz$, so the eigenvectors correspond to physical profile structures rather than instrument placement. Whether a campaign uses seven tower levels (CASES-99) or hundreds of model levels (GABLS3), the p-FEM interpolation maps both into the same functional space before projection. The resulting coordinates are invariant properties of the atmospheric column itself, not of the experimental discretization, which directly addresses the common artifact-defense critique for SVD-based atmospheric analyses.
 
 \subsection{Chart-equivalence and the projection singularity}
 
@@ -147,13 +149,13 @@ Transversality,
 \mathcal{T} = \left.\frac{d\alpha}{d\gamma}\right|_{\mathrm{fold}},
 \end{equation}
 where $\alpha$ denotes the reduced-state coordinate locally normal to the fold and $\gamma$ is the continuation (control) parameter used in branch tracking, provides a campaign-level descriptor of fold-edge sharpness. In CASES-99, steeper transversality indicates a brittle fold geometry, where small parametric displacement can trigger rapid branch departure and catastrophic transition. In FLOSS, shallower transversality indicates a rubbery fold geometry, where trajectories can linger near marginal stability with weak wave-shedding before full branch escape. This contrast reframes campaign differences as geometric material properties of the same folded state surface.
-where $\alpha$ denotes the reduced-state coordinate locally normal to the fold and $\gamma$ is the continuation (control) parameter used in branch tracking, provides a campaign-level descriptor of fold-edge sharpness. In CASES-99, $\mathcal{T} \approx -0.41$ marks a high-curvature ("brittle") fold geometry: a sharp manifold cliff where small forcing changes can trigger immediate branch jumps and rapid decoupling. In FLOSS, $\mathcal{T} \approx -0.07$ marks a low-curvature ("rubbery") fold geometry: a rounded fold where trajectories can linger in marginal stability or weak wave-shedding before full branch escape. This contrast reframes campaign differences as geometric material properties of the same folded state surface.
+We also interpret these archetypes as distinct transition clocks. Campaign diagnostics indicate a slower brittle-cycle clock in CASES-99 (Hopf-period scale $T_H \sim 83$ min), consistent with mesoscale drainage-dominated loading, and a faster rubbery-cycle clock in FLOSS ($T_H \sim 31.5$ min), consistent with rapid gravity-wave-shedding excursions near marginal stability. In this reading, transversality and Hopf period jointly characterize transition style: cliff-like geometry with slower roll-up versus rounded geometry with faster oscillatory release.
 
 \subsection{Structural cross-diagnostic table}
 
 For the present draft, the low-level $\Rig$ proxy is taken at 2 m for BLLAST, 5 m for CASES-99, 1 m for FLOSS, and the surface branch for GABLS3. The quantitative cells below remain provisional for the full campaign rerun, but the observational geometry is stated explicitly here.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
@@ -173,7 +175,7 @@ GABLS3 & surface & tbd & tbd & tbd & Pending \\
 
 \subsection{Campaign transversality comparison}
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \begin{tabular}{@{}llll@{}}
@@ -190,13 +192,13 @@ FLOSS & $\approx -0.07$ & Rubbery fold & Longer residence near marginal stabilit
 
 To bridge abstract differential geometry and boundary-layer meteorology, we map the structural characteristics of the unfolded state surface directly onto classical process language. The continuous spatial transformations observed in the $(\eta_1, \eta_2, \eta_3)$ space correspond to distinct physical regimes: the \textbf{coupled regime}, where mechanical shear production and continuous turbulence preserve a robust near-surface connection; the \textbf{transitional regime}, marked by a rapid decrease in geometric resilience, heightened sensitivity to external perturbations, and an escalation in turbulent intermittency; and the \textbf{decoupled regime}, where near-surface turbulent suppression persists while elevated, frictionally isolated shear structures evolve independently aloft. Within this framework, the intensification of the low-level jet (LLJ) becomes an explicitly branch-dependent phenomenon tied to the mitigation of frictional coupling, while classical shear bursting manifests as episodic mechanical reconnection events occurring during transient, branch-proximal excursions.
 
-\subsection{\texorpdfstring{$\eta_3$}{eta3} as a structural precursor}
+\subsection{\texorpdfstring{$\eta_3$}{eta3} as the structural shadow}
 
 When the system resides on the decoupled sheet, frictional isolation permits continued LLJ shear accumulation aloft. This drives growth in vertical structural curvature (tracked by $\eta_3$), increasing profile distortion until a branch-proximal snapback event produces a transient shear burst and partial recoupling. Intermittency thus appears as a cyclic geometric process rather than stochastic collapse-and-restart.
 
 The distinction between $\Rig$ and $\eta_3$ is fundamentally a distinction between a threshold metric and a geometric state coordinate. A metric answers: \emph{how stable is the flow here?} A geometric coordinate answers: \emph{where is the atmospheric column on the state manifold?} Near neutral conditions, $\Rig$ functions well as a local proxy because the manifold is nearly flat and local gradients contain most of the relevant column-state information. Near strong stability ($\Rig \gg Ri_c$), the manifold folds, large portions of state space project onto nearly identical Richardson values, and information is lost from the projection. The manifold itself continues to evolve---LLJ growth continues, profile curvature changes, vertical shear reorganizes---yet $\Rig$ remains almost unchanged.
 
-This is exactly where $\eta_3$ becomes valuable. The saturation of $\Rig$ past the critical threshold is a chart-selection artifact, and $\eta_3$, as a higher-order spatial curvature mode, tracks the global accumulation of structural stress that one-point metrics cannot register. In BLLAST, near zero-lag synchronization ($\tau_{\text{best}} \approx 0$) and strong subcritical mutual information ($I \approx 1.45$ bits) support this interpretation: $\eta_3$ carries structural information about fold proximity precisely where $\Rig$ has become uninformative. In physical terms, $\eta_3$ registers accumulating profile warping and gradient steepening before local gradients show decisive threshold behavior. $\eta_3$ therefore acts as a geometric precursor: not the fold itself, but the structural shadow cast by imminent fold approach onto observable atmospheric states.
+This is exactly where $\eta_3$ becomes valuable. The saturation of $\Rig$ past the critical threshold is a chart-selection artifact, and $\eta_3$, as a higher-order spatial curvature mode, tracks the global accumulation of structural stress that one-point metrics cannot register. In BLLAST, near zero-lag synchronization ($\tau_{\text{best}} \approx 0$) and strong subcritical mutual information ($I \approx 1.45$ bits) support this interpretation: as the fold is approached, the column reconfigures coherently and $\eta_3$ remains dynamically resolved where $\Rig$ has become uninformative. In physical terms, $\eta_3$ registers accumulating profile warping and gradient steepening before local gradients show decisive threshold behavior. $\eta_3$ therefore acts as a structural shadow: not the fold itself, but the observable projection of imminent fold approach onto atmospheric profile geometry.
 
 \subsection{Intermittency as orbital dynamics}
 
@@ -216,7 +218,7 @@ which drops near fold-proximal neighborhoods (critical slowing) and rises after 
 
 To solidify this operational mapping, Table~3 establishes a direct translation between the abstract topological features of the reconstructed manifold and their concrete physical manifestations within boundary-layer dynamics.
 
-\begin{table}[h]
+\begin{table}[htbp]
 \centering
 \small
 \begin{tabular}{@{}ll@{}}
@@ -239,15 +241,89 @@ The p-FEM and continuation pipeline functions as a high-fidelity diagnostic micr
 
 The p-FEM reconstruction layer transforms disjointed, multi-level tower and model measurements into continuous, physically coherent vertical profile fields. By projecting these profiles into an $\mat{M}$-orthogonal embedding space, the pipeline yields a compact, robust coordinate chart $(\eta_1, \eta_2, \eta_3)$ explicitly tailored for rigorous equilibrium branch analysis. The numerical continuation algorithms then process these smooth state-space trajectories to localize structural stability transitions, trace multi-valued equilibrium limits, and map the precise topological boundary of the branch-separated transition corridors across disparate field datasets. Within the evidence hierarchy, operator discovery and forcing-vector inference are introduced only when autonomous Coordinate Closure tests are insufficient, so added model structure is justified by failed closure rather than assumed a priori.
 
-This geometry also motivates an operational regularization pathway for coarse-grid modeling. Instead of relying exclusively on ad-hoc long-tail stability functions, one can define a geometric supervisor $\Phi(\eta_3,\kappa_f)$ and map effective diffusivity to manifold position, $K_z = f(\eta_k)$. In this construction, turbulent exchange is reduced as trajectories move toward decoupled sheets, but a physically constrained baseline can be retained when structural stress accumulates near fold-proximal states, reducing grid-induced laminarity and unphysical runaway cooling. We treat this as a downstream application target (Level 6), not as a demonstrated outcome of the present observational/manifold analysis.
+This geometry also motivates an operational regularization pathway for coarse-grid modeling. Instead of relying exclusively on ad-hoc long-tail stability functions, one can define a geometric supervisor $\Phi(\eta_3,\kappa_f)$ and map effective diffusivity to manifold position, $K_z = f(\eta_k)$. In this construction, turbulent exchange is reduced as trajectories move toward decoupled sheets, but a physically constrained baseline can be retained when structural stress accumulates near fold-proximal states, reducing grid-induced laminarity and unphysical runaway cooling. This framing is consistent with McNider-style grid-dependence arguments: when coarse grids cannot resolve transition-geometry curvature, they are prone to runaway cooling biases; an explicit supervisor based on $\eta_3$ and $\kappa_f$ is designed to restore that missing structural sensitivity \citep{mcnider2012}. We treat this as a downstream application target (Level 6), not as a demonstrated outcome of the present observational/manifold analysis.
+
+\subsection{The affine overfitting control and falsification test}
+\label{subsec:affine_falsification}
+
+To evaluate whether the total containment failure of the idealized GABLS3 simulation ($0.00\%$ containment under scale-only and rigid-rotation mappings) is merely an artifact of coordinate translation or bulk model bias, we performed an unconstrained-versus-constrained affine audit across all campaigns. This functions as a geometric stress test. If the LES topology were equivalent to field topology but shifted in state space, modest physically bounded translation should recover fold containment without requiring global geometric warping.
+
+In practice, unconstrained affine fitting artificially inflates GABLS3 inside-fold fraction to $85.98\%$. That apparent recovery is geometric overfitting: free origin translation $(\mu_1,\mu_2)$ plus unconstrained anisotropic warping breaks the physical anchors of the reduced coordinates, especially the requirement that the primary mode $\eta_1$ asymptotically tracks the unwarped neutral baseline as $\zeta \to 0$.
+
+\begin{table}[htbp]
+\caption{Cross-campaign containment fractions ($\Delta \le 0$) under hierarchical geometric constraints.}
+\label{tab:affine_audit}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Campaign & Rigid scale only & Rigid rotation ($\theta$) & Bounded affine & Strict fixed-rigid $\mu$-only \\
+\midrule
+CASES-99 & 0.4169 & 0.5703 & 0.9000 & \textbf{0.7195} \\
+FLOSS    & 0.5823 & 0.7007 & 0.8976 & \textbf{0.8417} \\
+BLLAST   & 0.9518 & 1.0000 & 0.8975 & \textbf{1.0000} \\
+GABLS3   & 0.0000 & 0.0000 & 0.2991 & \textbf{0.1121} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+To isolate physically defensible coordinate uncertainty, we use a strict $\mu$-only-on-rigid control in which translation is bounded by the near-neutral envelope while scale and rotation remain fixed at the rigid optimum for each campaign. Under this constrained test, observational campaigns retain high containment (CASES-99 $71.95\%$, FLOSS $84.17\%$), while GABLS3 collapses to a statistically minor $11.21\%$. This rejects the "simple coordinate shift" explanation for LES mismatch. The idealized simulation does not just misplace the fold in coordinate space; it fails to reproduce the fold-governed transition topology seen in field data, consistent with missing sub-mesoscale triggering pathways (for example, localized drainage structure and gravity-wave-mediated perturbations) that are active in observations.
 
 \section{Synthesis and Conclusions}
 
 The principal contribution of this study is an empirical physics result: the nocturnal stable boundary layer evolves on a folded low-dimensional equilibrium surface whose structural geometry organizes transition, intermittency, and hysteresis across highly contrasting observation contexts. Richardson diagnostics and manifold coordinates are not competing physical theories---they are complementary coordinate charts describing different views of the same underlying atmospheric state surface. In weakly stable conditions, the classical Richardson chart remains highly effective because the manifold surface is locally flat, allowing single-point vertical gradients to capture the essential state information. Near bifurcation limits and rapid decoupling, however, the manifold folds, the localized physical projections overlap, and single-point metrics lose diagnostic sensitivity. The non-local p-FEM manifold coordinates remain well-behaved across this entire transition because they are structurally compiled from the integrated state of the full column rather than from isolated, individual sensor heights.
 
-In this view, the long-standing debate regarding whether stable boundary-layer transitions are governed strictly by local Richardson criteria, non-local macroscale processes, gravity-wave interactions, or maximum sustainable heat flux limits is resolved into a question of chart selection. Each framework effectively isolates a real, valid projection of the same parent folded object. The contribution of this work is to reconstruct this low-dimensional object directly from multi-campaign observations, and to present the higher-order vertical curvature mode $\eta_3$ as a robust geometric state coordinate that remains dynamically informative precisely where local projections saturate. Classical Richardson criteria are therefore not obsolete; they are embedded local indicators within a broader deterministic manifold. As the cross-campaign pipeline diagnostics settle, this framework unifies the historic McNider bifurcation models, the Van de Wiel MSHF framework, and modern manifold data architectures under a single, coherent, and visually testable organizing principle.
+In this view, the long-standing debate regarding whether stable boundary-layer transitions are governed strictly by local Richardson criteria, non-local macroscale processes, gravity-wave interactions, or maximum sustainable heat flux limits is resolved into a question of chart selection. Each framework effectively isolates a real, valid projection of the same parent folded object. The contribution of this work is to reconstruct this low-dimensional object directly from multi-campaign observations, and to present the higher-order vertical curvature mode $\eta_3$ as a robust geometric state coordinate that remains dynamically informative precisely where local projections saturate. Classical Richardson criteria are therefore not obsolete; they are embedded local indicators within a broader deterministic manifold. Put differently, identical Richardson numbers can correspond to different futures when trajectories occupy different neighborhoods of the folded state surface. As the cross-campaign pipeline diagnostics settle, this framework unifies the historic McNider bifurcation models, the Van de Wiel MSHF framework, and modern manifold data architectures under a single, coherent, and visually testable organizing principle.
 
+The affine overfitting control strengthens this synthesis by delineating what is physically admissible from what is only mathematically pliable. Once unconstrained warping is excluded, the persistent GABLS3 mismatch indicates a genuine model-structure gap, consistent with missing sub-mesoscale triggering pathways that shape real nocturnal transition topology.
+
+\begin{acknowledgments}
+The authors thank the CASES-99, FLOSS, BLLAST, and GABLS3 teams for making their data publicly available. This work was supported by [funding sources].
+\end{acknowledgments}
+\FloatBarrier
+\clearpage
+\appendix
+\include{sections/appendix_mass_matrix}
+\FloatBarrier
+\clearpage
 \bibliography{refs}
 \bibliographystyle{ametsoc2014}
+
+\clearpage
+\section*{Figure Suite (Paper I)}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig4_manifold.pdf}
+\caption{Universal manifold geometry across CASES-99, FLOSS, BLLAST, and GABLS3. Points are colored by $\log_{10}(\Rig)$ with cusp-guided folded-sheet overlays.}
+\label{fig:fig4-manifold}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig5_archetypes.pdf}
+\caption{Brittle and rubbery fold archetypes in control-plane projection. Transversality tangents are anchored at fold-proximal critical coordinates for CASES-99 and FLOSS.}
+\label{fig:fig5-archetypes}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig6_shadow_timeseries.pdf}
+\caption{Structural-shadow timeseries (CASES-99). Smoothed curvature-onset diagnostics and lead-time brackets quantify precursor advance relative to local Richardson crossing.}
+\label{fig:fig6-shadow}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig7_slowing_down.pdf}
+\caption{Kinematic evidence of critical slowing near fold approach using state-space speed $v(t)$ and inverse-time metric $\tau=1/v$.}
+\label{fig:fig7-slowing}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig8_universal_collapse.pdf}
+\caption{Universal collapse across campaigns with a power-law fit between fold-line distance and spectral curvature mode.}
+\label{fig:fig8-collapse}
+\end{figure}
 
 \end{document}
