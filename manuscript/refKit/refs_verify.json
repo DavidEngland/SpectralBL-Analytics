@@ -1,0 +1,471 @@
+[
+  {
+    "cite_key": "vignon2017",
+    "doi": "10.1002/qj.3066",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "vignon2017",
+        "doi": "10.1002/qj.3066",
+        "field": "title",
+        "local_value": "The Shifting of the Nocturnal Boundary-Layer Regime Over the Antarctic Plateau",
+        "remote_value": "The Coriolis effect: reply to White",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "vignon2017",
+        "doi": "10.1002/qj.3066",
+        "field": "author",
+        "local_value": "Vignon, {\\'E}. and de Wiel, B. J. H. Van and van de Boer, G. J. and Genthon, C. and van der Linden, R. A. M. and van Hooijdonk, C. E. and Baas, P.",
+        "remote_value": "Persson, Anders",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "vignon2017",
+        "doi": "10.1002/qj.3066",
+        "field": "pages",
+        "local_value": "2049--2059",
+        "remote_value": "2309--2309",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "vandewiel2017",
+    "doi": "10.1175/jas-d-17-0010.1",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "vandewiel2017",
+        "doi": "10.1175/jas-d-17-0010.1",
+        "field": "title",
+        "local_value": "Regime Transitions in the Stable Boundary Layer Explained by a System Dynamics Approach",
+        "remote_value": "Small-Scale Wind Fluctuations in the Tropical Tropopause Layer from Aircraft Measurements: Occurrence, Nature, and Impact on Vertical Mixing",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "vandewiel2017",
+        "doi": "10.1175/jas-d-17-0010.1",
+        "field": "author",
+        "local_value": "Van de Wiel, B. J. H. and Vignon, {\\'E}. and Baas, P. and van de Boer, G. J. and van Hooijdonk, C. E. and de Roode, S. R. and van der Linden, R. A. M. and van de Wiel, J. M. and Moene, A. F. and Genthon, C. and Holtslag, A. A. M.",
+        "remote_value": "Podglajen, Aur\u00e9lien and Bui, T. Paul and Dean-Day, Jonathan M. and Pfister, Leonhard and Jensen, Eric J. and Alexander, M. Joan and Hertzog, Albert and K\u00e4rcher, Bernd and Plougonven, Riwal and Randel, William J.",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "vandewiel2017",
+        "doi": "10.1175/jas-d-17-0010.1",
+        "field": "pages",
+        "local_value": "3641--3659",
+        "remote_value": "3847--3869",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "mcnider1993",
+    "doi": "10.1175/1520-0469(1993)050",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "mcnider1995",
+    "doi": "10.1007/bf00715715",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "mcnider1995",
+        "doi": "10.1007/bf00715715",
+        "field": "title",
+        "local_value": "Predictability and Bifurcation Structure of Nocturnal Stable Boundary Layer States",
+        "remote_value": "Inferring the thermal-infrared hemispheric emission from a sparsely-vegetated surface by directional measurements",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "mcnider1995",
+        "doi": "10.1007/bf00715715",
+        "field": "author",
+        "local_value": "McNider, Richard T. and England, David E. and Friedman, M. and Shi, X.",
+        "remote_value": "Otterman, J. and Susskind, J. and Brakke, T. and Kimes, D. and Pielke, R. and Lee, T. J.",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "mcnider1995",
+        "doi": "10.1007/bf00715715",
+        "field": "number",
+        "local_value": "1--2",
+        "remote_value": "1-2",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "mcnider1995",
+        "doi": "10.1007/bf00715715",
+        "field": "pages",
+        "local_value": "149--162",
+        "remote_value": "163--180",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "biazar1995",
+    "doi": "10.1007/bf00712214",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "title",
+        "local_value": "Regional-Scale Bifurcation Interpretation for Nocturnal Boundary-Layer Forecasting",
+        "remote_value": "Bildung eines Cyclonucleotids bei R\ufffdntgenbestrahlung von Adenosin-monophosphat",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "journal",
+        "local_value": "Boundary-Layer Meteorology",
+        "remote_value": "Die Naturwissenschaften",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "author",
+        "local_value": "Biazar, Arastoo P. and McNider, Richard T.",
+        "remote_value": "Keck, K. and Hagen, U. and Friebolin, H.",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "year",
+        "local_value": "1995",
+        "remote_value": "1966",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "volume",
+        "local_value": "75",
+        "remote_value": "53",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "number",
+        "local_value": "4",
+        "remote_value": "12",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "biazar1995",
+        "doi": "10.1007/bf00712214",
+        "field": "pages",
+        "local_value": "315--333",
+        "remote_value": "304--305",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "mcnider2012",
+    "doi": "10.1175/jas-d-11-0305.1",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "mcnider2012",
+        "doi": "10.1175/jas-d-11-0305.1",
+        "field": "title",
+        "local_value": "Multiple Stable Solutions and Surface Temperature Feedbacks in Nocturnal Stable Boundary Layer Dynamics",
+        "remote_value": "Observations of an Inertial Peak in the Intrinsic Wind Spectrum Shifted by Rotation in the Antarctic Vortex",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "mcnider2012",
+        "doi": "10.1175/jas-d-11-0305.1",
+        "field": "author",
+        "local_value": "McNider, Richard T. and Pour-Biazar, Arastoo and Walters, C. and Shi, X. and Doty, K.",
+        "remote_value": "Gelinas, L. J. and Walterscheid, R. L. and Mechoso, C. R. and Schubert, G.",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "mcnider2012",
+        "doi": "10.1175/jas-d-11-0305.1",
+        "field": "pages",
+        "local_value": "3410--3426",
+        "remote_value": "3800--3811",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "derbyshire1999",
+    "doi": "10.1002/qj.49712555617",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "stull1988",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "acevedo2001",
+    "doi": "10.1175/1520-0469(2001)058",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "shirer1980",
+    "doi": "10.1175/1520-0469(1980)037",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "yamada1983",
+    "doi": "10.1175/1520-0469(1983)040",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "takens1981",
+    "doi": "10.1007/bfb0091924",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "takens1981",
+        "doi": "10.1007/bfb0091924",
+        "field": "booktitle",
+        "local_value": "Dynamical Systems and Turbulence, Warwick 1980",
+        "remote_value": "Lecture Notes in Mathematics",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "takens1981",
+        "doi": "10.1007/bfb0091924",
+        "field": "publisher",
+        "local_value": "Springer-Verlag",
+        "remote_value": "Springer Berlin Heidelberg",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "ruelle1971",
+    "doi": "10.1007/bf01646553",
+    "status": "verified",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "marsden1976",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "brunton2016",
+    "doi": "10.1073/pnas.1517384113",
+    "status": "verified",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "peherstorfer2016",
+    "doi": "10.1016/j.cma.2016.03.025",
+    "status": "verified",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "shimizu2017",
+    "doi": "10.1103/physrevfluids.2.104602",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "shimizu2017",
+        "doi": "10.1103/physrevfluids.2.104602",
+        "field": "title",
+        "local_value": "Low-Dimensional Turbulence-Reproducing Systems via Machine Learning",
+        "remote_value": "Recovery of vortex packet organization in perturbed turbulent boundary layers",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "shimizu2017",
+        "doi": "10.1103/physrevfluids.2.104602",
+        "field": "author",
+        "local_value": "Shimizu, Masahiro and Kawahara, Genta",
+        "remote_value": "Tan, Yan Ming and Longmire, Ellen K.",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "poulos2002",
+    "doi": "10.1175/1520-0477(2002)083",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "beare2004",
+    "doi": "10.1007/s10546-004-2820-6",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "beare2004",
+        "doi": "10.1007/s10546-004-2820-6",
+        "field": "title",
+        "local_value": "An Intercomparison of Large-Eddy Simulations of the Stable Boundary Layer: {GABLS} {LES} Results",
+        "remote_value": "An Intercomparison of Large-Eddy Simulations of the Stable Boundary Layer",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "beare2004",
+        "doi": "10.1007/s10546-004-2820-6",
+        "field": "author",
+        "local_value": "Beare, Robert J. and Macvean, Malcolm R. and Earl, David R. and {\\'A}lvaro, M. and Holtslag, Albert A. M. and Cuxart, Joan and Esau, Igor and Golaz, Jean-Christophe and Griewank, P. and Shionozaki, M.",
+        "remote_value": "Beare, Robert J. and Macvean, Malcolm K. and Holtslag, Albert A. M. and Cuxart, Joan and Esau, Igor and Golaz, Jean-Christophe and Jimenez, Maria A. and Khairoutdinov, Marat and Kosovic, Branko and Lewellen, David and Lund, Thomas S. and Lundquist, Julie K. and Mccabe, Anne and Moene, Arnold F. and Noh, Yign and Raasch, Siegfried and Sullivan, Peter",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "poveda1993",
+    "doi": "10.1029/93wr01878",
+    "status": "unresolved",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "thom1975",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "zeeman1977",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "poston1978",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "stull1993catastrophe",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "van2007regime",
+    "doi": "10.1002/qj.79",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "van2007regime",
+        "doi": "10.1002/qj.79",
+        "field": "title",
+        "local_value": "Predicting the collapse of turbulence in the stable boundary layer",
+        "remote_value": "A variational data assimilation system for ground\u2010based GPS slant delays",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "van2007regime",
+        "doi": "10.1002/qj.79",
+        "field": "author",
+        "local_value": "van de Wiel, Bas J. J. and Moene, Arnold F. and Steeneveld, Gert-Jan and Baas, Peter and Bosveld, Fred C. and Holtslag, Albert A. M.",
+        "remote_value": "J\u00e4rvinen, Heikki and Eresmaa, Reima and Vedel, Henrik and Salonen, Kirsti and Niemel\u00e4, Sami and de Vries, John",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "van2007regime",
+        "doi": "10.1002/qj.79",
+        "field": "number",
+        "local_value": "626",
+        "remote_value": "625",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "van2007regime",
+        "doi": "10.1002/qj.79",
+        "field": "publisher",
+        "local_value": "Wiley Online Library",
+        "remote_value": "Wiley",
+        "severity": "warning"
+      },
+      {
+        "cite_key": "van2007regime",
+        "doi": "10.1002/qj.79",
+        "field": "pages",
+        "local_value": "1219--1236",
+        "remote_value": "969--980",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "kuehl2009cusp",
+    "doi": "10.1357/002224009788597908",
+    "status": "conflict",
+    "issues": [
+      {
+        "cite_key": "kuehl2009cusp",
+        "doi": "10.1357/002224009788597908",
+        "field": "publisher",
+        "local_value": "Sears Foundation for Marine Research",
+        "remote_value": "Journal of Marine Research/Yale",
+        "severity": "warning"
+      }
+    ],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "thom1975structural",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "zeeman1977catastrophe",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  },
+  {
+    "cite_key": "poston2014catastrophe",
+    "doi": "",
+    "status": "no-doi",
+    "issues": [],
+    "improved_fields": []
+  }
+]

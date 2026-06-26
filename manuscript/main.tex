@@ -14,6 +14,7 @@
 \usepackage{titling}
 \geometry{margin=1in}
 \graphicspath{{figures/}}
+\providecommand{\doi}[1]{\href{https://doi.org/#1}{https://doi.org/#1}}
 
 \title{Folded Equilibrium Structure in the Nocturnal Stable Boundary Layer\\\large A geometric interpretation of regime transitions and Richardson criticality across CASES-99, FLOSS, GABLS3, and BLLAST}
 \author{David E. England\thanks{Corresponding author: \href{mailto:DavidEEngland@gmail.com}{DavidEEngland@gmail.com}}\thanks{ORCID: \href{https://orcid.org/0009-0001-2095-6646}{0009-0001-2095-6646}}}
@@ -83,7 +84,7 @@ Figures 1 and 2 display multi-campaign phase portraits in shared coordinates, re
 
 To establish a clear physical connection between global state-surface geometry and local stability limits, we demonstrate that catastrophic boundary-layer transitions align systematically with fold geometry. Under this paradigm, classical Richardson-threshold crossings are revealed to be localized manifestations of global state-surface evolution rather than autonomous, decoupled triggers.
 
-To make this geometric interpretation mathematically explicit, we invoke the canonical cusp-catastrophe normal form \citep{thom1975, zeeman1977, poston1978}. For a state variable $x$ and control parameters $(a,b)$,
+To provide a mathematical prototype for folded equilibrium geometry, we reference the canonical cusp-catastrophe normal form \citep{thom1975, zeeman1977, poston1978}. For a state variable $x$ and control parameters $(a,b)$,
 \begin{equation}
 V(x) = \frac{x^4}{4} + \frac{a}{2}x^2 + bx,
 \end{equation}
@@ -95,17 +96,19 @@ The discriminant of this cubic,
 \begin{equation}
 \Delta = 4a^3 + 27b^2,
 \end{equation}
-partitions the control plane into single-equilibrium regions ($\Delta > 0$) and multi-equilibrium regions ($\Delta < 0$), with fold boundaries at $\Delta = 0$. In atmospheric terms, this formalism is consistent with stable-boundary-layer collapse studies where turbulent and weakly turbulent states coexist and abrupt transitions occur when a stable branch terminates \citep{van2007regime, vandewiel2017, stull1993catastrophe}. It also aligns with geophysical fluid examples where cusp geometry is recovered from data-driven state coordinates \citep{kuehl2009cusp}.
+partitions the control plane into single-equilibrium regions ($\Delta > 0$) and multi-equilibrium regions ($\Delta < 0$), with fold boundaries at $\Delta = 0$. The observed folded state surface is interpreted as qualitatively consistent with this prototype, rather than as an identified normal form of the atmospheric dynamics. In atmospheric terms, this formalism is consistent with stable-boundary-layer collapse studies where turbulent and weakly turbulent states coexist and abrupt transitions occur when a stable branch terminates \citep{van2007regime, vandewiel2017, stull1993catastrophe}. It also aligns with geophysical fluid examples where cusp geometry is recovered from data-driven state coordinates \citep{kuehl2009cusp}.
+
+Throughout this paper, a branch denotes a connected component of the reconstructed equilibrium manifold in $(\eta_1,\eta_2,\eta_3)$ coordinates. Fold edges correspond to locations where projection onto the control manifold loses local invertibility.
 
 The reconstructed state surface exhibits an empirical folded-sheet geometry consistent with equilibrium-fold interpretations. This three-branch organization---comprising the coupled, unstable, and decoupled sheets---provides a robust geometric home for the maximum sustainable heat flux (MSHF) framework. Within this structure, the upper coupled sheet maintains a resilient, shear-driven turbulent state. The overhanging underside represents an unstable mathematical bridge where turbulent fluxes would have to unphysically increase with expanding thermal stability. The lower decoupled sheet serves as the final destination for the state trajectory once the fold edge is breached \citep{vandewiel2017, mcnider1995}. Transition events are consistently observed near fold-proximal trajectories and branch-separated regions in reduced coordinates. We treat the resulting temporal ordering as an observed diagnostic pattern native to these specific observations, rather than as a universally proven causal chain.
 
-When external forcing pushes the system to the edge of the coupled sheet, the upper equilibrium point ceases to exist. This boundary corresponds precisely to a saddle-node condition
+When external forcing pushes the system to the edge of the coupled sheet, the upper equilibrium point ceases to exist. This boundary is naturally interpreted as consistent with a saddle-node condition
 \begin{equation}
 \det(\mat{J}) = 0,
 \end{equation}
-where $\mat{J}$ represents the local Jacobian of the equilibrium continuation system \citep{derbyshire1999}. The catastrophic transition is therefore not an instability growing infinitely from a persistent state; it is the absolute disappearance of the stable equilibrium the atmosphere was occupying. Forced off this edge, the state trajectory must rapidly relocate to the only available stable alternative: the decoupled branch. This links geometric evolution directly to the physical interpretation of the maximum sustainable heat flux \citep{vandewiel2017, vignon2017}: the fold edge represents the structural limit beyond which no nearby coupled equilibrium can exist, and the crossing of $\Ric$ is merely the local, downstream projection of this limit point.
+where $\mat{J}=\partial \mathbf{F}/\partial \mathbf{x}$ denotes the equilibrium Jacobian associated with the continuation equations \citep{derbyshire1999}. The catastrophic transition is therefore not an instability growing infinitely from a persistent state; it is the disappearance of the stable equilibrium the atmosphere was occupying. Forced off this edge, the state trajectory must rapidly relocate to the only available stable alternative: the decoupled branch. This links geometric evolution directly to the physical interpretation of the maximum sustainable heat flux \citep{vandewiel2017, vignon2017}: the fold edge represents the structural limit beyond which no nearby coupled equilibrium can exist, and the crossing of $\Ric$ is interpreted as a local, downstream projection of this limit point.
 
-To maintain empirical rigor, we separate direct observations from interpretation-level hypotheses within our evidence hierarchy.
+To maintain empirical rigor, we separate direct observations from interpretation-level hypotheses within an explicit inference and validation hierarchy.
 
 \subsection{Direct observational framework}
 
@@ -126,32 +129,37 @@ Complementing these direct observations, we propose the following hypotheses to 
   \item The variation in fold-edge transversality and associated lag structures maps one-to-one to distinct brittle versus rubbery physical transition classes.
 \end{itemize}
 
-\subsection{Evidence hierarchy and scope}
+\subsection{Inference and validation hierarchy}
 
-To reduce interpretive overreach, we organize claims in an explicit evidence hierarchy. \textbf{Level 1} is direct observation (campaign-resolved manifold coordinates, lag structure, and dependence metrics). \textbf{Level 2} is cross-campaign reproducibility of fold-like geometry under differing surface and forcing contexts. \textbf{Level 3} is geometric interpretation (chart-equivalence, projection singularity, and cusp-compatible fold structure). \textbf{Level 4} is dynamical closure testing, formulated as a Coordinate Closure hypothesis to be tested by autonomous, memory-augmented, and externally forced reduced models:
+To reduce interpretive overreach, we organize claims in an explicit inference and validation hierarchy. \textbf{Level 1} is direct observation (campaign-resolved manifold coordinates, lag structure, and dependence metrics). \textbf{Level 2} is cross-campaign reproducibility of fold-like geometry under differing surface and forcing contexts. \textbf{Level 3} is geometric interpretation (chart-equivalence, projection singularity, and cusp-compatible fold structure). \textbf{Level 4} is dynamical closure testing, formulated as a Coordinate Closure hypothesis to be tested by autonomous, memory-augmented, and externally forced reduced models:
 \begin{align}
 \dot{\boldsymbol{\eta}} &= \mathbf{F}_A(\boldsymbol{\eta}), \\
 \dot{\boldsymbol{\eta}} &= \mathbf{F}_B(\boldsymbol{\eta},\boldsymbol{\eta}_{\tau}), \\
 \dot{\boldsymbol{\eta}} &= \mathbf{F}_C(\boldsymbol{\eta},\mathbf{f}_{\mathrm{ext}}).
 \end{align}
-\textbf{Level 5} is operator discovery conditioned on closure outcomes, and \textbf{Level 6} is operational parameterization. The present manuscript substantiates Levels 1--3 directly and reports Level-4 structure as a testable program, while Levels 5--6 are treated as follow-on development.
+\textbf{Level 5} is operator discovery conditioned on closure outcomes, and \textbf{Level 6} is operational parameterization. Levels 5--6 are therefore development stages contingent on the Level-4 outcome rather than direct evidence levels. The present manuscript substantiates Levels 1--3 directly and reports Level-4 structure as a testable program.
 
-\subsection{Fold-proximal curvature diagnostic}
+\subsection{Fold-proximal bending diagnostic}
 
-To convert visual fold interpretation into a measurable diagnostic, we define a local fold-curvature indicator
+To convert visual fold interpretation into a measurable diagnostic, we define a local fold-bending indicator
 \begin{equation}
-\kappa_f = \left|\frac{d^2\eta_3}{d\eta_1^2}\right|.
+B_f = \left|\frac{d^2\eta_3}{d\eta_1^2}\right|.
 \end{equation}
-Fold-proximal regions are then identified as local maxima of $\kappa_f$ along campaign trajectories. In this manuscript, $\kappa_f$ is used as an empirical geometric marker for transition-prone neighborhoods rather than as proof of a unique canonical catastrophe model.
+Fold-proximal regions are then identified as local maxima of $B_f$ along campaign trajectories. Here $B_f$ is used explicitly as a second-derivative diagnostic, not as full geometric curvature in the differential-geometric sense. In this manuscript, $B_f$ serves as an empirical marker for transition-prone neighborhoods rather than as proof of a unique canonical catastrophe model.
 
 \subsection{Brittle versus rubbery fold geometry}
 
-Transversality,
+Defining $\alpha$ as the reduced-state coordinate locally normal to the fold and $\gamma$ as the continuation (control) parameter used in branch tracking, we write transversality as
 \begin{equation}
 \mathcal{T} = \left.\frac{d\alpha}{d\gamma}\right|_{\mathrm{fold}},
 \end{equation}
-where $\alpha$ denotes the reduced-state coordinate locally normal to the fold and $\gamma$ is the continuation (control) parameter used in branch tracking, provides a campaign-level descriptor of fold-edge sharpness. In CASES-99, steeper transversality indicates a brittle fold geometry, where small parametric displacement can trigger rapid branch departure and catastrophic transition. In FLOSS, shallower transversality indicates a rubbery fold geometry, where trajectories can linger near marginal stability with weak wave-shedding before full branch escape. This contrast reframes campaign differences as geometric material properties of the same folded state surface.
+which provides a campaign-level descriptor of fold-edge sharpness. We refer to these contrasting geometric behaviors as brittle and rubbery fold archetypes. In CASES-99, steeper transversality indicates a brittle fold geometry, where small parametric displacement can trigger rapid branch departure and catastrophic transition. In FLOSS, shallower transversality indicates a rubbery fold geometry, where trajectories can linger near marginal stability with weak wave-shedding before full branch escape. This contrast reframes campaign differences as geometric material properties of the same folded state surface.
 We also interpret these archetypes as distinct transition clocks. Campaign diagnostics indicate a slower brittle-cycle clock in CASES-99 (Hopf-period scale $T_H \sim 83$ min), consistent with mesoscale drainage-dominated loading, and a faster rubbery-cycle clock in FLOSS ($T_H \sim 31.5$ min), consistent with rapid gravity-wave-shedding excursions near marginal stability. In this reading, transversality and Hopf period jointly characterize transition style: cliff-like geometry with slower roll-up versus rounded geometry with faster oscillatory release.
+For compact cross-campaign comparison, we define a geometric transition descriptor
+\begin{equation}
+\mathcal{G} = (T_H,\mathcal{T}),
+\end{equation}
+which couples transition timescale and fold-edge transversality in a two-parameter classification.
 
 \subsection{Structural cross-diagnostic table}
 
@@ -171,6 +179,8 @@ FLOSS & $\Rig(1\,\text{m})$ & tbd & tbd & tbd & Pending \\
 GABLS3 & surface & tbd & tbd & tbd & Pending \\
 \bottomrule
 \end{tabularx}
+\vspace{2pt}
+{\footnotesize\emph{Note: Quantitative values will be populated following completion of the unified rerun across all campaigns.}}
 \end{table}
 
 \subsection{Campaign transversality comparison}
