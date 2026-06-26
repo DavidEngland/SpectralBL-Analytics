@@ -6,6 +6,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{tabularx}
 \usepackage{color}
 \usepackage{natbib}
 \usepackage{geometry}
@@ -15,8 +16,9 @@
 \graphicspath{{figures/}}
 
 \title{Folded Equilibrium Structure in the Nocturnal Stable Boundary Layer\\\large A geometric interpretation of regime transitions and Richardson criticality across CASES-99, FLOSS, GABLS3, and BLLAST}
-\author{}
-\date{}
+\author{David E. England\thanks{Corresponding author: \href{mailto:DavidEEngland@gmail.com}{DavidEEngland@gmail.com}}\thanks{ORCID: \href{https://orcid.org/0009-0001-2095-6646}{0009-0001-2095-6646}}}
+
+\date{\today}
 
 \newcommand{\Ri}{\mathrm{Ri}}
 \newcommand{\Ric}{\mathrm{Ri}_c}
@@ -159,8 +161,7 @@ For the present draft, the low-level $\Rig$ proxy is taken at 2 m for BLLAST, 5 
 \centering
 \small
 \setlength{\tabcolsep}{4pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{@{}l p{2.3cm} c c c p{2.2cm}@{}}
+\begin{tabularx}{\textwidth}{@{}l l c c c X@{}}
 \toprule
 \textbf{Campaign} & \textbf{Low-level proxy} & $\tau_{\text{best}}$ & $R_\tau$ & $I(\eta_3; \Rig \leq Ri_c)$ & \textbf{Status} \\
 \midrule
@@ -169,8 +170,7 @@ CASES-99 & $\Rig(5\,\text{m})$ & tbd & tbd & tbd & Pending \\
 FLOSS & $\Rig(1\,\text{m})$ & tbd & tbd & tbd & Pending \\
 GABLS3 & surface & tbd & tbd & tbd & Pending \\
 \bottomrule
-\end{tabular}%
-}
+\end{tabularx}
 \end{table}
 
 \subsection{Campaign transversality comparison}
@@ -178,14 +178,14 @@ GABLS3 & surface & tbd & tbd & tbd & Pending \\
 \begin{table}[htbp]
 \centering
 \small
-\begin{tabular}{@{}llll@{}}
+\begin{tabularx}{\textwidth}{@{}l c l X@{}}
 \toprule
 \textbf{Campaign} & \textbf{Transversality} & \textbf{Classification} & \textbf{Physical behavior} \\
 \midrule
 CASES-99 & $\approx -0.41$ & Brittle fold & Rapid decoupling and clean branch jumps \\
 FLOSS & $\approx -0.07$ & Rubbery fold & Longer residence near marginal stability and wave-mediated release \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \section{Physical Interpretation of Regime Dynamics}
@@ -221,7 +221,7 @@ To solidify this operational mapping, Table~3 establishes a direct translation b
 \begin{table}[htbp]
 \centering
 \small
-\begin{tabular}{@{}ll@{}}
+\begin{tabularx}{\textwidth}{@{}p{0.36\textwidth}X@{}}
 \toprule
 \textbf{Manifold topology feature} & \textbf{Atmospheric boundary layer manifestation} \\
 \midrule
@@ -231,7 +231,7 @@ Abrupt branch jump & Catastrophic rapid regime transition (decoupling/recoupling
 Hysteretic state loop & Path-dependent, non-reversible atmospheric column evolution \\
 Curvature coordinate ($\eta_3$) growth & Integrated profile deformation approaching turbulence collapse \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \caption{Operational mapping between manifold coordinates and physical boundary layer processes.}
 \end{table}
 
@@ -254,9 +254,11 @@ In practice, unconstrained affine fitting artificially inflates GABLS3 inside-fo
 \caption{Cross-campaign containment fractions ($\Delta \le 0$) under hierarchical geometric constraints.}
 \label{tab:affine_audit}
 \centering
-\begin{tabular}{lcccc}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l c c c c@{}}
 \toprule
-Campaign & Rigid scale only & Rigid rotation ($\theta$) & Bounded affine & Strict fixed-rigid $\mu$-only \\
+Campaign & Rigid scale only & Rigid rotation ($\theta$) & Bounded affine & Fixed-rigid $\mu$-only \\
 \midrule
 CASES-99 & 0.4169 & 0.5703 & 0.9000 & \textbf{0.7195} \\
 FLOSS    & 0.5823 & 0.7007 & 0.8976 & \textbf{0.8417} \\
@@ -277,15 +279,27 @@ In this view, the long-standing debate regarding whether stable boundary-layer t
 The affine overfitting control strengthens this synthesis by delineating what is physically admissible from what is only mathematically pliable. Once unconstrained warping is excluded, the persistent GABLS3 mismatch indicates a genuine model-structure gap, consistent with missing sub-mesoscale triggering pathways that shape real nocturnal transition topology.
 
 \section*{Acknowledgments}
-The authors thank the CASES-99, FLOSS, BLLAST, and GABLS3 teams for making their data publicly available.
+
+The authors gratefully acknowledge the investigators and support staff of the CASES-99, FLOSS, BLLAST, and GABLS3 field campaigns and intercomparison projects for making their observational datasets publicly available. These carefully curated datasets provide the foundation for the observational analyses presented in this study and have enabled numerous advances in understanding stable boundary-layer dynamics.
+
+The authors also acknowledge the developers and maintainers of the open-source scientific software ecosystem used throughout this work, including Julia, NetCDF, and the associated numerical and visualization libraries that made the analysis reproducible.
+
+Constructive discussions within the atmospheric boundary-layer research community, together with the extensive literature on stable boundary-layer dynamics, turbulence, and similarity theory, have significantly influenced the development of the ideas presented here.
+
+Any remaining errors or omissions are the sole responsibility of the authors.
+
 \FloatBarrier
 \clearpage
+
 \appendix
+
 \include{sections/appendix_mass_matrix}
+
 \FloatBarrier
 \clearpage
+
 \bibliography{refs}
-\bibliographystyle{ametsoc2014}
+\bibliographystyle{unsrtnat}
 
 \clearpage
 \section*{Figure Suite (Paper I)}
