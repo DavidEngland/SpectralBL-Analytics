@@ -1,0 +1,28 @@
+{
+  "latex-workshop.latex.recipes": [
+    {
+      "name": "latexmk-lualatex-shell",
+      "tools": ["latexmk-lualatex-shell"]
+    }
+  ],
+  "latex-workshop.latex.tools": [
+    {
+      "name": "latexmk-lualatex-shell",
+      "command": "latexmk",
+      "args": [
+        "-lualatex",
+        "-shell-escape",
+        "-interaction=nonstopmode",
+        "-synctex=1",
+        "-file-line-error",
+        "%DOC%"
+      ]
+    }
+  ],
+  "latex-workshop.view.pdf.viewer": "tab",
+  "latex-workshop.latex.autoBuild.enabled": true,
+  "latex-workshop.latex.autoBuild.run": "onFileChange",
+  "ltex.language": "en-US",
+  "editor.wordWrap": "on",
+  "editor.minimap.enabled": false
+}

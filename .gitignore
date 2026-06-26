@@ -1,7 +1,12 @@
 # OS and editor noise
 .DS_Store
 Thumbs.db
-.vscode/
+
+# Track curated VS Code workspace config files.
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
 
 # Julia local environment/cache
 .julia/
@@ -18,6 +23,18 @@ dev/
 *.out
 *.toc
 *.synctex.gz
+
+# Manuscript compilation artifacts
+manuscript/*.aux
+manuscript/*.log
+manuscript/*.out
+manuscript/*.toc
+manuscript/*.bbl
+manuscript/*.blg
+manuscript/*.fdb_latexmk
+manuscript/*.fls
+manuscript/*.synctex.gz
+manuscript/sections/*.aux
 
 # Report run artifacts (generated, reproducible)
 reports/cases99_run/generated/*.tex

@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report bllast-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit bllast-audit arctic-audit
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report bllast-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit bllast-audit arctic-audit paper paper-clean paper-rebuild paper-setup paper-metrics manuscript-figures
 
 # Configuration parameters
 CAMPAIGN ?= ALL
@@ -64,6 +64,7 @@ OUTPUT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99.pdf,$(if $(filter GABL
 OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $(filter GABLS3,$(CAMPAIGN)),GABLS3-audit.pdf,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),ARCTIC-AMPLIFICATION-audit.pdf,$(if $(filter FLOSS,$(CAMPAIGN)),FLOSS-audit.pdf,$(if $(filter BLLAST,$(CAMPAIGN)),BLLAST-audit.pdf,audit.pdf)))))
 REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,$(if $(filter FLOSS,$(CAMPAIGN)),floss_run,$(if $(filter BLLAST,$(CAMPAIGN)),bllast_run,all_run)))))
 CAMPAIGN_SLUG = $(shell echo "$(CAMPAIGN)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$$//')
+PAPER_DIR ?= manuscript
 
 # Default target
 all: init process tex report
@@ -99,6 +100,11 @@ help:
 	@echo "  make arctic-hlbl-synthetic - Run synthetic Arctic HLBL suite + TeX snippets"
 	@echo "  make arctic-finalize   - Synthetic + native Arctic report + monitoring cards"
 	@echo "  make compile-cards     - Build campaign summary markdown card (set CAMPAIGN flag)"
+	@echo "  make paper-metrics     - Export manuscript macro metrics from current outputs"
+	@echo "  make manuscript-figures - Generate manuscript figure PDFs (fig4-fig8)"
+	@echo "  make paper             - Compile manuscript/main.tex with synced assets"
+	@echo "  make paper-clean       - Clean manuscript build artifacts"
+	@echo "  make paper-rebuild     - Clean and rebuild manuscript PDF"
 	@echo "  make cabauw-report     - Canonical Cabauw-only flow (forces CAMPAIGN=GABLS3)"
 	@echo "  make test              - Run repository test suites"
 	@echo "  make clean             - Remove compiled logs and temporary runtime artifacts"
@@ -223,6 +229,28 @@ compile-audit:
 compile-cards:
 	@echo "Compiling campaign monitoring card (campaign=$(CAMPAIGN))..."
 	julia --project="." scripts/compile_campaign_reports.jl $(CAMPAIGN)
+
+paper-setup:
+	@echo "Synchronizing manuscript reference assets..."
+	cp -f drafts/ametsoc2014.bst $(PAPER_DIR)/ametsoc2014.bst
+
+paper-metrics:
+	@echo "Exporting manuscript metrics macros..."
+	julia --project="." scripts/export_manuscript_metrics.jl
+
+manuscript-figures:
+	@echo "Generating manuscript figure assets (fig4-fig8)..."
+	julia --project="." scripts/generate_manuscript_figures.jl
+
+paper: paper-setup paper-metrics
+	@echo "Compiling manuscript workspace PDF..."
+	cd $(PAPER_DIR) && latexmk -lualatex -shell-escape -interaction=nonstopmode main.tex
+
+paper-clean:
+	@echo "Cleaning manuscript workspace build artifacts..."
+	cd $(PAPER_DIR) && latexmk -C
+
+paper-rebuild: paper-clean paper
 
 cases99-audit: CAMPAIGN=CASES-99
 cases99-audit: process audit compile-audit

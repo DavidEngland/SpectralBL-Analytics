@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Paper: Build",
+      "type": "shell",
+      "command": "make",
+      "args": ["paper"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Paper: Clean",
+      "type": "shell",
+      "command": "make",
+      "args": ["paper-clean"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Paper: Rebuild",
+      "type": "shell",
+      "command": "make",
+      "args": ["paper-rebuild"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Report: Build CASES-99",
+      "type": "shell",
+      "command": "make",
+      "args": ["cases99-report"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Report: Build GABLS3",
+      "type": "shell",
+      "command": "make",
+      "args": ["gabls3-report"],
+      "problemMatcher": []
+    }
+  ]
+}
