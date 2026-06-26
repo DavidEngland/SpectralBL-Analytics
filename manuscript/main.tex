@@ -61,7 +61,7 @@ is exactly what the p-FEM mass matrix $\mat{M}$ preserves, so the decomposition 
 \vect{v}_i^\top \mat{M} \vect{v}_j = \delta_{ij}.
 \end{equation}
 
-This distinguishes the present approach from standard PCA. Ordinary PCA uses the Euclidean inner product $\langle \vect{x}, \vect{y}\rangle = \vect{x}^\top \vect{y}$, which is sensitive to sensor clustering and measurement geometry: changing instrument heights or spacing changes the covariance matrix and therefore the eigenvectors. The $\mat{M}$-weighted Hilbert-space inner product instead approximates $\int f(z)g(z)\,dz$, so the eigenvectors correspond to physical profile structures rather than instrument placement. Whether a campaign uses seven tower levels (CASES-99) or hundreds of model levels (GABLS3), the p-FEM interpolation maps both into the same functional space before projection. The resulting coordinates are invariant properties of the atmospheric column itself, not of the experimental discretization, which directly addresses the common artifact-defense critique for SVD-based atmospheric analyses.
+This distinguishes the present approach from standard PCA (Principal Component Analysis). Ordinary PCA uses the Euclidean inner product $\langle \vect{x}, \vect{y}\rangle = \vect{x}^\top \vect{y}$, which is sensitive to sensor clustering and measurement geometry: changing instrument heights or spacing changes the covariance matrix and therefore the eigenvectors. The $\mat{M}$-weighted Hilbert-space inner product instead approximates $\int f(z)g(z)\,dz$, so the eigenvectors correspond to physical profile structures rather than instrument placement. Whether a campaign uses seven tower levels (CASES-99) or hundreds of model levels (GABLS3), the p-FEM interpolation maps both into the same functional space before projection. The resulting coordinates are invariant properties of the atmospheric column itself, not of the experimental discretization, which directly addresses the common artifact-defense critique for SVD-based atmospheric analyses.
 
 \subsection{Chart-equivalence and the projection singularity}
 
@@ -204,7 +204,7 @@ This is exactly where $\eta_3$ becomes valuable. The saturation of $\Rig$ past t
 
 Rather than interpreting turbulent bursts as isolated, stochastic collapse-and-restart anomalies, the geometry of the recovered manifold allows us to model intermittency as deterministic orbital motion driven by a continuous phase-space cycle under an attractor spin $\Omega$. A useful diagnostic for this orbit is the kinematic speed of the state vector,
 \begin{equation}
-v(t) = \left\|\frac{d\vect{\eta}}{dt}\right\|,
+s(t) = \left\|\frac{d\vect{\eta}}{dt}\right\|,
 \end{equation}
 which drops near fold-proximal neighborhoods (critical slowing) and rises after branch departure. Figures 1 and 2 explicitly annotate the orientation of these phase trajectories with directional $\Omega$ arrows, visually demonstrating that the boundary layer traverses a highly structured, repeatable circuit characterized by alternating radiative and mechanical control loops. This cycle unfolds systematically through three sequential phases:
 
@@ -276,9 +276,8 @@ In this view, the long-standing debate regarding whether stable boundary-layer t
 
 The affine overfitting control strengthens this synthesis by delineating what is physically admissible from what is only mathematically pliable. Once unconstrained warping is excluded, the persistent GABLS3 mismatch indicates a genuine model-structure gap, consistent with missing sub-mesoscale triggering pathways that shape real nocturnal transition topology.
 
-\begin{acknowledgments}
-The authors thank the CASES-99, FLOSS, BLLAST, and GABLS3 teams for making their data publicly available. This work was supported by [funding sources].
-\end{acknowledgments}
+\section*{Acknowledgments}
+The authors thank the CASES-99, FLOSS, BLLAST, and GABLS3 teams for making their data publicly available.
 \FloatBarrier
 \clearpage
 \appendix
@@ -315,7 +314,7 @@ The authors thank the CASES-99, FLOSS, BLLAST, and GABLS3 teams for making their
 \begin{figure}[p]
 \centering
 \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig7_slowing_down.pdf}
-\caption{Kinematic evidence of critical slowing near fold approach using state-space speed $v(t)$ and inverse-time metric $\tau=1/v$.}
+\caption{Kinematic evidence of critical slowing near fold approach using orbital speed $s(t)$ and inverse-time metric $\tau=1/s$.}
 \label{fig:fig7-slowing}
 \end{figure}
 
