@@ -8,6 +8,19 @@ using Statistics
 
 include("manuscript_figure_common.jl")
 
+function camera_for_campaign(campaign::String)
+    if campaign == "CASES-99"
+        return (32, 20)
+    elseif campaign == "FLOSS"
+        return (40, 24)
+    elseif campaign == "BLLAST"
+        return (28, 18)
+    elseif campaign == "GABLS3"
+        return (52, 26)
+    end
+    return (35, 22)
+end
+
 function build_panel(campaign::String, panel_label::String)
     df, _ = load_campaign_trajectory(campaign)
 
@@ -32,23 +45,60 @@ function build_panel(campaign::String, panel_label::String)
 
     fit = cusp_fit_scales(x, y, c_raw; lo = -1.0, hi = 1.0)
 
+    npts = length(x)
+    point_size = npts <= 250 ? 7.0 : (npts <= 1500 ? 5.0 : 3.2)
+    point_alpha = npts <= 250 ? 0.99 : 0.92
+
+    zmin = minimum(z)
+    zmax = maximum(z)
+    zspan = max(zmax - zmin, 1e-6)
+    zshadow = zmin - 0.08 * zspan
+
     p = scatter(
         x,
         y,
         zcolor = c,
         z = z,
-        markerstrokewidth = 0,
-        markersize = 2.5,
+        markerstrokewidth = 0.2,
+        markerstrokealpha = 0.30,
+        markersize = point_size,
+        markeralpha = point_alpha,
         color = continuous_cmap(:viridis),
         clims = (-2, 2),
-        colorbar_title = "log10(Gradient Richardson number) [-]",
-        xlabel = "Neutral baseline coordinate [-]",
-        ylabel = "Linear stability coordinate [-]",
-        zlabel = "Spectral curvature coordinate [-]",
+        colorbar_title = "log10(Ri_g) [-]",
+        xlabel = "eta_1",
+        ylabel = "eta_2",
+        zlabel = "eta_3",
         title = panel_title(panel_label, campaign),
         titlefont = font(11, "Computer Modern", :black, :hcenter, :vcenter, 0.0),
         legend = false,
-        camera = (35, 25),
+        aspect_ratio = :auto,
+        camera = camera_for_campaign(campaign),
+        widen = true,
+        xguidefontsize = 9,
+        yguidefontsize = 9,
+        zguidefontsize = 9,
+        xtickfontsize = 8,
+        ytickfontsize = 8,
+        ztickfontsize = 8,
+        guidefontrotation = 12,
+        left_margin = 8Plots.mm,
+        right_margin = 8Plots.mm,
+        top_margin = 6Plots.mm,
+        bottom_margin = 8Plots.mm,
+    )
+
+    # Depth cue: project observations onto a floor plane to improve 3D readability.
+    scatter!(
+        p,
+        x,
+        y,
+        z = fill(zshadow, npts),
+        markercolor = :black,
+        markersize = max(point_size - 1.0, 1.8),
+        markerstrokewidth = 0,
+        markeralpha = 0.10,
+        label = "",
     )
 
     if !isempty(x)
@@ -72,9 +122,9 @@ function build_panel(campaign::String, panel_label::String)
             xsurf_pos,
             ysurf_pos,
             zsurf_pos,
-            alpha = 0.18,
+            alpha = 0.07,
             color = :gray65,
-            linealpha = 0.10,
+            linealpha = 0.05,
             label = "",
         )
         surface!(
@@ -82,9 +132,9 @@ function build_panel(campaign::String, panel_label::String)
             xsurf_neg,
             ysurf_neg,
             zsurf_neg,
-            alpha = 0.18,
+            alpha = 0.08,
             color = :gray45,
-            linealpha = 0.15,
+            linealpha = 0.06,
             label = "",
         )
 
@@ -94,8 +144,14 @@ function build_panel(campaign::String, panel_label::String)
         yf_up = fit.μ2 .+ fit.s2 .* βf
         yf_dn = fit.μ2 .- fit.s2 .* βf
         zf = fill(zmed, length(αf))
-        plot!(p, xf, yf_up, zf, color = :black, linewidth = 1.4, alpha = 0.75, label = "")
-        plot!(p, xf, yf_dn, zf, color = :black, linewidth = 1.4, alpha = 0.75, label = "")
+        # High-contrast fold curves: white underlay + black stroke.
+        plot!(p, xf, yf_up, zf, color = :white, linewidth = 3.2, alpha = 0.95, label = "")
+        plot!(p, xf, yf_dn, zf, color = :white, linewidth = 3.2, alpha = 0.95, label = "")
+        plot!(p, xf, yf_up, zf, color = :black, linewidth = 2.2, alpha = 0.97, label = "")
+        plot!(p, xf, yf_dn, zf, color = :black, linewidth = 2.2, alpha = 0.97, label = "")
+        # Ground-plane shadow of fold edges for depth cue.
+        plot!(p, xf, yf_up, fill(zshadow, length(xf)), color = :black, linewidth = 1.2, alpha = 0.25, linestyle = :dot, label = "")
+        plot!(p, xf, yf_dn, fill(zshadow, length(xf)), color = :black, linewidth = 1.2, alpha = 0.25, linestyle = :dot, label = "")
 
         if isfinite(fit.inside_frac)
             annotate!(
@@ -108,7 +164,46 @@ function build_panel(campaign::String, panel_label::String)
         end
     end
 
+    # Repaint colored observations last so surfaces never wash out campaign color structure.
+    scatter!(
+        p,
+        x,
+        y,
+        z = z,
+        zcolor = c,
+        color = continuous_cmap(:viridis),
+        clims = (-2, 2),
+        markersize = point_size,
+        markerstrokewidth = 0.15,
+        markerstrokealpha = 0.25,
+        markeralpha = point_alpha,
+        label = "",
+    )
+
     return p
+end
+
+function save_interactive_html(filename::String = "fig4_manifold_interactive.html")
+    try
+        plotlyjs()
+        set_publication_defaults!()
+        p_int = plot(
+            build_panel("CASES-99", "(a)"),
+            build_panel("FLOSS", "(b)"),
+            build_panel("BLLAST", "(c)"),
+            build_panel("GABLS3", "(d)"),
+            layout = (2, 2),
+            size = (2200, 1600),
+            margin = 8Plots.mm,
+        )
+        outpath = joinpath(figures_dir(), filename)
+        savefig(p_int, outpath)
+        @info("Saved interactive figure", outpath = outpath)
+    catch err
+        @warn("Interactive HTML export skipped", error = sprint(showerror, err))
+    finally
+        gr()
+    end
 end
 
 function main()
@@ -121,8 +216,18 @@ function main()
         build_panel("GABLS3", "(d)"),
     ]
 
-    plt = plot(panels..., layout = (2, 2), size = (1400, 1100), margin = 8Plots.mm)
+    plt = plot(
+        panels...,
+        layout = (2, 2),
+        size = (2400, 1800),
+        margin = 10Plots.mm,
+        left_margin = 10Plots.mm,
+        right_margin = 10Plots.mm,
+        top_margin = 8Plots.mm,
+        bottom_margin = 10Plots.mm,
+    )
     save_figure_pdf(plt, "fig4_manifold.pdf")
+    save_interactive_html()
 end
 
 main()
