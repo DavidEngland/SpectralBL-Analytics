@@ -1,13 +1,13 @@
 \section{Mass-Matrix Metric Foundation for Reduced Coordinates}
 \label{app:mass_matrix}
 
-This appendix summarizes the metric foundation used in the reduced-coordinate construction. The key object is the p-FEM mass matrix, which is the discrete representation of the continuous profile inner product.
+This appendix summarizes the metric foundation used in the reduced-coordinate construction. The key object is the $p$-FEM mass matrix, which is the discrete representation of the continuous profile inner product.
 
 Let reconstructed vertical profiles be expanded in basis functions:
 \begin{equation}
 f(z) = \sum_{i=1}^{N} a_i \phi_i(z),
 \qquad
- g(z) = \sum_{j=1}^{N} b_j \phi_j(z).
+g(z) = \sum_{j=1}^{N} b_j \phi_j(z).
 \end{equation}
 Define the mass matrix entries by
 \begin{equation}
@@ -15,40 +15,40 @@ M_{ij} = \int_{z_{\min}}^{z_{\max}} \phi_i(z)\phi_j(z)\,dz.
 \end{equation}
 Then the coefficient-space bilinear form satisfies
 \begin{equation}
-\mathbf{a}^\top \mathbf{M}\mathbf{b}
-= \int_{z_{\min}}^{z_{\max}} f(z)g(z)\,dz,
+\vect{a}^\top \mat{M} \vect{b} = \int_{z_{\min}}^{z_{\max}} f(z)g(z)\,dz,
 \end{equation}
 so the induced inner product is
 \begin{equation}
-\langle u,v\rangle_M = u^\top M v.
+\langle u,v\rangle_M = \vect{u}^\top \mat{M} \vect{v}.
 \end{equation}
 
 Accordingly, norms and orthogonality are measured by
 \begin{equation}
-\|u\|_M^2 = u^\top M u,
-\qquad
-u \perp_M v \iff u^\top M v = 0.
+\|\vect{u}\|_M^2 = \vect{u}^\top \mat{M} \vect{u},
+\end{equation}
+\begin{equation}
+\vect{u} \perp_M \vect{v} \iff \vect{u}^\top \mat{M} \vect{v} = 0.
 \end{equation}
 This metric interpretation is central: the mass matrix defines lengths, angles, and overlap in the reduced profile space.
 
-\subsection{Why This Matters for Artifact Defense}
+\subsection{Why this matters for artifact defense}
 
-In Euclidean PCA/SVD, the dot product depends directly on discretization geometry (level spacing and clustering), so dominant modes can shift when instrument placement changes. In contrast, the $M$-weighted Hilbert-space inner product approximates the continuous overlap integral of profiles over height. As a result, the extracted coordinates emphasize physical profile structure rather than sensor-layout artifacts.
+In Euclidean PCA/SVD, the dot product depends directly on discretization geometry (level spacing and clustering), so dominant modes can shift when instrument placement changes. In contrast, the $\mat{M}$-weighted Hilbert-space inner product approximates the continuous overlap integral of profiles over height. As a result, the extracted coordinates emphasize physical profile structure rather than sensor-layout artifacts.
 
-This is the rationale for performing decomposition in the $M$-weighted metric:
+This is the rationale for performing decomposition in the $\mat{M}$-weighted metric:
 \begin{equation}
-\mathbf{v}_i^\top M \mathbf{v}_j = \delta_{ij}.
+\vect{v}_i^\top \mat{M} \vect{v}_j = \delta_{ij}.
 \end{equation}
 The resulting basis vectors are orthonormal under physically meaningful overlap, which strengthens cross-campaign comparability and supports mesh-invariant interpretation of reduced coordinates.
 
-\subsection{Connection to Evolution Equations}
+\subsection{Connection to evolution equations}
 
 After Galerkin projection, time-dependent reduced models naturally take the form
 \begin{equation}
-M\dot{a} = Ka + F,
+\mat{M}\dot{\vect{a}} = \mat{K}\vect{a} + \vect{F},
 \end{equation}
-where $a$ is the reduced-state coefficient vector, $K$ contains projected operators, and $F$ is forcing. In this form, $M$ is not an auxiliary matrix; it is the geometry-carrying metric operator of the reduced system.
+where $\vect{a}$ is the reduced-state coefficient vector, $\mat{K}$ contains projected operators, and $\vect{F}$ is forcing. In this form, $\mat{M}$ is not an auxiliary matrix; it is the geometry-carrying metric operator of the reduced system.
 
-\subsection{Practical Implication for SBL Transition Analysis}
+\subsection{Practical implication for SBL transition analysis}
 
-Near strongly stable transitions, local scalar diagnostics can saturate and lose sensitivity. Metric-aware coordinates obtained in the $M$-weighted space remain tied to full-column structure and therefore retain geometric signal where one-point thresholds become less informative. This is the mathematical basis for treating the reduced manifold coordinates as physically interpretable state variables rather than purely statistical features.
+Near strongly stable transitions, local scalar diagnostics can saturate and lose sensitivity. Metric-aware coordinates obtained in the $\mat{M}$-weighted space remain tied to full-column structure and therefore retain geometric signal where one-point thresholds become less informative. This is the mathematical basis for treating the reduced manifold coordinates as physically interpretable state variables rather than purely statistical features.
