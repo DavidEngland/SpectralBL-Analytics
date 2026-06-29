@@ -37,6 +37,47 @@ function emit_macro(io::IO, name::String, value::String)
     println(io, "\\renewcommand{\\$name}{$safe}")
 end
 
+function catalog_summary(repo_root::String)
+    path = joinpath(repo_root, "data", "datasets.json")
+    if !isfile(path)
+        return (version="n/a", total=0, ingested=0, candidate=0)
+    end
+
+    payload = JSON3.read(read(path, String))
+    catalog = haskey(payload, "catalog") ? payload["catalog"] : nothing
+    datasets = haskey(payload, "datasets") ? payload["datasets"] : nothing
+    if datasets === nothing
+        return (version="n/a", total=0, ingested=0, candidate=0)
+    end
+
+    version = (catalog !== nothing && haskey(catalog, "catalog_version")) ? String(catalog["catalog_version"]) : "n/a"
+    total = length(datasets)
+    ingested = 0
+    candidate = 0
+    for ds in datasets
+        status = haskey(ds, "status") ? String(ds["status"]) : ""
+        if status == "Ingested"
+            ingested += 1
+        elseif status == "Potential Future Use"
+            candidate += 1
+        end
+    end
+    return (version=version, total=total, ingested=ingested, candidate=candidate)
+end
+
+function ameriflux_summary(repo_root::String)
+    path = joinpath(repo_root, "data", "ameriflux", "stations.json")
+    if !isfile(path)
+        return (sites="n/a", network="n/a", license="n/a")
+    end
+
+    payload = JSON3.read(read(path, String))
+    sites = haskey(payload, "n_sites") ? string(payload["n_sites"]) : "n/a"
+    network = haskey(payload, "network") ? String(payload["network"]) : "n/a"
+    license = haskey(payload, "license") ? String(payload["license"]) : "n/a"
+    return (sites=sites, network=network, license=license)
+end
+
 function main()
     repo_root = pwd()
     out_file = joinpath(repo_root, "manuscript", "generated", "generated_metrics.tex")
@@ -62,6 +103,17 @@ function main()
             emit_macro(io, "GlobalSamples", "n/a")
             emit_macro(io, "GlobalEntropy", "n/a")
         end
+
+        ds = catalog_summary(repo_root)
+        emit_macro(io, "DatasetCatalogVersion", ds.version)
+        emit_macro(io, "DatasetCatalogCount", string(ds.total))
+        emit_macro(io, "DatasetIngestedCount", string(ds.ingested))
+        emit_macro(io, "DatasetCandidateCount", string(ds.candidate))
+
+        af = ameriflux_summary(repo_root)
+        emit_macro(io, "AmeriFluxSiteCount", af.sites)
+        emit_macro(io, "AmeriFluxNetwork", af.network)
+        emit_macro(io, "AmeriFluxLicense", af.license)
 
         for (campaign_name, slug, prefix) in CAMPAIGN_MAP
             s5_summary_path = joinpath(repo_root, "data", "outputs", "stage5_summary_$(slug).json")

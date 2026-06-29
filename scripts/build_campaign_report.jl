@@ -223,6 +223,153 @@ function load_optional_json(path::String)
     return isfile(path) ? JSON3.read(read(path, String)) : nothing
 end
 
+function campaign_dataset_id(campaign_label::String)
+    c = uppercase(strip(campaign_label))
+    if c == "CASES-99"
+        return "cases_99"
+    elseif c == "GABLS3"
+        return "gabls3"
+    elseif c == "FLOSS"
+        return "floss_ii"
+    elseif c == "BLLAST"
+        return "bllast"
+    elseif startswith(c, "AMERIFLUX")
+        return "ameriflux_sweeps"
+    elseif c == "GABLS1"
+        return "gabls1"
+    elseif c == "GABLS2"
+        return "gabls2"
+    elseif c == "GABLS4" || c == "GABLS4-DOME-C" || c == "DOME C"
+        return "gabls4_dome_c"
+    end
+
+    safe = lowercase(replace(campaign_label, r"[^A-Za-z0-9]+" => "_"))
+    safe = strip(safe, '_')
+    return isempty(safe) ? "campaign" : safe
+end
+
+function extract_dataset_catalog_tokens(workspace_dir::String, campaign_label::String)
+    default_tokens = Dict{String,Any}(
+        "has_dataset_catalog" => false,
+        "dataset_catalog_version" => "n/a",
+        "dataset_catalog_count" => "0",
+        "dataset_ingested_count" => "0",
+        "dataset_candidate_count" => "0",
+        "campaign_dataset_id" => campaign_dataset_id(campaign_label),
+        "campaign_dataset_name" => campaign_label,
+        "campaign_dataset_status" => "n/a",
+        "campaign_dataset_priority" => "n/a",
+        "campaign_dataset_archetype" => "n/a",
+        "campaign_dataset_primary_refs" => "n/a",
+        "campaign_dataset_ingestion_source" => "n/a",
+        "has_ameriflux_inventory" => false,
+        "ameriflux_network" => "AmeriFlux Core Network",
+        "ameriflux_site_count" => "0 (Not evaluated for this run)",
+        "ameriflux_license" => "CC-BY-4.0",
+        "ameriflux_data_source" => "n/a"
+    )
+
+    datasets_path = joinpath(workspace_dir, "data", "datasets.json")
+    catalog_json = load_optional_json(datasets_path)
+    if catalog_json === nothing
+        return default_tokens
+    end
+
+    catalog_meta = haskey(catalog_json, "catalog") ? catalog_json["catalog"] : nothing
+    datasets = haskey(catalog_json, "datasets") ? catalog_json["datasets"] : nothing
+    if datasets === nothing
+        return default_tokens
+    end
+
+    default_tokens["has_dataset_catalog"] = true
+    if catalog_meta !== nothing && haskey(catalog_meta, "catalog_version")
+        default_tokens["dataset_catalog_version"] = String(catalog_meta["catalog_version"])
+    end
+    default_tokens["dataset_catalog_count"] = string(length(datasets))
+
+    ingested_count = 0
+    candidate_count = 0
+    target_id = campaign_dataset_id(campaign_label)
+    matched = nothing
+
+    for ds in datasets
+        status = haskey(ds, "status") ? String(ds["status"]) : ""
+        if status == "Ingested"
+            ingested_count += 1
+        elseif status == "Potential Future Use"
+            candidate_count += 1
+        end
+
+        if haskey(ds, "id") && String(ds["id"]) == target_id
+            matched = ds
+        end
+    end
+
+    default_tokens["dataset_ingested_count"] = string(ingested_count)
+    default_tokens["dataset_candidate_count"] = string(candidate_count)
+
+    if matched !== nothing
+        if haskey(matched, "name")
+            default_tokens["campaign_dataset_name"] = String(matched["name"])
+        end
+        if haskey(matched, "status")
+            default_tokens["campaign_dataset_status"] = String(matched["status"])
+        end
+        if haskey(matched, "priority")
+            default_tokens["campaign_dataset_priority"] = String(matched["priority"])
+        end
+        if haskey(matched, "framework_role")
+            role = matched["framework_role"]
+            if haskey(role, "archetype")
+                default_tokens["campaign_dataset_archetype"] = String(role["archetype"])
+            end
+        end
+        if haskey(matched, "literature_context")
+            lit = matched["literature_context"]
+            if haskey(lit, "primary_papers")
+                refs = [String(r) for r in lit["primary_papers"]]
+                if !isempty(refs)
+                    default_tokens["campaign_dataset_primary_refs"] = join(refs, "; ")
+                end
+            end
+        end
+        if haskey(matched, "data_assets")
+            assets = matched["data_assets"]
+            if haskey(assets, "ingestion_source")
+                default_tokens["campaign_dataset_ingestion_source"] = String(assets["ingestion_source"])
+            end
+        end
+    end
+
+    ameriflux_path = joinpath(workspace_dir, "data", "ameriflux", "stations.json")
+    ameriflux_json = load_optional_json(ameriflux_path)
+    if ameriflux_json !== nothing
+        default_tokens["has_ameriflux_inventory"] = true
+        if haskey(ameriflux_json, "network")
+            default_tokens["ameriflux_network"] = String(ameriflux_json["network"])
+        end
+        if haskey(ameriflux_json, "n_sites")
+            default_tokens["ameriflux_site_count"] = string(ameriflux_json["n_sites"])
+        end
+        if haskey(ameriflux_json, "license")
+            default_tokens["ameriflux_license"] = String(ameriflux_json["license"])
+        end
+        if haskey(ameriflux_json, "data_source")
+            default_tokens["ameriflux_data_source"] = String(ameriflux_json["data_source"])
+        end
+    end
+
+    default_tokens["campaign_dataset_name_tex"] = escape_latex_text(String(default_tokens["campaign_dataset_name"]))
+    default_tokens["campaign_dataset_status_tex"] = escape_latex_text(String(default_tokens["campaign_dataset_status"]))
+    default_tokens["campaign_dataset_priority_tex"] = escape_latex_text(String(default_tokens["campaign_dataset_priority"]))
+    default_tokens["campaign_dataset_archetype_tex"] = escape_latex_text(String(default_tokens["campaign_dataset_archetype"]))
+    default_tokens["campaign_dataset_primary_refs_tex"] = escape_latex_text(String(default_tokens["campaign_dataset_primary_refs"]))
+    default_tokens["campaign_dataset_ingestion_source_tex"] = escape_latex_text(String(default_tokens["campaign_dataset_ingestion_source"]))
+    default_tokens["ameriflux_network_tex"] = escape_latex_text(String(default_tokens["ameriflux_network"]))
+
+    return default_tokens
+end
+
 function percentile_or_nothing(values::Vector{Float64}, q::Float64)
     isempty(values) && return nothing
     return quantile(values, q)
@@ -1153,11 +1300,13 @@ function execute_orchestration(
         structural_tokens = extract_structural_tokens(data_out_dir, campaign_label, report_run_dir)
         domec_tokens = extract_domec_tokens(data_out_dir, report_run_dir)
         precursor_tokens = extract_precursor_tokens(export_result.trajectory_csv, campaign_label, report_run_dir)
+        catalog_tokens = extract_dataset_catalog_tokens(workspace_dir, campaign_label)
         merge!(tokens, stage5_tokens)
         merge!(tokens, transition_tokens)
         merge!(tokens, structural_tokens)
         merge!(tokens, domec_tokens)
         merge!(tokens, precursor_tokens)
+        merge!(tokens, catalog_tokens)
         merge!(tokens, cross_tokens)
         
         @info "Rendering template: $(report.name) -> $(full_tex_target)"
