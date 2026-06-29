@@ -139,6 +139,15 @@ Transition plots are the primary dynamical fingerprint for regime transitions in
     \item Peak $|\eta_3|$ in transition window: {{{transition_peak_eta3_fmt}}}
 \end{itemize}
 
+{{#has_real_aligned_figure}}
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.95\textwidth,keepaspectratio]{{{real_aligned_figure_path_tex}}}
+    \caption{Campaign-resolved real-data aligned profile/scatter diagnostic for \texttt{ {{{campaign_display_name}}} }. The panel maps reduced manifold coordinates into the operational $(\Delta T, V)$ chart, with side profiles shown in a stripped visual style to emphasize structural alignment rather than plot ornamentation.}
+    \label{fig:real_aligned_{{campaign_slug}}}
+\end{figure}
+{{/has_real_aligned_figure}}
+
 {{#has_structural_correlations}}
 \subsection{Structural Manifold Diagnostics: Spatial Coordinate vs. Local Criticality}
 

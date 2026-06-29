@@ -17,6 +17,25 @@ using Dates
 using LinearAlgebra
 using Statistics
 
+function maybe_generate_real_aligned_figure(workspace_dir::String, campaign::String)
+    script_path = joinpath(workspace_dir, "scripts", "plot_real_aligned_transition.jl")
+    if !isfile(script_path)
+        @warn "Real aligned transition script not found; skipping campaign figure generation." script=script_path
+        return false
+    end
+
+    cmd = `julia --project=. $script_path $campaign`
+    try
+        cd(workspace_dir) do
+            run(cmd)
+        end
+        return true
+    catch err
+        @warn "Failed to generate real aligned transition figure for campaign." campaign=campaign error=sprint(showerror, err)
+        return false
+    end
+end
+
 struct ReportDefinition
     name::String
     template_path::String
@@ -693,7 +712,7 @@ function build_cross_campaign_comparison_tokens(data_out_dir::String)
     return tokens
 end
 
-function extract_transition_tokens(data_out_dir::String, campaign_label::String, report_run_dir::String)
+function extract_transition_tokens(data_out_dir::String, campaign_label::String, report_run_dir::String, workspace_dir::String)
     slug = campaign_slug_local(campaign_label)
 
     panel_a_path = joinpath(data_out_dir, "transition_panel_a_$(slug).csv")
@@ -706,6 +725,13 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
     panel_b_rel = relpath(panel_b_path, report_run_dir)
     panel_c_rel = relpath(panel_c_path, report_run_dir)
     panel_c_profile_rel = relpath(panel_c_profile_path, report_run_dir)
+
+    real_fig_path = joinpath(workspace_dir, "manuscript", "figures", "fig10_real_aligned_profiles_$(slug).pdf")
+    if !isfile(real_fig_path) && campaign_label == "CASES-99"
+        # Backward-compatible fallback for older single-name CASES figure output.
+        real_fig_path = joinpath(workspace_dir, "manuscript", "figures", "fig10_real_aligned_profiles.pdf")
+    end
+    real_fig_rel = relpath(real_fig_path, report_run_dir)
 
     tokens = Dict{String,Any}(
         "has_transition_assets" => false,
@@ -729,6 +755,9 @@ function extract_transition_tokens(data_out_dir::String, campaign_label::String,
         "transition_gamma_critical_fmt" => "n/a",
         "transition_hopf_period_fmt" => "n/a",
         "transition_peak_eta3_fmt" => "n/a",
+        "has_real_aligned_figure" => isfile(real_fig_path),
+        "real_aligned_figure_path" => real_fig_rel,
+        "real_aligned_figure_path_tex" => "{" * real_fig_rel * "}",
     )
 
     if !(isfile(panel_a_path) && isfile(panel_b_path) && isfile(panel_c_path))
@@ -1227,6 +1256,10 @@ function execute_orchestration(
     
     # 4. Create execution directories
     ensure_report_workspace(report_run_dir, workspace_dir)
+
+    if campaign !== nothing && !is_domec_campaign(campaign)
+        maybe_generate_real_aligned_figure(workspace_dir, campaign)
+    end
     
     @info "==> Rendering Mustache templates..."
     cross_tokens = build_cross_campaign_comparison_tokens(data_out_dir)
@@ -1296,7 +1329,7 @@ function execute_orchestration(
         )
 
         stage5_tokens = extract_stage5_summary_tokens(data_out_dir, campaign_label, report_run_dir)
-        transition_tokens = extract_transition_tokens(data_out_dir, campaign_label, report_run_dir)
+        transition_tokens = extract_transition_tokens(data_out_dir, campaign_label, report_run_dir, workspace_dir)
         structural_tokens = extract_structural_tokens(data_out_dir, campaign_label, report_run_dir)
         domec_tokens = extract_domec_tokens(data_out_dir, report_run_dir)
         precursor_tokens = extract_precursor_tokens(export_result.trajectory_csv, campaign_label, report_run_dir)

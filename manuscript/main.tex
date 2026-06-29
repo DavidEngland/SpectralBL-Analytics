@@ -359,9 +359,9 @@ To ground this synthesis quantitatively, Table~\ref{tab:acevedo_comparison} esta
 \begin{table}[htbp]
 \centering
 \small
-\setlength{\tabcolsep}{6pt}
+\setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\textwidth}{@{}p{0.24\textwidth} X X@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.22\textwidth} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
 \toprule
 \textbf{Diagnostic Feature} & \textbf{Observational Framework \citep{acevedo2021external}} & \textbf{Manifold Framework (This Work)} \\
 \midrule
@@ -379,6 +379,40 @@ To ground this synthesis quantitatively, Table~\ref{tab:acevedo_comparison} esta
 \caption{Operational mapping and synthesis between the observational framework of Acevedo et al. (2021) and the data-driven geometric manifold reduction framework. In this manuscript, the observational net-radiation term $R_n$ is mapped to the state-surface forcing coordinate $Q_{\text{net}}$.}
 \label{tab:acevedo_comparison}
 \end{table}
+
+\subsection{Demystifying the manifold: The reversed S-curve as a coordinate shadow}
+\label{subsec:reversed_s_demystification}
+
+To bridge the gap between advanced differential topology and classical observational boundary-layer workflows, the underlying state surface can be projected onto a standard two-variable scatter framework. Historically, transition frameworks \citep[e.g.,][]{vignon2017, acevedo2021external} diagnose regime boundaries by plotting a near-surface temperature inversion proxy ($\Delta T = \Delta \theta$) against a reference mean wind speed ($V$). When field observations are viewed through this restricted operational window, they map out highly non-linear, multi-valued ``hockey stick'' or ``reversed S-shape'' distributions.
+
+Mathematically, the translation from the abstract low-dimensional manifold coordinate chart $\boldsymbol{\eta}$ back to the traditional observation plane $\Pi_{2\mathrm{D}} \equiv (V, \Delta T)$ is represented by an affine projection layer:
+\begin{align}
+V_{\text{proj}} &= V_0 + \sum_{k=1}^{2} \alpha_k \eta_k, \\
+\Delta T_{\text{proj}} &= \Delta T_0 + \sum_{k=1}^{3} \beta_k \eta_k,
+\end{align}
+where $V_0$ and $\Delta T_0$ are campaign-specific reference scales, and $\alpha_k, \beta_k$ are projection weights estimated from empirical boundary-layer column diagnostics. This mapping clarifies that the observed ``reversed S'' is a linear shadow of non-linear column folding in the $p$-FEM state space.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth,keepaspectratio]{fig10_real_aligned_profiles_cases_99.pdf}
+\caption{Real-data structural diagnostic matrix for the CASES-99 campaign. (a) Derived vertical potential-temperature-difference profile ($\Delta T$). (b) Central observational scatter colored by local stability $\log_{10}(\Rig)$ with analytical cusp-catastrophe manifold overlay and transition threshold $V_r$. (c) Streamlined vertical wind-speed profile ($V$) displaying kinematic shear configurations without extraneous background formatting.}
+\label{fig:fig10-real-aligned}
+\end{figure}
+
+The physical clarity of this chart-selection framework is illustrated in Figure~\ref{fig:fig10-real-aligned}. By embedding the standard observational scatter plot directly within the framing of its constituent vertical profiles, we can physically ground the apparent discontinuity diagnosed by single-point parameters.
+
+When looking strictly at the central observational plane (Figure~\ref{fig:fig10-real-aligned}b), the transition appears as an abrupt, multi-valued regime jump. However, panels (a) and (c) reveal that this jump is a lower-dimensional projection artifact. As column wind speed decreases past the critical transition threshold $V_r$, the full vertical profile does not undergo a discontinuous explosion; rather, it continuously adjusts its internal structural curvature mode $\eta_3$.
+
+The system tracks smoothly along an overhanging manifold sheet. It is only when local instrument arrays project this continuous 3D deformation onto a single-level gradient chart that the smooth geometric approach to the fold line appears as a sudden structural regime snap. Organizing diagnostics this way allows non-mathematicians to reconcile continuous column fluid mechanics with localized boundary-layer observations.
+
+As a trajectory traverses this circuit, it moves through three structurally distinct regions:
+\begin{enumerate}
+  \item \textbf{The Lower Coupled Branch:} Located at high wind speeds ($V > V_r$), where intense mechanical shear production sustains vertical coupling, keeping $\Delta T$ small and linear via continuous turbulent mixing.
+  \item \textbf{The Upper Decoupled Branch:} Located at low wind speeds ($V < V_r$), where collapsed turbulence traps longwave radiative cooling near the surface, forcing an escalation in $\Delta T$ that is insulated from aloft.
+  \item \textbf{The Middle Transitional Branch:} Representing the mathematically unstable, back-folding under-hang of the cusp geometry. Because the continuous atmosphere cannot reside in a statically unstable state-space neighborhood, this segment acts as a repeller, causing the system to abruptly ``snap'' vertically between the coupled and decoupled sheets.
+\end{enumerate}
+
+By organizing data according to these structural sheets, the long-standing problem of overlapping or multi-valued stability parameters disappears. Identical local gradient Richardson numbers possess different physical futures because they occupy distinct, vertically separated branches of the underlying folded manifold.
 
 \section{Synthesis and Conclusions}
 
@@ -425,7 +459,8 @@ The author expresses deep gratitude to the principal investigators, field crews,
 \noindent Computational support and numerical continuation resources were provided by the high-performance computing clusters at the author's home institution. The interpretation, geometric framework, and conclusions presented herein are solely those of the author and do not necessarily reflect the official views or consensus policies of the data-hosting networks or funding consortiums.
 
 \section*{Data Availability Statement}
-The raw observational time series and simulation outputs for CASES-99, FLOSS, BLLAST, and GABLS3 are publicly accessible through their respective institutional repositories. The $p$-FEM reconstruction layers, numerical continuation routines, and scripts used to compute the geometric indices ($\eta_3, S_f, \mathcal{T}$) are open-source and hosted on GitHub at \href{https://github.com/DavidEEngland/SBL-Folded-Equilibrium}{github.com/DavidEEngland/SBL-Folded-Equilibrium} [provisional placeholder].
+The raw observational time series and simulation outputs for CASES-99, FLOSS, BLLAST, and GABLS3 are publicly accessible through their respective institutional repositories.
+The $p$-FEM reconstruction layers, numerical continuation routines, and scripts used to compute the geometric indices ($\eta_3, S_f, \mathcal{T}$) are open-source and hosted on GitHub at \url{https://github.com/DavidEEngland/SBL-Folded-Equilibrium} [provisional placeholder].
 
 The authors gratefully acknowledge the investigators and support staff of the CASES-99, FLOSS, BLLAST, and GABLS3 field campaigns and intercomparison projects for making their observational datasets publicly available. These carefully curated datasets provide the foundation for the observational analyses presented in this study and have enabled numerous advances in understanding stable boundary-layer dynamics.
 
@@ -490,6 +525,48 @@ Any remaining errors or omissions are the sole responsibility of the authors.
 \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig8_universal_collapse.pdf}
 \caption{Universal collapse across campaigns with a power-law fit between fold-line distance and spectral curvature mode.}
 \label{fig:fig8-collapse}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig9a_reversed_s_brittle.pdf}
+\caption{Reversed-S projection in the brittle archetype (CASES-99 analog), with the unstable middle branch shown explicitly and the fold-edge wind threshold $V_r$ marked.}
+\label{fig:fig9a-reversed-s-brittle}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig9b_reversed_s_rubbery.pdf}
+\caption{Reversed-S projection in the rubbery archetype (FLOSS analog), illustrating smoother branch curvature and delayed approach to fold-edge transition conditions.}
+\label{fig:fig9b-reversed-s-rubbery}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig10_real_aligned_profiles_cases_99.pdf}
+\caption{Real-data aligned profile-scatter matrix for CASES-99, linking continuous column deformation to abrupt-looking projected transitions in $\Delta T$--$V$ space.}
+\label{fig:fig10-real-aligned-suite}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig10_real_aligned_profiles_floss.pdf}
+\caption{Real-data aligned profile-scatter matrix for FLOSS, showing campaign-specific manifold-shadow structure in the $\Delta T$--$V$ projection.}
+\label{fig:fig10-real-aligned-floss-suite}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig10_real_aligned_profiles_bllast.pdf}
+\caption{Real-data aligned profile-scatter matrix for BLLAST, highlighting the transition-bridge geometry in projected observation space.}
+\label{fig:fig10-real-aligned-bllast-suite}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{fig10_real_aligned_profiles_gabls3.pdf}
+\caption{Real-data aligned profile-scatter matrix for GABLS3, documenting the diurnal-arc benchmark structure in projected $\Delta T$--$V$ coordinates.}
+\label{fig:fig10-real-aligned-gabls3-suite}
 \end{figure}
 
 \end{document}
