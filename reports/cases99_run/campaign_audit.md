@@ -1,6 +1,6 @@
 # Campaign Performance Audit: CASES-99
 
-Date: 2026-06-29T14:38:40.846 | Auditor: Spectral-Analytics Engine
+Date: 2026-06-29T21:33:40.042 | Auditor: Spectral-Analytics Engine
 
 ## 1. Executive Dashboard
 
@@ -103,7 +103,7 @@ $$H = -\sum_{i=1}^{r} p_i \log p_i$$
 
 $$D_{\mathrm{eff}} = e^{H}$$
 
-$$\kappa = \sigma_{\max} / \sigma_{\min}$$
+$$\mathrm{cond}(A) = \sigma_{\max} / \sigma_{\min}$$
 
 $$R_{\mathrm{exceed}} = \frac{1}{W} \sum_{w=1}^{W} \mathbf{1}\{\mathrm{disagreement\_norm}_w > \tau\}$$
 

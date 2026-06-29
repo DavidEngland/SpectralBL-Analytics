@@ -26,7 +26,7 @@ Based on the processed analytics run, the structural characteristics of the unde
         \midrule
         Data Footprint & Analyzed {{{total_samples}}} observations across a temporal scale of {{{temporal_coverage}}} hours. \\[4pt]
         Manifold Complexity & Mean singular value entropy registers at $H_{\text{mean}} = {{{h_mean}}}$, yielding a Shannon effective dimension of $D_{\text{eff}} = {{{d_eff}}}$. \\[4pt]
-        Numerical Stability & The condition number $\kappa = {{{condition_num}}}$ confirms a well-conditioned low-rank basis projection ($N_0 = {{{n_0}}}$ nullspace modes). \\
+        Numerical Stability & The condition number $\mathrm{cond}(A) = {{{condition_num}}}$ confirms a well-conditioned low-rank basis projection ($N_0 = {{{n_0}}}$ nullspace modes). \\
         \bottomrule
     \end{tabular}
     \caption{Key pipeline execution and manifold metrics for the current campaign.}
@@ -50,7 +50,7 @@ By mapping the boundary layer dynamics into the orthogonal coordinates $(\eta_1,
 
 These signatures confirm that \texttt{ {{campaign_display_name}} } contributes campaign-specific constraints in the verification pipeline. Its operational role can be summarized through runtime geometry and conditioning diagnostics:
 \begin{equation}
-    \mathcal{M}_{\text{validation}} = \mathbf{f}\Big(\mathcal{A}_{\text{site}}\big(\kappa_{\text{rank}}={{{condition_num}}},\ D_{\text{eff}}={{{d_eff}}}\big),\ \mathcal{S}_{\text{surface}}\Big)
+    \mathcal{M}_{\text{validation}} = \mathbf{f}\Big(\mathcal{A}_{\text{site}}\big(c_{\text{rank}}={{{condition_num}}},\ D_{\text{eff}}={{{d_eff}}}\big),\ \mathcal{S}_{\text{surface}}\Big)
 \end{equation}
 
 Surface roughness context for this run: \texttt{ {{{z0m_text}}} }.

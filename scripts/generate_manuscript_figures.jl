@@ -14,7 +14,7 @@ end
 
 function main()
     scripts = [
-        "scripts/plot_fig4_manifold.jl",
+        "scripts/plot_fig4_manifold_enhanced.jl",
         "scripts/plot_fig5_archetypes.jl",
         "scripts/plot_fig6_shadow_timeseries.jl",
         "scripts/plot_fig7_slowing_down.jl",

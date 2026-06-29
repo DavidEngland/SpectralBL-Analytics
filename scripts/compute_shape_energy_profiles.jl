@@ -1,4 +1,5 @@
 #!/usr/bin/env julia
+# scripts/compute_shape_energy_profiles.jl
 
 using Pkg
 Pkg.activate(".")
@@ -66,20 +67,61 @@ function resolve_profile_columns(df::DataFrame, profile_cols_arg::String, height
     return first.(inferred), last.(inferred)
 end
 
+function to_finite_float(raw)
+    if raw === missing || ismissing(raw)
+        return nothing
+    end
+    if raw isa Number
+        v = Float64(raw)
+        return isfinite(v) ? v : nothing
+    end
+    v = tryparse(Float64, string(raw))
+    if v === nothing
+        return nothing
+    end
+    return isfinite(v) ? v : nothing
+end
+
 function compute_row_metrics(row, profile_cols::Vector{String}, heights::Vector{Float64})
     z = Float64[]
     y = Float64[]
 
     for (c, h) in zip(profile_cols, heights)
-        raw = row[Symbol(c)]
-        if raw === missing
+        v = to_finite_float(row[Symbol(c)])
+        if v === nothing
             continue
         end
-        val = raw isa Number ? Float64(raw) : tryparse(Float64, string(raw))
-        val === nothing && continue
-        isfinite(val) || continue
         push!(z, h)
-        push!(y, val)
+        push!(y, v)
+    end
+
+    if length(z) < 5
+        return (missing, missing, missing, missing, length(z), "insufficient_levels")
+    end
+
+    p = sortperm(z)
+    z_sorted = z[p]
+    y_sorted = y[p]
+
+    try
+        e = compute_shape_energy(y_sorted, z_sorted)
+        return (e.E_g, e.E_kappa, e.E_j, e.R, length(z_sorted), "ok")
+    catch err
+        return (missing, missing, missing, missing, length(z_sorted), sprint(showerror, err))
+    end
+end
+
+function compute_row_metrics_fast(row_idx::Int, profile_data::Vector, heights::Vector{Float64})
+    z = Float64[]
+    y = Float64[]
+
+    for (col, h) in zip(profile_data, heights)
+        v = to_finite_float(col[row_idx])
+        if v === nothing
+            continue
+        end
+        push!(z, h)
+        push!(y, v)
     end
 
     if length(z) < 5
@@ -135,6 +177,8 @@ function main()
     @printf("Loading input: %s\n", input_path)
     df = CSV.read(input_path, DataFrame)
     profile_cols, heights = resolve_profile_columns(df, args["profile-cols"], args["heights"])
+    profile_syms = Symbol.(profile_cols)
+    profile_data = [df[!, s] for s in profile_syms]
 
     @printf("Using %d profile columns\n", length(profile_cols))
 
@@ -154,7 +198,7 @@ function main()
     end
 
     for i in 1:n_rows
-        Eg, Ek, Ej, Rv, nlev, status = compute_row_metrics(df[i, :], profile_cols, heights)
+        Eg, Ek, Ej, Rv, nlev, status = compute_row_metrics_fast(i, profile_data, heights)
         out.E_g[i] = Eg
         out.E_kappa[i] = Ek
         out.E_j[i] = Ej

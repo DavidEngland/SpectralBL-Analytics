@@ -72,7 +72,8 @@ function main()
         xlabel = "Shortest Euclidean distance to fold line, d_f [-]",
         ylabel = "Spectral curvature coordinate magnitude [-]",
         title = "Universal Scaling Collapse Across Four Campaigns",
-        legend = :topright,
+        legend = :outertop,
+        legend_column = 5,
     )
 
     for campaign in CAMPAIGN_ORDER

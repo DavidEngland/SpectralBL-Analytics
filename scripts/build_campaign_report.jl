@@ -1130,7 +1130,7 @@ function build_markdown_audit_tokens(manifest, campaign_label::String, report_ru
     custom_metrics = [
         Dict("metric_name" => "H", "latex_formula" => "-\\sum_{i=1}^{r} p_i \\log p_i"),
         Dict("metric_name" => "D_{\\mathrm{eff}}", "latex_formula" => "e^{H}"),
-        Dict("metric_name" => "\\kappa", "latex_formula" => "\\sigma_{\\max} / \\sigma_{\\min}"),
+        Dict("metric_name" => "\\mathrm{cond}(A)", "latex_formula" => "\\sigma_{\\max} / \\sigma_{\\min}"),
         Dict("metric_name" => "R_{\\mathrm{exceed}}", "latex_formula" => "\\frac{1}{W} \\sum_{w=1}^{W} \\mathbf{1}\\{\\mathrm{disagreement\\_norm}_w > \\tau\\}"),
     ]
 
