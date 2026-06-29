@@ -8,6 +8,7 @@ push!(LOAD_PATH, joinpath(pwd(), "src"))
 
 using IngestionFormatters
 using AttractorDiagnostics
+using ShapeEnergyDiagnostics
 import ChebyshevResidualEngine
 using LinearAlgebra
 using Statistics
@@ -114,6 +115,34 @@ using Statistics
         norms = [LinearAlgebra.norm(Z[i, :]) for i in 1:size(Z, 1)]
         @test mean(norms) > 0
         @test all(n -> 0 < n < 10, norms)
+    end
+
+    @testset "Shape Energy Diagnostics" begin
+        z = collect(range(0.0, 1.0, length=401))
+
+        # Buttery profile: nearly linear and smooth
+        y_buttery = 0.2 .* z
+        e_buttery = compute_shape_energy(y_buttery, z)
+
+        # Wavy profile: smooth oscillation with moderate roughness
+        y_wavy = 0.1 .* sin.(2.0pi .* z)
+        e_wavy = compute_shape_energy(y_wavy, z)
+
+        # Brittle profile: steep transition with concentrated curvature
+        y_brittle = tanh.(40.0 .* (z .- 0.5))
+        e_brittle = compute_shape_energy(y_brittle, z)
+
+        @test e_buttery.E_g > 0.0
+        @test e_buttery.E_kappa < 1e-3
+        @test e_buttery.E_j < 1e-2
+
+        @test e_wavy.R > e_buttery.R
+
+        @test e_brittle.E_kappa > e_buttery.E_kappa
+        @test e_brittle.E_j > e_wavy.E_j
+
+        # Coordinate validation guardrails
+        @test_throws ArgumentError compute_shape_energy([1.0, 2.0, 3.0, 4.0], [0.0, 0.5, 0.5, 1.0])
     end
 
 end

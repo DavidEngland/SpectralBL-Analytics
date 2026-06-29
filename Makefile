@@ -1,4 +1,4 @@
-.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report bllast-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit bllast-audit arctic-audit paper paper-clean paper-rebuild paper-setup paper-metrics manuscript-figures
+.PHONY: init test process tex stage2-pipeline stage3-assemble stage4-calibrate stage4-discover stage5-stability stage5-sweep stage5-panels stage5-summary stage5-transitions shape-energy report compile-report compile-audit compile-cards cabauw-report cases99-report gabls3-report floss-report bllast-report arctic-report arctic-hlbl-synthetic arctic-finalize build-campaign-atomic clean purge help all audit cases99-audit gabls3-audit floss-audit bllast-audit arctic-audit paper paper-clean paper-rebuild paper-setup paper-metrics manuscript-figures
 
 # Configuration parameters
 CAMPAIGN ?= ALL
@@ -65,6 +65,9 @@ OUTPUT_AUDIT_PDF = $(if $(filter CASES-99,$(CAMPAIGN)),CASES-99-audit.pdf,$(if $
 REPORT_RUN_DIR = $(if $(filter CASES-99,$(CAMPAIGN)),cases99_run,$(if $(filter GABLS3,$(CAMPAIGN)),gabls3_run,$(if $(filter ARCTIC-AMPLIFICATION,$(CAMPAIGN)),arctic_amplification_run,$(if $(filter FLOSS,$(CAMPAIGN)),floss_run,$(if $(filter BLLAST,$(CAMPAIGN)),bllast_run,all_run)))))
 CAMPAIGN_SLUG = $(shell echo "$(CAMPAIGN)" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/_/g; s/^_+//; s/_+$$//')
 PAPER_DIR ?= manuscript
+SHAPE_INPUT_CSV ?= $(TRAJECTORY_CSV)
+SHAPE_OUTPUT_CSV ?= data/outputs/shape_energy_$(CAMPAIGN_SLUG).csv
+SHAPE_AGG_PREFIX ?= data/outputs/shape_energy_$(CAMPAIGN_SLUG)
 
 # Default target
 all: init process tex report
@@ -82,6 +85,7 @@ help:
 	@echo "  make stage5-panels     - Export Stage 5 3-panel diagnostic CSVs (trajectory/abscissa/distance)"
 	@echo "  make stage5-summary    - Emit JSON summary diagnostics for Stage 5 branch/manifest outputs"
 	@echo "  make stage5-transitions - Build transition-panel CSV assets for report rendering"
+	@echo "  make shape-energy       - Compute shape-energy metrics and aggregate campaign medians/distributions"
 	@echo "  make tex               - Regenerate LaTeX macros and tables for the draft"
 	@echo "  make report            - Build Mustache templates + JSON manifest (set CAMPAIGN=GABLS3|CASES-99|ALL)"
 	@echo "  make audit             - Build standalone markdown campaign audit (campaign-scoped output)"
@@ -195,6 +199,18 @@ stage5-summary:
 stage5-transitions:
 	@echo "Generating transition-panel assets (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
 	julia --project="." scripts/generate_transition_assets.jl --campaign $(CAMPAIGN) --trajectory-csv $(TRAJECTORY_CSV)
+
+shape-energy:
+	@echo "Computing shape-energy metrics (campaign=$(CAMPAIGN), slug=$(CAMPAIGN_SLUG))..."
+	julia --project="." scripts/compute_shape_energy_profiles.jl \
+		--input $(SHAPE_INPUT_CSV) \
+		--output $(SHAPE_OUTPUT_CSV) \
+		--time-col time_value
+	@echo "Aggregating shape-energy campaign summaries..."
+	julia --project="." scripts/aggregate_shape_energy_campaign.jl \
+		--shape-csv $(SHAPE_OUTPUT_CSV) \
+		--trajectory-csv $(TRAJECTORY_CSV) \
+		--output-prefix $(SHAPE_AGG_PREFIX)
 
 tex:
 	@echo "Regenerating LaTeX exports..."
