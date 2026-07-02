@@ -48,14 +48,14 @@
 \maketitle
 
 \begin{abstract}
-This report details the low-rank manifold reconstruction and structural stability profiling executed for the \textbf{ {{campaign_label}} } campaign.
+This report details the low-rank manifold reconstruction and structural stability profiling executed for the \textbf{{{campaign_label}}} campaign.
 Characterized by intense near-surface radiative cooling under strongly stable stratification, this boundary layer configuration represents a regime where classical surface-layer similarity theory frequently breaks down.
 
 Using singular value decomposition (SVD) on multi-level vertical profile sequences, we extract an empirical low-rank state-space manifold that captures the dominant modes of the nocturnal boundary layer.
 Structural identifier optimization resolves the underlying vector fields, which are subsequently evaluated using Stage~5 parameter continuation.
 
 {{#has_stage5_summary}}
-Parameter continuation identifies a critical manifold bifurcation at $\gamma_c \approx {{{gamma_c_fmt}}}$, where the leading stability eigenvalue changes sign with transversality rate $\left. \frac{d\alpha}{d\gamma} \right|_{\gamma_c} \approx {{{transversality_fmt}}}$.{{#has_stage5_period}} The crossing is accompanied by an intrinsic oscillatory period of $T_H \approx {{{period_fmt}}}\,\mathrm{min}$, indicating the emergence of wave-mediated oscillatory dynamics consistent with observed low-level jet pulsations.{{/has_stage5_period}} These diagnostics suggest that nocturnal boundary-layer intermittency may be interpreted as a geometric transition of the reconstructed low-dimensional attractor, rather than being exclusively characterized by local Richardson-number criteria.
+{{#has_stage5_hopf_marker}}Parameter continuation identifies a critical manifold bifurcation at $\gamma_c \approx {{{gamma_c_fmt}}}$.{{/has_stage5_hopf_marker}}{{#has_stage5_transversality}} The leading stability eigenvalue changes sign with transversality rate $\left. \frac{d\alpha}{d\gamma} \right|_{\gamma_c} \approx {{{transversality_fmt}}}$.{{/has_stage5_transversality}}{{#has_stage5_period}} The crossing is accompanied by an intrinsic oscillatory period of $T_H \approx {{{period_fmt}}}\,\mathrm{min}$, indicating the emergence of wave-mediated oscillatory dynamics consistent with observed low-level jet pulsations.{{/has_stage5_period}} These diagnostics suggest that nocturnal boundary-layer intermittency may be interpreted as a geometric transition of the reconstructed low-dimensional attractor, rather than being exclusively characterized by local Richardson-number criteria.
 {{/has_stage5_summary}}
 {{^has_stage5_summary}}
 By projecting high-dimensional vertical profile measurements directly onto empirical spatial basis vectors extracted via singular value decomposition (SVD), we reconstruct the underlying low-dimensional attractor manifold in the space $(\eta_1, \eta_2, \eta_3)$.

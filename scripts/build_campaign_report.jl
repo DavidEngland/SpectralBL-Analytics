@@ -507,6 +507,7 @@ function extract_stage5_summary_tokens(data_out_dir::String, campaign_label::Str
         "has_stage5_summary" => false,
         "has_stage5_branch_data" => false,
         "has_stage5_hopf_marker" => false,
+        "has_stage5_transversality" => false,
         "has_stage5_period" => false,
         "has_stage5_beta_c" => false,
         "has_stage5_beta_series" => false,
@@ -567,6 +568,10 @@ function extract_stage5_summary_tokens(data_out_dir::String, campaign_label::Str
     gamma_c = (haskey(summary, "gamma_c_hopf") && summary["gamma_c_hopf"] !== nothing) ? tryparse(Float64, string(summary["gamma_c_hopf"])) : nothing
     period_seconds = (haskey(summary, "hopf_period_Th") && summary["hopf_period_Th"] !== nothing) ? tryparse(Float64, string(summary["hopf_period_Th"])) : nothing
     transversality = (haskey(summary, "dRe_dgamma_at_crossing") && summary["dRe_dgamma_at_crossing"] !== nothing) ? tryparse(Float64, string(summary["dRe_dgamma_at_crossing"])) : nothing
+
+    gamma_c = (gamma_c !== nothing && isfinite(gamma_c)) ? gamma_c : nothing
+    period_seconds = (period_seconds !== nothing && isfinite(period_seconds)) ? period_seconds : nothing
+    transversality = (transversality !== nothing && isfinite(transversality)) ? transversality : nothing
 
     gamma_min_summary = (haskey(summary, "gamma_min") && summary["gamma_min"] !== nothing) ? tryparse(Float64, string(summary["gamma_min"])) : nothing
     gamma_max_summary = (haskey(summary, "gamma_max") && summary["gamma_max"] !== nothing) ? tryparse(Float64, string(summary["gamma_max"])) : nothing
@@ -629,9 +634,10 @@ function extract_stage5_summary_tokens(data_out_dir::String, campaign_label::Str
     if transversality !== nothing
         tokens["transversality"] = @sprintf("%.6f", transversality)
         tokens["transversality_fmt"] = @sprintf("%.4f", transversality)
+        tokens["has_stage5_transversality"] = true
     end
 
-    tokens["has_stage5_summary"] = true
+    tokens["has_stage5_summary"] = tokens["has_stage5_hopf_marker"] || tokens["has_stage5_transversality"]
     return tokens
 end
 
